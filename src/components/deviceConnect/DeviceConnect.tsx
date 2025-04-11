@@ -99,7 +99,7 @@ export const DeviceConnect = () => {
 
   return (
     <div className={styles.deviceConnect}>
-      <h2 className={styles.title}>Device Connection</h2>
+      <h2 className={styles.title}>Handy Connection</h2>
 
       {error && !isConnected && (
         <div className={styles.errorMessage}>{error}</div>
