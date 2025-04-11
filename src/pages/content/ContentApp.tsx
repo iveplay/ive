@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useShallow } from 'zustand/shallow'
-import { SyncIndicator } from '@/components/syncIndicator/SyncIndicator'
+import { ScriptInfoPanel } from '@/components/scriptInfo/ScriptInfoPanel'
 import { useHandyStore } from '@/store/useHandyStore'
 import styles from './ContentApp.module.scss'
+import { ScriptMetadata } from './ContentWrapper'
 
-export const ContentApp = ({ script }: { script: string }) => {
+export const ContentApp = ({
+  script,
+  scriptMetadata,
+}: {
+  script: string
+  scriptMetadata: ScriptMetadata | null
+}) => {
   const { isConnected, isPlaying, setupScript, play, stop, syncVideoTime } =
     useHandyStore(
       useShallow((state) => ({
@@ -290,11 +297,16 @@ export const ContentApp = ({ script }: { script: string }) => {
 
   return (
     <div className={styles.contentApp}>
-      <SyncIndicator
+      <ScriptInfoPanel
         isConnected={isConnected}
         isPlaying={isPlaying}
         isScriptSetup={isScriptSetup}
+        scriptMetadata={scriptMetadata}
         onSyncClick={handleForceSyncClick}
+        onStopClick={() => {
+          if (!isConnected) return
+          stopDevicePlayback()
+        }}
       />
     </div>
   )
