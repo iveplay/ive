@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ContentWrapper } from './ContentWrapper'
+import { ContentWrapper } from '@/pages/content/ContentWrapper'
 
 const root = document.createElement('div')
 root.id = 'crx-root'

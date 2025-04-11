@@ -1,6 +1,6 @@
-import { create } from 'zustand'
-import { DeviceInfo } from '../api/handyApi'
 import { useEffect } from 'react'
+import { create } from 'zustand'
+import { DeviceInfo } from '@/api/handyApi'
 
 // Persistent configuration - only what we need to store
 type HandyConfig = {

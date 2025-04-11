@@ -1,11 +1,12 @@
-import { ContentApp } from './ContentApp'
-import scripts from '../data/scripts.json'
 import { useHandySetup } from '@/store/useHandyStore'
+import scripts from '../../../data/scripts.json'
+import { ContentApp } from './ContentApp'
 
 export const ContentWrapper = () => {
   const url = window.location.href
   const videoUrl = Object.keys(scripts).find((key) => url.includes(key))
-  const script = videoUrl ? scripts[videoUrl as keyof typeof scripts] : null
+  // @ts-expect-error typing
+  const script = videoUrl ? scripts[videoUrl]?.scriptUrl : null
 
   // Only activate connection if we have a script for this site
   useHandySetup('contentScript', !!script)

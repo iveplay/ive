@@ -4,6 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
+import importPlugin from 'eslint-plugin-import-x'
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -17,12 +18,49 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      import: importPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
+      ],
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+          ],
+          'newlines-between': 'never',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+          pathGroups: [
+            {
+              pattern: '@/**',
+              group: 'internal',
+            },
+            {
+              pattern: '@popup/**',
+              group: 'internal',
+            },
+            {
+              pattern: '@background/**',
+              group: 'internal',
+            },
+            {
+              pattern: '@content/**',
+              group: 'internal',
+            },
+          ],
+        },
       ],
     },
   },

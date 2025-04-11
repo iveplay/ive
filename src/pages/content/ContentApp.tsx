@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useShallow } from 'zustand/shallow'
-import { useHandyStore } from '@/store/useHandyStore'
 import { SyncIndicator } from '@/components/syncIndicator/SyncIndicator'
+import { useHandyStore } from '@/store/useHandyStore'
 import styles from './ContentApp.module.scss'
 
 export const ContentApp = ({ script }: { script: string }) => {
