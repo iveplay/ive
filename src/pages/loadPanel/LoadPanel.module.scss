@@ -1,15 +1,84 @@
-.creatorInfo {
+.loadPanel {
   display: flex;
   flex-direction: column;
-  align-items: start;
-  justify-content: center;
-  margin-bottom: 16px;
+  width: 100%;
 
-  .creatorName {
+  .title {
     font-size: 16px;
     font-weight: 600;
     color: #fff;
     border: 0;
-    margin: 0 0 8px 0;
+    margin: 0 0 16px 0;
+    text-align: center;
+  }
+
+  .dropZone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    border: 2px dashed rgba(123, 2, 77, 1);
+    border-radius: 8px;
+    padding: 8px;
+    transition: all 0.3s ease;
+    text-align: center;
+    overflow: hidden;
+
+    &:hover,
+    .dragActive & {
+      border-color: rgba(123, 2, 77, 1);
+      background-color: rgba(123, 2, 77, 0.1);
+    }
+
+    .dropScript {
+      font-size: 14px;
+      color: #b0b0b0;
+      margin: 0;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      -webkit-box-orient: vertical;
+    }
+  }
+
+  &.dragActive .dropZone {
+    border-color: #7b024d;
+    background-color: rgba(123, 2, 77, 0.2);
+  }
+
+  .dropInstructions {
+    min-height: 14px;
+    margin: 0;
+    color: #b0b0b0;
+    font-size: 14px;
+  }
+
+  .loadButton {
+    margin-top: 8px;
+    padding: 8px 16px;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background-color: #7b024d;
+
+    &:hover:not(:disabled) {
+      background-color: #a60569;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(123, 2, 77, 0.4);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
   }
 }

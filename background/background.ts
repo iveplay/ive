@@ -1,10 +1,6 @@
 import { HandyApi, createHandyApi } from '@/api/handyApi'
 import type { HandyState } from '@/store/useHandyStore'
 
-// Constants from environment vars
-const HANDY_BASE_URL = 'https://www.handyfeeling.com/api/handy-rest/v3'
-const HANDY_APPLICATION_ID = 'qPH5gJibT7vahb3v27DdWkagy53yeOqD'
-
 // Initialize state
 let handyApi: HandyApi | null = null
 let eventSource: EventSource | null = null
@@ -72,8 +68,9 @@ async function saveConfig() {
 function initializeApi() {
   if (!handyApi && state.config.connectionKey) {
     handyApi = createHandyApi(
-      HANDY_BASE_URL,
-      HANDY_APPLICATION_ID,
+      import.meta.env.VITE_HANDY_BASE_URL_V3,
+      import.meta.env.VITE_HANDY_BASE_URL_V2,
+      import.meta.env.VITE_HANDY_APPLICATION_ID,
       state.config.connectionKey,
     )
     console.log('API initialized with key:', state.config.connectionKey)
@@ -101,8 +98,9 @@ async function connectDevice() {
     // Initialize API if needed
     if (!handyApi) {
       handyApi = createHandyApi(
-        HANDY_BASE_URL,
-        HANDY_APPLICATION_ID,
+        import.meta.env.VITE_HANDY_BASE_URL_V3,
+        import.meta.env.VITE_HANDY_BASE_URL_V2,
+        import.meta.env.VITE_HANDY_APPLICATION_ID,
         state.config.connectionKey,
       )
     } else {

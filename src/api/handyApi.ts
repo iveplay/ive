@@ -52,14 +52,25 @@ export type ApiResponse<T = unknown> = {
   }
 }
 
+export type UploadResponse = {
+  url: string
+}
+
 export class HandyApi {
-  private readonly baseUrl: string
+  private readonly baseV3Url: string
+  private readonly baseV2Url: string
   private readonly applicationId: string
   private connectionKey: string
   private serverTimeOffset = 0
 
-  constructor(baseUrl: string, applicationId: string, connectionKey = '') {
-    this.baseUrl = baseUrl
+  constructor(
+    baseV3Url: string,
+    baseV2Url: string,
+    applicationId: string,
+    connectionKey = '',
+  ) {
+    this.baseV3Url = baseV3Url
+    this.baseV2Url = baseV2Url
     this.applicationId = applicationId
     this.connectionKey = connectionKey
   }
@@ -117,9 +128,11 @@ export class HandyApi {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
+    useV2 = false,
   ): Promise<ApiResponse<T>> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const baseUrl = useV2 ? this.baseV2Url : this.baseV3Url
+      const response = await fetch(`${baseUrl}${endpoint}`, {
         ...options,
         headers: {
           ...this.getHeaders(),
@@ -170,6 +183,32 @@ export class HandyApi {
       return response.result?.mode ?? null
     } catch (error) {
       console.error('Handy: Error getting mode:', error)
+      return null
+    }
+  }
+
+  /**
+   * Upload a script file to the hosting service
+   * Returns the URL where the script can be accessed
+   */
+  public async uploadScript(scriptFile: File): Promise<string | null> {
+    try {
+      const formData = new FormData()
+      formData.append('file', scriptFile)
+
+      const response = await fetch(`${this.baseV2Url}/upload`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Connection-Key': this.connectionKey,
+          Authorization: `Bearer ${this.applicationId}`,
+        },
+      })
+
+      const data = (await response.json()) as { url: string }
+      return data.url || null
+    } catch (error) {
+      console.error('Handy: Error uploading script:', error)
       return null
     }
   }
@@ -319,7 +358,7 @@ export class HandyApi {
    */
   public async getServerTime(): Promise<number | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/servertime`)
+      const response = await fetch(`${this.baseV3Url}/servertime`)
       const data = await response.json()
       return data.server_time || null
     } catch (error) {
@@ -387,16 +426,17 @@ export class HandyApi {
    */
   public createEventSource(): EventSource {
     return new EventSource(
-      `${this.baseUrl}/sse?ck=${this.connectionKey}&apikey=${this.applicationId}`,
+      `${this.baseV3Url}/sse?ck=${this.connectionKey}&apikey=${this.applicationId}`,
     )
   }
 }
 
 // Export a factory function to create HandyApi instances
 export const createHandyApi = (
-  baseUrl: string,
+  baseV3Url: string,
+  baseV2Url: string,
   applicationId: string,
   connectionKey = '',
 ): HandyApi => {
-  return new HandyApi(baseUrl, applicationId, connectionKey)
+  return new HandyApi(baseV3Url, baseV2Url, applicationId, connectionKey)
 }
