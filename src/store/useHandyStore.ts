@@ -39,6 +39,12 @@ type HandyActions = {
   ) => Promise<boolean>
   stop: () => Promise<boolean>
   syncVideoTime: (videoTime: number) => Promise<boolean>
+  uploadScriptUrl: (scriptUrl: string) => Promise<string | null>
+  saveCustomScriptMapping: (
+    videoUrl: string,
+    scriptUrl: string,
+  ) => Promise<boolean>
+  getCustomScriptForUrl: (videoUrl: string) => Promise<string | null>
 }
 
 // The full store type
@@ -144,6 +150,28 @@ export const useHandyStore = create<HandyStore>()(() => ({
     return await sendMessageToBackground({
       type: 'handy_sync_video_time',
       videoTime,
+    })
+  },
+
+  uploadScriptUrl: async (scriptUrl: string) => {
+    return await sendMessageToBackground({
+      type: 'handy_upload_script_url',
+      scriptUrl,
+    })
+  },
+
+  saveCustomScriptMapping: async (videoUrl: string, scriptUrl: string) => {
+    return await sendMessageToBackground({
+      type: 'handy_save_custom_script_mapping',
+      videoUrl,
+      scriptUrl,
+    })
+  },
+
+  getCustomScriptForUrl: async (videoUrl: string) => {
+    return await sendMessageToBackground({
+      type: 'handy_get_custom_script_for_url',
+      videoUrl,
     })
   },
 }))

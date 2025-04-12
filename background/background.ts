@@ -4,6 +4,7 @@ import type { HandyState } from '@/store/useHandyStore'
 // Initialize state
 let handyApi: HandyApi | null = null
 let eventSource: EventSource | null = null
+let customScriptMapping: Record<string, string> = {}
 
 const state: HandyState = {
   config: {
@@ -340,6 +341,100 @@ async function syncVideoTime(videoTime: number) {
   }
 }
 
+// Upload script and return the hosted URL
+async function uploadScriptUrl(scriptUrl: string): Promise<string | null> {
+  try {
+    if (!handyApi) {
+      state.error = 'Not connected to a device'
+      broadcastState()
+      return null
+    }
+
+    // First fetch the script file
+    const response = await fetch(scriptUrl)
+    if (!response.ok) {
+      state.error = 'Failed to fetch script'
+      broadcastState()
+      return null
+    }
+
+    // Create a file from the response
+    const contentType = response.headers.get('content-type') || 'text/plain'
+    const blob = await response.blob()
+    const filename = scriptUrl.split('/').pop() || 'script.funscript'
+    const file = new File([blob], filename, { type: contentType })
+
+    // Upload the file using the API
+    const uploadedUrl = await handyApi.uploadScript(file)
+
+    if (!uploadedUrl) {
+      state.error = 'Failed to upload script'
+      broadcastState()
+      return null
+    }
+
+    return uploadedUrl
+  } catch (error) {
+    console.error('Error uploading script:', error)
+    state.error = 'Failed to upload script'
+    broadcastState()
+    return null
+  }
+}
+
+// Add new function to save custom script mapping
+async function saveCustomScriptMapping(
+  videoUrl: string,
+  scriptUrl: string,
+): Promise<boolean> {
+  try {
+    customScriptMapping[videoUrl] = scriptUrl
+
+    // Save to storage
+    await chrome.storage.local.set({
+      'custom-script-mapping': customScriptMapping,
+    })
+
+    console.log('Saved custom script mapping:', videoUrl, scriptUrl)
+    return true
+  } catch (error) {
+    console.error('Error saving custom script mapping:', error)
+    return false
+  }
+}
+
+// Add function to get custom script for URL
+async function getCustomScriptForUrl(videoUrl: string): Promise<string | null> {
+  // Check if we have a direct match
+  if (customScriptMapping[videoUrl]) {
+    return customScriptMapping[videoUrl]
+  }
+
+  // Check if we have a partial match (site domain)
+  const matchingKey = Object.keys(customScriptMapping).find(
+    (key) => videoUrl.includes(key) || key.includes(videoUrl),
+  )
+
+  if (matchingKey) {
+    return customScriptMapping[matchingKey]
+  }
+
+  return null
+}
+
+// Load custom scripts on startup
+async function loadCustomScriptMapping() {
+  try {
+    const data = await chrome.storage.local.get('custom-script-mapping')
+    if (data['custom-script-mapping']) {
+      customScriptMapping = data['custom-script-mapping']
+      console.log('Loaded custom script mapping:', customScriptMapping)
+    }
+  } catch (error) {
+    console.error('Error loading custom script mapping:', error)
+  }
+}
+
 // Keep track of tabs with active content scripts
 const activeTabs = new Set<number>()
 
@@ -410,6 +505,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'handy_setup_script':
           return await setupScript(message.scriptUrl)
 
+        case 'handy_upload_script_url':
+          return await uploadScriptUrl(message.scriptUrl)
+
         case 'handy_play':
           return await play(
             message.videoTime,
@@ -422,6 +520,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         case 'handy_sync_video_time':
           return await syncVideoTime(message.videoTime)
+
+        case 'handy_save_custom_script_mapping':
+          return await saveCustomScriptMapping(
+            message.videoUrl,
+            message.scriptUrl,
+          )
+
+        case 'handy_get_custom_script_for_url':
+          return await getCustomScriptForUrl(message.videoUrl)
 
         case 'handy_context_active':
           activeContexts[message.context as keyof typeof activeContexts] =
@@ -467,6 +574,8 @@ const activeContexts = {
 // Initialize on startup - just load config but don't connect
 async function init() {
   await loadConfig()
+  await loadCustomScriptMapping()
+
   // Only initialize API, but don't connect yet
   if (state.config.connectionKey) {
     initializeApi()

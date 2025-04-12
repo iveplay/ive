@@ -199,10 +199,8 @@ export class HandyApi {
       const response = await fetch(`${this.baseV2Url}/upload`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'X-Connection-Key': this.connectionKey,
-          Authorization: `Bearer ${this.applicationId}`,
-        },
+        mode: 'cors',
+        credentials: 'omit',
       })
 
       const data = (await response.json()) as { url: string }
