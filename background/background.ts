@@ -28,7 +28,7 @@ const state: HandyState = {
 // Load stored config
 async function loadConfig() {
   try {
-    const storedData = await chrome.storage.local.get('handy-storage')
+    const storedData = await chrome.storage.sync.get('handy-storage')
     if (storedData['handy-storage']) {
       const parsedData = JSON.parse(storedData['handy-storage'])
       if (parsedData.state?.config) {
@@ -60,7 +60,7 @@ async function saveConfig() {
         },
       },
     }
-    await chrome.storage.local.set({
+    await chrome.storage.sync.set({
       'handy-storage': JSON.stringify(dataToStore),
     })
   } catch (error) {

@@ -1,3 +1,7 @@
 .contentApp {
   pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 }
