@@ -96,14 +96,17 @@ async function savePreferences() {
 
 // Initialize API
 function initializeApi() {
-  if (!handyApi && state.config.connectionKey) {
+  if (!handyApi) {
     handyApi = createHandyApi(
       import.meta.env.VITE_HANDY_BASE_URL_V3,
       import.meta.env.VITE_HANDY_BASE_URL_V2,
       import.meta.env.VITE_HANDY_APPLICATION_ID,
       state.config.connectionKey,
     )
-    console.log('API initialized with key:', state.config.connectionKey)
+    console.log(
+      'API initialized with key:',
+      state.config.connectionKey || 'empty',
+    )
   }
   return handyApi
 }
@@ -127,12 +130,7 @@ async function connectDevice() {
 
     // Initialize API if needed
     if (!handyApi) {
-      handyApi = createHandyApi(
-        import.meta.env.VITE_HANDY_BASE_URL_V3,
-        import.meta.env.VITE_HANDY_BASE_URL_V2,
-        import.meta.env.VITE_HANDY_APPLICATION_ID,
-        state.config.connectionKey,
-      )
+      handyApi = initializeApi()
     } else {
       handyApi.setConnectionKey(state.config.connectionKey)
     }
@@ -241,10 +239,10 @@ async function disconnectDevice() {
 async function setConnectionKey(key: string) {
   state.config.connectionKey = key
 
-  if (handyApi) {
-    handyApi.setConnectionKey(key)
-  } else {
+  if (!handyApi) {
     initializeApi()
+  } else {
+    handyApi.setConnectionKey(key)
   }
 
   saveConfig()
@@ -639,10 +637,7 @@ async function init() {
   await loadConfig()
   await loadCustomScriptMapping()
 
-  // Only initialize API, but don't connect yet
-  if (state.config.connectionKey) {
-    initializeApi()
-  }
+  initializeApi()
 }
 
 // New function to check if we need to connect or disconnect
