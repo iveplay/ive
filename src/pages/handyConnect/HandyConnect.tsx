@@ -2,11 +2,11 @@ import { Slider, RangeSlider } from '@mantine/core'
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
+import { DeviceInfo } from '@/components/deviceInfo/DeviceInfo'
 import { useHandyStore } from '@/store/useHandyStore'
-import { DeviceInfo } from '../deviceInfo/DeviceInfo'
-import styles from './DeviceConnect.module.scss'
+import styles from './HandyConnect.module.scss'
 
-export const DeviceConnect = () => {
+export const HandyConnect = () => {
   const {
     config,
     isConnected,
@@ -98,9 +98,7 @@ export const DeviceConnect = () => {
   }
 
   return (
-    <div className={styles.deviceConnect}>
-      <h2 className={styles.title}>Handy Connection</h2>
-
+    <div className={styles.handyConnect}>
       {error && !isConnected && (
         <div className={styles.errorMessage}>{error}</div>
       )}
