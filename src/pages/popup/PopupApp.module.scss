@@ -1,6 +1,11 @@
 .popupApp {
+  background-color: rgba(41, 11, 29, 1);
+  color: white;
+  font-size: 14px;
+  min-width: 320px;
   padding: 0 16px 16px 16px;
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  color: #f0f0f0;
+  overflow: hidden;
+  border: 1px solid rgba(123, 2, 77, 0.3);
+  box-shadow: 0 4px 8px rgba(123, 2, 77, 0.2);
+  backdrop-filter: blur(4px);
 }

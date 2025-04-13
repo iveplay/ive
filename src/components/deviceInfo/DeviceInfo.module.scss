@@ -1,28 +1,29 @@
 .deviceInfo {
-  padding: 16px;
-  background-color: #252525;
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  border: 1px solid #3d3d3d;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 16px;
   transition: all 0.3s ease;
 
   &.connected {
     background-color: rgba(76, 175, 80, 0.08);
-    border-color: rgba(76, 175, 80, 0.4);
+    border-color: rgba(76, 175, 80, 0.3);
   }
 
   &.disconnected {
     background-color: rgba(244, 67, 54, 0.08);
-    border-color: rgba(244, 67, 54, 0.4);
+    border-color: rgba(244, 67, 54, 0.3);
   }
 
   .title {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 16px;
+    margin: 0 0 4px 0;
     display: flex;
     align-items: center;
     gap: 8px;
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .statusDot {
@@ -50,17 +51,17 @@
 
     .infoItem {
       display: flex;
-      gap: 8px;
-      padding: 4px 0;
+      padding: 0 0;
       font-size: 14px;
 
       .label {
         font-weight: 500;
         min-width: 80px;
+        color: rgba(255, 255, 255, 0.8);
       }
 
       .value {
-        color: #b0b0b0;
+        color: rgba(255, 255, 255, 0.6);
 
         &.playing {
           color: #4caf50;
@@ -68,11 +69,11 @@
         }
 
         &.stopped {
-          color: #909090;
+          color: rgba(255, 255, 255, 0.5);
         }
 
         &.empty {
-          color: #707070;
+          color: rgba(255, 255, 255, 0.4);
           font-style: italic;
         }
       }
