@@ -19,10 +19,12 @@
   }
 
   .connectionForm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 16px;
 
     .keyInput {
-      margin-bottom: 8px;
       background-color: rgba(255, 255, 255, 0.07);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: white;
@@ -34,7 +36,7 @@
     }
 
     .connectButton {
-      margin-top: 8px;
+      flex: 1;
       width: 100%;
       font-weight: 500;
       transition: all 0.2s ease;
