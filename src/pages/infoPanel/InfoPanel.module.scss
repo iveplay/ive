@@ -101,6 +101,11 @@
       outline: none;
       box-shadow: 0 0 0 2px rgba(123, 2, 77, 0.4);
     }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
 
   .syncButton {
