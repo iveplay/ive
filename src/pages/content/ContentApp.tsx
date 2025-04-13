@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useHandySetup, useHandyStore } from '@/store/useHandyStore'
+import {
+  usePreferencesSetup,
+  usePreferencesStore,
+} from '@/store/usePreferencesStore'
 import scripts from '../../../data/scripts.json'
 import { InfoPanel } from '../infoPanel/InfoPanel'
 import { LoadPanel } from '../loadPanel/LoadPanel'
@@ -26,6 +30,13 @@ const typedScripts = scripts as Scripts
 export const ContentApp = () => {
   const url = window.location.href
   const [customScriptUrl, setCustomScriptUrl] = useState<string | null>(null)
+
+  const { preferences, isLoaded } = usePreferencesStore(
+    useShallow((state) => ({
+      preferences: state.preferences,
+      isLoaded: state.isLoaded,
+    })),
+  )
 
   const { getCustomScriptForUrl } = useHandyStore(
     useShallow((state) => ({
@@ -58,15 +69,22 @@ export const ContentApp = () => {
 
   // Only activate connection if we have a script for this site
   useHandySetup('contentScript', !!scriptUrl)
+  usePreferencesSetup()
 
-  const loadPanel = url.includes('discuss.eroscripts.com/t/')
+  const showLoadPanel =
+    url.includes('discuss.eroscripts.com/t/') && preferences.showLoadPanel
+  const showInfoPanel = !!scriptUrl && preferences.showInfoPanel
+
+  if (!isLoaded) {
+    return <div className={styles.contentApp} />
+  }
 
   return (
     <div className={styles.contentApp}>
-      {scriptUrl ? (
-        <InfoPanel script={scriptUrl} scriptMetadata={scriptMetadata} />
+      {showInfoPanel ? (
+        <InfoPanel script={scriptUrl!} scriptMetadata={scriptMetadata} />
       ) : null}
-      {loadPanel && <LoadPanel />}
+      {showLoadPanel && <LoadPanel />}
     </div>
   )
 }

@@ -22,6 +22,11 @@ const state: HandyState = {
   error: null,
 }
 
+let preferences = {
+  showInfoPanel: true,
+  showLoadPanel: true,
+}
+
 // Load stored config
 async function loadConfig() {
   try {
@@ -62,6 +67,30 @@ async function saveConfig() {
     })
   } catch (error) {
     console.error('Error saving config:', error)
+  }
+}
+
+// Load stored preferences
+async function loadPreferences() {
+  try {
+    const storedData = await chrome.storage.sync.get('ive-preferences')
+    if (storedData['ive-preferences']) {
+      preferences = JSON.parse(storedData['ive-preferences'])
+      console.log('Loaded stored preferences:', preferences)
+    }
+  } catch (error) {
+    console.error('Error loading preferences:', error)
+  }
+}
+
+// Save preferences
+async function savePreferences() {
+  try {
+    await chrome.storage.sync.set({
+      'ive-preferences': JSON.stringify(preferences),
+    })
+  } catch (error) {
+    console.error('Error saving preferences:', error)
   }
 }
 
@@ -471,6 +500,25 @@ function broadcastState() {
   })
 }
 
+// Broadcast preferences to all contexts
+function broadcastPreferences() {
+  chrome.runtime
+    .sendMessage({
+      type: 'preferences_update',
+      preferences,
+    })
+    .catch(() => {})
+
+  activeTabs.forEach((tabId) => {
+    chrome.tabs
+      .sendMessage(tabId, {
+        type: 'preferences_update',
+        preferences,
+      })
+      .catch(() => {})
+  })
+}
+
 // Message handler
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Background received message:', message.type, message, sender)
@@ -550,6 +598,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           updateConnectionState()
           return true
 
+        case 'preferences_get':
+          return preferences
+
+        case 'preferences_set_show_info_panel':
+          preferences.showInfoPanel = message.value
+          savePreferences()
+          broadcastPreferences()
+          return true
+
+        case 'preferences_set_show_load_panel':
+          preferences.showLoadPanel = message.value
+          savePreferences()
+          broadcastPreferences()
+          return true
+
         default:
           return { error: 'Unknown message type' }
       }
@@ -605,3 +668,4 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 })
 
 init().catch(console.error)
+loadPreferences().catch(console.error)
