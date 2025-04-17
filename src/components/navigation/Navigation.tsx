@@ -1,21 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
+import { Screen, useNavigationStore } from '@/store/useNavigationStore'
 import styles from './Navigation.module.scss'
 
-type Screen = {
-  id: string
+type ScreenInfo = {
+  id: Screen
   label: string
 }
 
 type NavigationProps = {
-  activeScreen: string
-  onNavigate: (screen: string) => void
+  activeScreen: Screen
 }
 
-export const Navigation = ({ activeScreen, onNavigate }: NavigationProps) => {
+export const Navigation = ({ activeScreen }: NavigationProps) => {
+  const setActiveScreen = useNavigationStore((state) => state.setActiveScreen)
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const screens: Screen[] = [
+  const screens: ScreenInfo[] = [
     { id: 'device', label: 'Connect Handy' },
     { id: 'preferences', label: 'Preferences' },
   ]
@@ -58,7 +60,7 @@ export const Navigation = ({ activeScreen, onNavigate }: NavigationProps) => {
                 key={screen.id}
                 className={`${styles.dropdownItem} ${activeScreen === screen.id ? styles.active : ''}`}
                 onClick={() => {
-                  onNavigate(screen.id)
+                  setActiveScreen(screen.id)
                   setIsDropdownOpen(false)
                 }}
               >

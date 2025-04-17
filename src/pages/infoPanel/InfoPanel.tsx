@@ -32,14 +32,17 @@ export const InfoPanel = ({
   const [isScriptSetup, setIsScriptSetup] = useState(false)
   const [videoWasPlaying, setVideoWasPlaying] = useState(false)
   const [videoSearchError, setVideoSearchError] = useState<string | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
 
   const syncIntervalId = useRef<number | null>(null)
   const searchAttemptsRef = useRef<number>(0)
 
   // Find video element with exponential backoff
-  useEffect(() => {
-    if (script && !videoElement) {
+  const findVideoElement = useCallback(() => {
+    if (script) {
       setVideoSearchError(null)
+      setIsSearching(true)
+      searchAttemptsRef.current = 0
 
       const findLargestVideo = () => {
         const videos = Array.from(document.getElementsByTagName('video'))
@@ -73,6 +76,7 @@ export const InfoPanel = ({
         const found = findLargestVideo()
         if (found) {
           setVideoElement(found)
+          setIsSearching(false)
           return true
         }
 
@@ -89,6 +93,7 @@ export const InfoPanel = ({
         } else {
           console.error('Failed to find video player after maximum attempts')
           setVideoSearchError('No video player found on this page')
+          setIsSearching(false)
           return false
         }
       }
@@ -101,7 +106,14 @@ export const InfoPanel = ({
         }
       }
     }
-  }, [script, videoElement])
+  }, [script])
+
+  // Initial search on mount
+  useEffect(() => {
+    if (!videoElement) {
+      findVideoElement()
+    }
+  }, [script, videoElement, findVideoElement])
 
   // Setup script
   useEffect(() => {
@@ -302,6 +314,13 @@ export const InfoPanel = ({
     }
   }
 
+  // Handle search retry
+  const handleSearchRetry = () => {
+    setVideoElement(null)
+    setVideoSearchError(null)
+    findVideoElement()
+  }
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -317,9 +336,10 @@ export const InfoPanel = ({
   }
 
   const getStatusText = () => {
+    if (isSearching) return 'Searching for video...'
     if (videoSearchError) return 'Error'
     if (!isConnected) return 'Disconnected'
-    if (!videoElement) return 'Searching for video...'
+    if (!videoElement) return 'No video found'
     if (!isScriptSetup) return 'Setting up...'
     if (isPlaying) return 'Syncing'
     return 'Click to sync'
@@ -367,7 +387,16 @@ export const InfoPanel = ({
       )}
 
       {videoSearchError && (
-        <div className={styles.errorMessage}>{videoSearchError}</div>
+        <div className={styles.errorContainer}>
+          <div className={styles.errorMessage}>{videoSearchError}</div>
+          <button
+            className={styles.retryButton}
+            onClick={handleSearchRetry}
+            disabled={isSearching}
+          >
+            {isSearching ? 'Searching...' : 'Search for video again'}
+          </button>
+        </div>
       )}
 
       <div className={styles.buttonContainer}>
@@ -377,7 +406,7 @@ export const InfoPanel = ({
             e.stopPropagation()
             handleForceSyncClick()
           }}
-          disabled={!videoElement || !!videoSearchError}
+          disabled={!videoElement || !!videoSearchError || isSearching}
         >
           {isPlaying ? 'Resync' : 'Start Sync'}
         </button>
@@ -390,7 +419,7 @@ export const InfoPanel = ({
             if (!isConnected) return
             stopDevicePlayback()
           }}
-          disabled={!videoElement || !!videoSearchError}
+          disabled={!videoElement || !!videoSearchError || isSearching}
         >
           Stop
         </button>

@@ -80,6 +80,43 @@
   }
 }
 
+.errorContainer {
+  margin-bottom: 16px;
+  padding: 8px;
+  background-color: rgba(244, 67, 54, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+
+  .errorMessage {
+    color: #f44336;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .retryButton {
+    width: 100%;
+    padding: 8px 16px;
+    background-color: #444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: #666;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
 .buttonContainer {
   display: flex;
   gap: 16px;
@@ -111,7 +148,7 @@
   .syncButton {
     background-color: #7b024d;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #a60569;
     }
   }
@@ -119,7 +156,7 @@
   .stopButton {
     background-color: #444;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #666;
     }
   }
