@@ -9,26 +9,9 @@ import { InfoPanel } from '../infoPanel/InfoPanel'
 import { LoadPanel } from '../loadPanel/LoadPanel'
 import styles from './ContentApp.module.scss'
 
-export type ScriptMetadata = {
-  scriptUrl: string
-  title: string
-  description: string
-  user: {
-    name: string
-    supportUrl: string
-    bio: string
-  }
-}
-
-export type Scripts = {
-  [videoUrl: string]: ScriptMetadata
-}
-
-const scripts: Scripts = {}
-
 export const ContentApp = () => {
   const [currentPageUrl, setCurrentPageUrl] = useState(window.location.href)
-  const [customScriptUrl, setCustomScriptUrl] = useState<string | null>(null)
+  const [scriptUrl, setScriptUrl] = useState<string | null>(null)
 
   const { preferences, isLoaded } = usePreferencesStore(
     useShallow((state) => ({
@@ -65,7 +48,7 @@ export const ContentApp = () => {
         const customScript = await getCustomScriptForUrl(currentPageUrl)
         if (customScript) {
           console.log('Found custom script for URL:', customScript)
-          setCustomScriptUrl(customScript)
+          setScriptUrl(customScript)
         }
       } catch (e) {
         console.error('Error checking custom script:', e)
@@ -74,14 +57,6 @@ export const ContentApp = () => {
 
     checkCustomScript()
   }, [currentPageUrl, getCustomScriptForUrl])
-
-  // Check if there's a predefined script for this URL
-  const videoUrl = Object.keys(scripts).find((key) =>
-    currentPageUrl.includes(key),
-  )
-  const scriptUrl =
-    customScriptUrl || (videoUrl ? scripts[videoUrl]?.scriptUrl : null)
-  const scriptMetadata = videoUrl ? scripts[videoUrl] : null
 
   // Only activate connection if we have a script for this site
   useHandySetup('contentScript', !!scriptUrl)
@@ -93,13 +68,13 @@ export const ContentApp = () => {
   const showInfoPanel = !!scriptUrl && preferences.showInfoPanel
 
   if (!isLoaded) {
-    return <div className={styles.contentApp} />
+    return null
   }
 
   return (
     <div className={styles.contentApp}>
       {showInfoPanel ? (
-        <InfoPanel script={scriptUrl!} scriptMetadata={scriptMetadata} />
+        <InfoPanel script={scriptUrl!} scriptMetadata={null} />
       ) : null}
       {showLoadPanel && <LoadPanel />}
     </div>

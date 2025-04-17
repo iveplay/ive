@@ -75,21 +75,7 @@ export async function saveCustomScriptMapping(
 export async function getCustomScriptForUrl(
   videoUrl: string,
 ): Promise<string | null> {
-  // Check if we have a direct match
-  if (customScriptMapping[videoUrl]) {
-    return customScriptMapping[videoUrl]
-  }
-
-  // Check if we have a partial match (site domain)
-  const matchingKey = Object.keys(customScriptMapping).find(
-    (key) => videoUrl.includes(key) || key.includes(videoUrl),
-  )
-
-  if (matchingKey) {
-    return customScriptMapping[matchingKey]
-  }
-
-  return null
+  return customScriptMapping?.[videoUrl] ?? null
 }
 
 // Load custom scripts on startup

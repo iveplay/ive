@@ -3,8 +3,18 @@ import { Anchorme } from 'react-anchorme'
 import { useShallow } from 'zustand/shallow'
 import { DraggableModal } from '@/components/draggableModal/DraggableModal'
 import { useHandyStore } from '@/store/useHandyStore'
-import { ScriptMetadata } from '../content/ContentApp'
 import styles from './InfoPanel.module.scss'
+
+type ScriptMetadata = {
+  scriptUrl: string
+  title: string
+  description: string
+  user: {
+    name: string
+    supportUrl: string
+    bio: string
+  }
+}
 
 export const InfoPanel = ({
   script,
