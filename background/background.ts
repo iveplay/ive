@@ -580,6 +580,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           activeContexts[message.context as keyof typeof activeContexts] =
             message.active
 
+          // If this is the popup becoming active
+          if (message.context === 'popup' && message.active) {
+            // Remember the popup was opened this session
+            wasPopupOpenedThisSession = true
+            saveSessionState()
+          }
+
           // If this is a content script becoming active/inactive and we have tab info
           if (
             message.context === 'contentScript' &&
@@ -632,6 +639,38 @@ const activeContexts = {
   contentScript: false,
 }
 
+let wasPopupOpenedThisSession = false
+
+// Load session state from storage
+async function loadSessionState() {
+  try {
+    const data = await chrome.storage.session.get('ive-session-state')
+    if (data['ive-session-state']) {
+      wasPopupOpenedThisSession =
+        data['ive-session-state'].wasPopupOpened || false
+      console.log(
+        'Loaded session state, popup was opened:',
+        wasPopupOpenedThisSession,
+      )
+    }
+  } catch (error) {
+    console.error('Error loading session state:', error)
+  }
+}
+
+// Save session state to storage
+async function saveSessionState() {
+  try {
+    await chrome.storage.session.set({
+      'ive-session-state': {
+        wasPopupOpened: wasPopupOpenedThisSession,
+      },
+    })
+  } catch (error) {
+    console.error('Error saving session state:', error)
+  }
+}
+
 // Initialize on startup - just load config but don't connect
 async function init() {
   await loadConfig()
@@ -642,7 +681,10 @@ async function init() {
 
 // New function to check if we need to connect or disconnect
 async function updateConnectionState() {
-  const needsConnection = activeContexts.popup || activeContexts.contentScript
+  const needsConnection =
+    activeContexts.popup ||
+    activeContexts.contentScript ||
+    wasPopupOpenedThisSession
 
   if (
     needsConnection &&
@@ -663,4 +705,5 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 })
 
 init().catch(console.error)
+loadSessionState().catch(console.error)
 loadPreferences().catch(console.error)
