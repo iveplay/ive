@@ -25,3 +25,8 @@ yarn-error.log*
 
 /data
 /scripts
+
+# chrome extension build
+*.crx
+*.pem
+*.zip
