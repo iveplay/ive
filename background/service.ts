@@ -359,12 +359,35 @@ class DeviceService {
       this.playbackRate = playbackRate
       this.loop = loop
 
-      // Play on all connected devices
-      const results = await this.deviceManager.playAll(
-        timeMs,
-        playbackRate,
-        loop,
-      )
+      // Try-catch around specific devices to handle errors more gracefully
+      const results: Record<string, boolean> = {}
+
+      if (this.handyDevice && this.state.handyConnected) {
+        try {
+          results['handy'] = await this.handyDevice.play(
+            timeMs,
+            playbackRate,
+            loop,
+          )
+        } catch (error) {
+          console.error('Error playing script on Handy:', error)
+          results['handy'] = false
+        }
+      }
+
+      if (this.buttplugDevice && this.state.buttplugConnected) {
+        try {
+          results['buttplug'] = await this.buttplugDevice.play(
+            timeMs,
+            playbackRate,
+            loop,
+          )
+        } catch (error) {
+          console.error('Error playing script on Buttplug:', error)
+          results['buttplug'] = false
+        }
+      }
+
       const successCount = Object.values(results).filter(Boolean).length
 
       if (successCount > 0) {
