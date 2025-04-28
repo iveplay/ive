@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ContentApp } from '@/pages/content/ContentApp'
 
 const root = document.createElement('div')
 root.id = 'crx-root'
@@ -11,7 +10,5 @@ root.style.pointerEvents = 'none'
 document.body.appendChild(root)
 
 ReactDOM.createRoot(root).render(
-  <React.StrictMode>
-    <ContentApp />
-  </React.StrictMode>,
+  <React.StrictMode>content here</React.StrictMode>,
 )
