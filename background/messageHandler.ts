@@ -15,6 +15,9 @@ export function setupMessageHandler(): void {
             case 'ive:get_device_info':
               return deviceService.getDeviceInfo()
 
+            case 'ive:auto_connect':
+              return await deviceService.autoConnect()
+
             case 'ive:handy_connect':
               return await deviceService.connectHandy(message.connectionKey)
 

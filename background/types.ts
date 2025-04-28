@@ -41,6 +41,7 @@ export interface StateUpdateMessage {
 export type UIMessage =
   | { type: 'ive:get_state' }
   | { type: 'ive:get_device_info' }
+  | { type: 'ive:auto_connect' }
   | { type: 'ive:handy_connect'; connectionKey: string }
   | { type: 'ive:handy_disconnect' }
   | { type: 'ive:handy_set_offset'; offset: number }

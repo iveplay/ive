@@ -38,7 +38,7 @@ export const PopupApp = () => {
             className={`${styles.tabItem} ${activeTab === 'buttplug' ? styles.active : ''}`}
             onClick={() => setActiveTab('buttplug')}
           >
-            Buttplug
+            Intiface
           </li>
           <li
             className={`${styles.tabItem} ${activeTab === 'script' ? styles.active : ''}`}

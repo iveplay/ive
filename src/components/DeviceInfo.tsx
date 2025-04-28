@@ -28,7 +28,7 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
   const isConnected = type === 'handy' ? handyConnected : buttplugConnected
 
   // Get display name
-  const displayName = type === 'handy' ? 'Handy' : 'Buttplug Devices'
+  const displayName = type === 'handy' ? 'Handy' : 'Intiface'
 
   return (
     <div

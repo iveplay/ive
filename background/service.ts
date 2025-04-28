@@ -209,16 +209,16 @@ class DeviceService {
         return true
       }
 
-      throw new Error('Failed to connect to Buttplug server')
+      throw new Error('Failed to connect to Intiface server')
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      console.error('Error connecting to Buttplug server:', errorMessage)
+      console.error('Error connecting to Intiface server:', errorMessage)
 
       this.state.buttplugConnected = false
       await this.saveState()
       await this.broadcastState({
-        error: `Buttplug connection error: ${errorMessage}`,
+        error: `Intiface connection error: ${errorMessage}`,
       })
       throw error
     }
@@ -236,14 +236,14 @@ class DeviceService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      console.error('Error disconnecting from Buttplug server:', errorMessage)
+      console.error('Error disconnecting from Intiface server:', errorMessage)
       throw error
     }
   }
 
   public async scanForButtplugDevices(): Promise<boolean> {
     if (!this.buttplugDevice || !this.state.buttplugConnected) {
-      throw new Error('Buttplug not connected')
+      throw new Error('Intiface not connected')
     }
 
     try {
@@ -263,7 +263,7 @@ class DeviceService {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      console.error('Error scanning for Buttplug devices:', errorMessage)
+      console.error('Error scanning for Intiface devices:', errorMessage)
       throw error
     }
   }
@@ -383,7 +383,7 @@ class DeviceService {
             loop,
           )
         } catch (error) {
-          console.error('Error playing script on Buttplug:', error)
+          console.error('Error playing script on Intiface:', error)
           results['buttplug'] = false
         }
       }
@@ -482,14 +482,14 @@ class DeviceService {
     if (!this.buttplugDevice) return
 
     this.buttplugDevice.on('connected', async (deviceInfo) => {
-      console.log('Buttplug connected:', deviceInfo)
+      console.log('Intiface connected:', deviceInfo)
       this.state.buttplugConnected = true
       await this.saveState()
       await this.broadcastState()
     })
 
     this.buttplugDevice.on('disconnected', async () => {
-      console.log('Buttplug disconnected')
+      console.log('Intiface disconnected')
       this.state.buttplugConnected = false
       await this.saveState()
       await this.broadcastState()
@@ -497,24 +497,24 @@ class DeviceService {
 
     this.buttplugDevice.on('error', async (error) => {
       const errorMessage = typeof error === 'string' ? error : String(error)
-      console.error('Buttplug error:', errorMessage)
-      await this.broadcastState({ error: `Buttplug: ${errorMessage}` })
+      console.error('Intiface error:', errorMessage)
+      await this.broadcastState({ error: `Intiface: ${errorMessage}` })
     })
 
     this.buttplugDevice.on('deviceAdded', async () => {
-      console.log('Buttplug device added')
+      console.log('Intiface device added')
       await this.broadcastState()
     })
 
     this.buttplugDevice.on('deviceRemoved', async () => {
-      console.log('Buttplug device removed')
+      console.log('Intiface device removed')
       await this.broadcastState()
     })
 
     this.buttplugDevice.on(
       'playbackStateChanged',
       async (state: { isPlaying: boolean }) => {
-        console.log('Buttplug playback state changed:', state)
+        console.log('Intiface playback state changed:', state)
         this.isPlaying = state.isPlaying
         await this.broadcastState()
       },
@@ -577,7 +577,7 @@ class DeviceService {
   public async autoConnect(): Promise<void> {
     try {
       // Try reconnecting to Handy if we have a key
-      if (this.state.handyConnectionKey && !this.state.handyConnected) {
+      if (this.state.handyConnectionKey) {
         try {
           await this.connectHandy(this.state.handyConnectionKey)
         } catch (error) {
@@ -590,7 +590,7 @@ class DeviceService {
         try {
           await this.connectButtplug(this.state.buttplugServerUrl)
         } catch (error) {
-          console.warn('Auto-connect to Buttplug failed:', error)
+          console.warn('Auto-connect to Intiface failed:', error)
         }
       }
     } catch (error) {
