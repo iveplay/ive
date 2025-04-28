@@ -1,9 +1,21 @@
 import clsx from 'clsx'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ChangeEvent } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import styles from './ButtplugConnect.module.scss'
-import { DeviceInfo } from './DeviceInfo'
+import { DeviceInfo as DeviceInfoComponent } from './DeviceInfo'
+
+// Type for device features
+interface DeviceFeature {
+  name: string
+  type: 'vibrate' | 'rotate' | 'linear' | string
+}
+
+// Type for device in the list
+interface DeviceListItem {
+  name: string
+  features: DeviceFeature[]
+}
 
 export const ButtplugConnect = () => {
   const {
@@ -32,23 +44,44 @@ export const ButtplugConnect = () => {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
   const [deviceCount, setDeviceCount] = useState(0)
+  const [deviceList, setDeviceList] = useState<DeviceListItem[]>([])
 
   // Load initial values from store
   useEffect(() => {
     setLocalServerUrl(buttplugServerUrl)
   }, [buttplugServerUrl])
 
-  // Update device count when device info changes
+  // Update device info when it changes
   useEffect(() => {
     if (buttplugDeviceInfo && buttplugDeviceInfo.devices) {
-      setDeviceCount(buttplugDeviceInfo.devices.length)
+      setDeviceCount(buttplugDeviceInfo.deviceCount || 0)
+
+      // Convert to our internal device list format
+      const devices = (buttplugDeviceInfo.devices || []).map(
+        (device: DeviceListItem) => {
+          const features = Array.isArray(device.features)
+            ? device.features.map((feature) => ({
+                name: feature,
+                type: feature.type,
+              }))
+            : []
+
+          return {
+            name: device.name,
+            features,
+          }
+        },
+      )
+
+      setDeviceList(devices)
     } else {
       setDeviceCount(0)
+      setDeviceList([])
     }
   }, [buttplugDeviceInfo])
 
   // Update server URL in store when input changes
-  const handleServerUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleServerUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value
     setLocalServerUrl(newUrl)
     setButtplugServerUrl(newUrl)
@@ -85,23 +118,23 @@ export const ButtplugConnect = () => {
 
   // Render device list if there are devices
   const renderDeviceList = () => {
-    if (
-      !buttplugDeviceInfo ||
-      !buttplugDeviceInfo.devices ||
-      buttplugDeviceInfo.devices.length === 0
-    ) {
+    if (deviceList.length === 0) {
       return <div className={styles.noDevices}>No devices found</div>
     }
 
     return (
       <div className={styles.deviceList}>
-        {buttplugDeviceInfo.devices.map((device: any, index: number) => (
+        {deviceList.map((device, index) => (
           <div key={index} className={styles.deviceItem}>
             <div className={styles.deviceName}>{device.name}</div>
             <div className={styles.deviceFeatures}>
-              {device.features.map((feature: string) => (
-                <span key={feature} className={styles.feature}>
-                  {feature}
+              {device.features.map((feature, featureIndex) => (
+                <span
+                  key={featureIndex}
+                  className={styles.feature}
+                  data-feature={feature.type}
+                >
+                  {feature.name}
                 </span>
               ))}
             </div>
@@ -165,7 +198,7 @@ export const ButtplugConnect = () => {
         </div>
       )}
 
-      <DeviceInfo type='buttplug' />
+      <DeviceInfoComponent type='buttplug' />
 
       {buttplugConnected && renderDeviceList()}
     </div>

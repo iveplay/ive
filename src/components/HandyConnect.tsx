@@ -1,6 +1,6 @@
 import { Slider, RangeSlider } from '@mantine/core'
 import clsx from 'clsx'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ChangeEvent } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { DeviceInfo } from './DeviceInfo'
@@ -54,9 +54,7 @@ export const HandyConnect = () => {
   }, [handyStrokeMin, handyStrokeMax])
 
   // Update connection key in background when input changes
-  const handleConnectionKeyChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleConnectionKeyChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newKey = e.target.value
     setLocalConnectionKey(newKey)
 

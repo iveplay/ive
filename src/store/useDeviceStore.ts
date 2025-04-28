@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { create } from 'zustand'
 
 // Device store state
-export type DeviceState = {
+export interface DeviceState {
   // Connection state
   handyConnected: boolean
   buttplugConnected: boolean
@@ -32,7 +32,7 @@ export type DeviceState = {
 }
 
 // Store actions
-type DeviceActions = {
+interface DeviceActions {
   // Handy actions
   connectHandy: (connectionKey: string) => Promise<boolean>
   disconnectHandy: () => Promise<boolean>
@@ -66,15 +66,17 @@ type DeviceActions = {
 // Combined store type
 type DeviceStore = DeviceState & DeviceActions
 
-// Helper function to send messages to background
+/**
+ * Helper function to send messages to background
+ */
 async function sendMessageToBackground<T>(message: unknown): Promise<T> {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (response) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError)
       } else {
-        if (response && response.error) {
-          reject(new Error(response.error))
+        if (response && typeof response === 'object' && 'error' in response) {
+          reject(new Error(response.error as string))
         } else {
           resolve(response as T)
         }
@@ -83,7 +85,9 @@ async function sendMessageToBackground<T>(message: unknown): Promise<T> {
   })
 }
 
-// Create the store
+/**
+ * Main device store
+ */
 export const useDeviceStore = create<DeviceStore>()((set) => ({
   // Initial state
   handyConnected: false,
@@ -244,18 +248,21 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
       set({ error: null })
 
       // Read the file
-      const content = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          try {
-            resolve(JSON.parse(reader.result as string))
-          } catch {
-            reject(new Error('Invalid funscript format'))
+      const content = await new Promise<Record<string, unknown>>(
+        (resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => {
+            try {
+              const result = reader.result as string
+              resolve(JSON.parse(result))
+            } catch {
+              reject(new Error('Invalid funscript format'))
+            }
           }
-        }
-        reader.onerror = () => reject(new Error('Failed to read file'))
-        reader.readAsText(file)
-      })
+          reader.onerror = () => reject(new Error('Failed to read file'))
+          reader.readAsText(file)
+        },
+      )
 
       const success = await sendMessageToBackground<boolean>({
         type: 'ive:load_script_content',
@@ -333,13 +340,29 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   },
 }))
 
+interface DeviceStateUpdate {
+  handyConnected: boolean
+  buttplugConnected: boolean
+  scriptLoaded: boolean
+  isPlaying: boolean
+  handySettings?: {
+    offset: number
+    stroke: { min: number; max: number }
+  }
+  error?: string | null
+  deviceInfo?: {
+    handy: DeviceInfo | null
+    buttplug: DeviceInfo | null
+  }
+}
+
 // Hook to handle state updates from background
-export const useDeviceSetup = () => {
+export function useDeviceSetup(): void {
   useEffect(() => {
     // Get initial state
     const fetchInitialState = async () => {
       try {
-        const state = await sendMessageToBackground<any>({
+        const state = await sendMessageToBackground<DeviceStateUpdate>({
           type: 'ive:get_state',
         })
 
@@ -352,7 +375,10 @@ export const useDeviceSetup = () => {
         })
 
         // Also fetch device info
-        const deviceInfo = await sendMessageToBackground<DeviceInfo>({
+        const deviceInfo = await sendMessageToBackground<{
+          handy: DeviceInfo | null
+          buttplug: DeviceInfo | null
+        }>({
           type: 'ive:get_device_info',
         })
 
@@ -369,7 +395,10 @@ export const useDeviceSetup = () => {
     fetchInitialState()
 
     // Listen for state updates from background
-    const handleMessage = (message: any) => {
+    const handleMessage = (message: {
+      type: string
+      state: DeviceStateUpdate
+    }) => {
       if (message.type === 'state_update') {
         // Update store with new state
         useDeviceStore.setState({

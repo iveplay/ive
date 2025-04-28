@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useState, useRef } from 'react'
+import { useState, useRef, ChangeEvent } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import styles from './ScriptControl.module.scss'
@@ -37,7 +37,7 @@ export const ScriptControl = () => {
 
   const isAnyDeviceConnected = handyConnected || buttplugConnected
 
-  const handleScriptUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleScriptUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
     setLocalScriptUrl(e.target.value)
   }
 
@@ -58,7 +58,7 @@ export const ScriptControl = () => {
     }
   }
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
       return
     }

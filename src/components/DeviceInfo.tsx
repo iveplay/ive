@@ -27,9 +27,6 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
   // Check connection status based on device type
   const isConnected = type === 'handy' ? handyConnected : buttplugConnected
 
-  // Get device info based on type
-  //   const deviceInfo = type === 'handy' ? handyDeviceInfo : buttplugDeviceInfo
-
   // Get display name
   const displayName = type === 'handy' ? 'Handy' : 'Buttplug Devices'
 

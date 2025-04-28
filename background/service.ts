@@ -5,8 +5,11 @@ import {
   ButtplugConnectionType,
   ScriptData,
 } from 'ive-connect'
+import { DeviceServiceState, DevicesInfo, StateUpdateMessage } from './types'
 
-// Core service that manages devices and state
+/**
+ * Core service that manages devices and state
+ */
 class DeviceService {
   private deviceManager: DeviceManager
   private handyDevice: HandyDevice | null = null
@@ -18,7 +21,7 @@ class DeviceService {
   private loop = false
 
   // Last known states for persistence
-  private state = {
+  private state: DeviceServiceState = {
     handyConnectionKey: '',
     buttplugServerUrl: 'ws://localhost:12345',
     handyConnected: false,
@@ -36,18 +39,20 @@ class DeviceService {
   }
 
   // State management
-  private async loadState() {
+  private async loadState(): Promise<void> {
     try {
       const storedState = await chrome.storage.sync.get('ive-state')
-      if (storedState['ive-state']) {
-        this.state = JSON.parse(storedState['ive-state'])
+      const savedState = storedState['ive-state']
+
+      if (savedState) {
+        this.state = JSON.parse(savedState) as DeviceServiceState
       }
     } catch (error) {
       console.error('Error loading state:', error)
     }
   }
 
-  private async saveState() {
+  private async saveState(): Promise<void> {
     try {
       await chrome.storage.sync.set({
         'ive-state': JSON.stringify(this.state),
@@ -58,7 +63,7 @@ class DeviceService {
   }
 
   // Get current state
-  public getState() {
+  public getState(): DeviceServiceState {
     return {
       ...this.state,
       isPlaying: this.isPlaying,
@@ -67,7 +72,7 @@ class DeviceService {
   }
 
   // Handy device methods
-  public async connectHandy(connectionKey: string) {
+  public async connectHandy(connectionKey: string): Promise<boolean> {
     try {
       // Save to state
       this.state.handyConnectionKey = connectionKey
@@ -98,19 +103,24 @@ class DeviceService {
         await this.saveState()
         await this.broadcastState()
         return true
-      } else {
-        throw new Error('Failed to connect to Handy')
       }
+
+      throw new Error('Failed to connect to Handy')
     } catch (error) {
-      console.error('Error connecting to Handy:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error connecting to Handy:', errorMessage)
+
       this.state.handyConnected = false
       await this.saveState()
-      await this.broadcastState()
+      await this.broadcastState({
+        error: `Handy connection error: ${errorMessage}`,
+      })
       throw error
     }
   }
 
-  public async disconnectHandy() {
+  public async disconnectHandy(): Promise<boolean> {
     if (!this.handyDevice) return false
 
     try {
@@ -120,7 +130,9 @@ class DeviceService {
       await this.broadcastState()
       return true
     } catch (error) {
-      console.error('Error disconnecting Handy:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error disconnecting Handy:', errorMessage)
       throw error
     }
   }
@@ -128,11 +140,14 @@ class DeviceService {
   public async updateHandySettings(settings: {
     offset?: number
     stroke?: { min: number; max: number }
-  }) {
+  }): Promise<boolean> {
     if (!this.handyDevice) return false
 
     try {
-      const config: any = {}
+      const config: {
+        offset?: number
+        stroke?: { min: number; max: number }
+      } = {}
 
       if (settings.offset !== undefined) {
         config.offset = settings.offset
@@ -149,13 +164,15 @@ class DeviceService {
       await this.broadcastState()
       return true
     } catch (error) {
-      console.error('Error updating Handy settings:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error updating Handy settings:', errorMessage)
       throw error
     }
   }
 
   // Buttplug device methods
-  public async connectButtplug(serverUrl: string) {
+  public async connectButtplug(serverUrl: string): Promise<boolean> {
     try {
       // Save to state
       this.state.buttplugServerUrl = serverUrl
@@ -190,19 +207,24 @@ class DeviceService {
         await this.saveState()
         await this.broadcastState()
         return true
-      } else {
-        throw new Error('Failed to connect to Buttplug server')
       }
+
+      throw new Error('Failed to connect to Buttplug server')
     } catch (error) {
-      console.error('Error connecting to Buttplug server:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error connecting to Buttplug server:', errorMessage)
+
       this.state.buttplugConnected = false
       await this.saveState()
-      await this.broadcastState()
+      await this.broadcastState({
+        error: `Buttplug connection error: ${errorMessage}`,
+      })
       throw error
     }
   }
 
-  public async disconnectButtplug() {
+  public async disconnectButtplug(): Promise<boolean> {
     if (!this.buttplugDevice) return false
 
     try {
@@ -212,27 +234,42 @@ class DeviceService {
       await this.broadcastState()
       return true
     } catch (error) {
-      console.error('Error disconnecting from Buttplug server:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error disconnecting from Buttplug server:', errorMessage)
       throw error
     }
   }
 
-  public async scanForButtplugDevices() {
+  public async scanForButtplugDevices(): Promise<boolean> {
     if (!this.buttplugDevice || !this.state.buttplugConnected) {
       throw new Error('Buttplug not connected')
     }
 
-    // This is a bit of a hack since we need to access the internal API
-    const api = (this.buttplugDevice as any)._api
-    if (api && typeof api.startScanning === 'function') {
-      return api.startScanning()
-    }
+    try {
+      // This requires accessing the internal _api property, we'll use type assertion
+      interface ButtplugAPI {
+        startScanning: () => Promise<boolean>
+      }
 
-    throw new Error('Unable to start scanning')
+      // Try to access the internal API
+      const device = this.buttplugDevice as unknown as { _api?: ButtplugAPI }
+
+      if (device._api && typeof device._api.startScanning === 'function') {
+        return await device._api.startScanning()
+      }
+
+      throw new Error('Unable to start scanning')
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error scanning for Buttplug devices:', errorMessage)
+      throw error
+    }
   }
 
   // Script management
-  public async loadScriptFromUrl(url: string) {
+  public async loadScriptFromUrl(url: string): Promise<boolean> {
     if (!this.state.handyConnected && !this.state.buttplugConnected) {
       throw new Error('No devices connected')
     }
@@ -254,18 +291,25 @@ class DeviceService {
         this.scriptLoaded = true
         await this.broadcastState()
         return true
-      } else {
-        throw new Error('Failed to load script on any device')
       }
+
+      throw new Error('Failed to load script on any device')
     } catch (error) {
-      console.error('Error loading script:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error loading script:', errorMessage)
+
       this.scriptLoaded = false
-      await this.broadcastState()
+      await this.broadcastState({
+        error: `Script loading error: ${errorMessage}`,
+      })
       throw error
     }
   }
 
-  public async loadScriptFromContent(content: any) {
+  public async loadScriptFromContent(
+    content: Record<string, unknown>,
+  ): Promise<boolean> {
     if (!this.state.handyConnected && !this.state.buttplugConnected) {
       throw new Error('No devices connected')
     }
@@ -284,13 +328,18 @@ class DeviceService {
         this.scriptLoaded = true
         await this.broadcastState()
         return true
-      } else {
-        throw new Error('Failed to load script on any device')
       }
+
+      throw new Error('Failed to load script on any device')
     } catch (error) {
-      console.error('Error loading script:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error loading script:', errorMessage)
+
       this.scriptLoaded = false
-      await this.broadcastState()
+      await this.broadcastState({
+        error: `Script loading error: ${errorMessage}`,
+      })
       throw error
     }
   }
@@ -300,7 +349,7 @@ class DeviceService {
     timeMs: number,
     playbackRate: number = 1.0,
     loop: boolean = false,
-  ) {
+  ): Promise<boolean> {
     if (!this.scriptLoaded) {
       throw new Error('No script loaded')
     }
@@ -322,33 +371,39 @@ class DeviceService {
         this.isPlaying = true
         await this.broadcastState()
         return true
-      } else {
-        throw new Error('Failed to start playback on any device')
       }
+
+      throw new Error('Failed to start playback on any device')
     } catch (error) {
-      console.error('Error playing script:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error playing script:', errorMessage)
+
       this.isPlaying = false
-      await this.broadcastState()
+      await this.broadcastState({ error: `Playback error: ${errorMessage}` })
       throw error
     }
   }
 
-  public async stop() {
+  public async stop(): Promise<boolean> {
     try {
       // Stop all devices
-      const results = await this.deviceManager.stopAll()
+      await this.deviceManager.stopAll()
       this.isPlaying = false
       await this.broadcastState()
       return true
     } catch (error) {
-      console.error('Error stopping playback:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error stopping playback:', errorMessage)
+
       this.isPlaying = false
-      await this.broadcastState()
+      await this.broadcastState({ error: `Stop error: ${errorMessage}` })
       throw error
     }
   }
 
-  public async syncTime(timeMs: number) {
+  public async syncTime(timeMs: number): Promise<boolean> {
     try {
       this.currentTimeMs = timeMs
 
@@ -359,13 +414,15 @@ class DeviceService {
 
       return true
     } catch (error) {
-      console.error('Error syncing time:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error syncing time:', errorMessage)
       throw error
     }
   }
 
   // Event listeners
-  private setupHandyListeners() {
+  private setupHandyListeners(): void {
     if (!this.handyDevice) return
 
     this.handyDevice.on('connected', async (deviceInfo) => {
@@ -383,18 +440,22 @@ class DeviceService {
     })
 
     this.handyDevice.on('error', async (error) => {
-      console.error('Handy error:', error)
-      await this.broadcastState({ error: `Handy: ${error}` })
+      const errorMessage = typeof error === 'string' ? error : String(error)
+      console.error('Handy error:', errorMessage)
+      await this.broadcastState({ error: `Handy: ${errorMessage}` })
     })
 
-    this.handyDevice.on('playbackStateChanged', async (state) => {
-      console.log('Handy playback state changed:', state)
-      this.isPlaying = state.isPlaying
-      await this.broadcastState()
-    })
+    this.handyDevice.on(
+      'playbackStateChanged',
+      async (state: { isPlaying: boolean }) => {
+        console.log('Handy playback state changed:', state)
+        this.isPlaying = state.isPlaying
+        await this.broadcastState()
+      },
+    )
   }
 
-  private setupButtplugListeners() {
+  private setupButtplugListeners(): void {
     if (!this.buttplugDevice) return
 
     this.buttplugDevice.on('connected', async (deviceInfo) => {
@@ -412,65 +473,34 @@ class DeviceService {
     })
 
     this.buttplugDevice.on('error', async (error) => {
-      console.error('Buttplug error:', error)
-      await this.broadcastState({ error: `Buttplug: ${error}` })
+      const errorMessage = typeof error === 'string' ? error : String(error)
+      console.error('Buttplug error:', errorMessage)
+      await this.broadcastState({ error: `Buttplug: ${errorMessage}` })
     })
 
-    this.buttplugDevice.on('deviceAdded', async (device) => {
-      console.log('Buttplug device added:', device)
+    this.buttplugDevice.on('deviceAdded', async () => {
+      console.log('Buttplug device added')
       await this.broadcastState()
     })
 
-    this.buttplugDevice.on('deviceRemoved', async (device) => {
-      console.log('Buttplug device removed:', device)
+    this.buttplugDevice.on('deviceRemoved', async () => {
+      console.log('Buttplug device removed')
       await this.broadcastState()
     })
 
-    this.buttplugDevice.on('playbackStateChanged', async (state) => {
-      console.log('Buttplug playback state changed:', state)
-      this.isPlaying = state.isPlaying
-      await this.broadcastState()
-    })
-  }
-
-  // Messaging
-  private async broadcastState(extra: any = {}) {
-    const currentState = {
-      ...this.getState(),
-      ...extra,
-      timestamp: Date.now(),
-    }
-
-    // Broadcast to popup
-    chrome.runtime
-      .sendMessage({
-        type: 'state_update',
-        state: currentState,
-      })
-      .catch(() => {
-        // Popup might not be open, ignore error
-      })
-
-    // Broadcast to content scripts
-    chrome.tabs.query({}).then((tabs) => {
-      tabs.forEach((tab) => {
-        if (tab.id) {
-          chrome.tabs
-            .sendMessage(tab.id, {
-              type: 'state_update',
-              state: currentState,
-            })
-            .catch(() => {
-              // Tab might not have our content script, ignore error
-            })
-        }
-      })
-    })
+    this.buttplugDevice.on(
+      'playbackStateChanged',
+      async (state: { isPlaying: boolean }) => {
+        console.log('Buttplug playback state changed:', state)
+        this.isPlaying = state.isPlaying
+        await this.broadcastState()
+      },
+    )
   }
 
   // Get device info
-  public getDeviceInfo() {
-    const info: any = {
+  public getDeviceInfo(): DevicesInfo {
+    const info: DevicesInfo = {
       handy: null,
       buttplug: null,
     }
@@ -486,8 +516,42 @@ class DeviceService {
     return info
   }
 
+  // Messaging
+  private async broadcastState(
+    extra: { error?: string | null } = {},
+  ): Promise<void> {
+    const deviceInfo = this.getDeviceInfo()
+
+    const messageState: StateUpdateMessage = {
+      type: 'state_update',
+      state: {
+        ...this.getState(),
+        ...extra,
+        deviceInfo,
+        timestamp: Date.now(),
+      },
+    }
+
+    // Broadcast to popup
+    chrome.runtime.sendMessage(messageState).catch((err) => {
+      // Popup might not be open, ignore error
+      console.debug('Failed to send message to popup:', err)
+    })
+
+    // Broadcast to content scripts
+    chrome.tabs.query({}).then((tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id) {
+          chrome.tabs.sendMessage(tab.id, messageState).catch(() => {
+            // Tab might not have our content script, ignore error
+          })
+        }
+      })
+    })
+  }
+
   // Auto-reconnect
-  public async autoConnect() {
+  public async autoConnect(): Promise<void> {
     try {
       // Try reconnecting to Handy if we have a key
       if (this.state.handyConnectionKey && !this.state.handyConnected) {

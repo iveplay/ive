@@ -1,13 +1,16 @@
 import { setupMessageHandler } from './messageHandler'
 import { deviceService } from './service'
 
-async function init() {
+async function init(): Promise<void> {
+  console.log('Initializing IVE background service...')
+
   setupMessageHandler()
 
   await deviceService.autoConnect()
 
-  console.log('IVE background service initialized')
+  console.log('IVE background service initialized successfully')
 }
 
-// Start initialization
-init().catch(console.error)
+init().catch((error) => {
+  console.error('Error initializing IVE background service:', error)
+})
