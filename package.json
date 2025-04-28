@@ -2,6 +2,8 @@
   "name": "ive",
   "version": "0.1.0",
   "type": "module",
+  "author": "iveplay",
+  "license": "MIT",
   "scripts": {
     "dev": "concurrently --names \"vite,chrome\" --prefix-colors \"green,yellow\" \"vite\" \"wait-on http://localhost:5173 && npm run launch-chrome\"",
     "build": "tsc -b && vite build",
