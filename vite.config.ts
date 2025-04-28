@@ -11,6 +11,7 @@ export default defineConfig({
     skipWebSocketTokenCheck: true,
   },
   resolve: {
+    preserveSymlinks: true,
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@popup': path.resolve(__dirname, './popup'),

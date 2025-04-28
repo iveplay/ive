@@ -3,20 +3,19 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --names \"vite,chrome\" --prefix-colors \"green,yellow\" \"vite\" \"wait-on http://localhost:5173 && npm run clean-chrome\"",
+    "dev": "concurrently --names \"vite,chrome\" --prefix-colors \"green,yellow\" \"vite\" \"wait-on http://localhost:5173 && npm run launch-chrome\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "clean-chrome": "node clean-chrome.js"
+    "launch-chrome": "node launch-chrome.js"
   },
   "dependencies": {
+    "ive-connect": "file:../ive-connect",
     "@mantine/core": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
     "clsx": "^2.1.1",
     "react": "^19.1.0",
-    "react-anchorme": "^5.0.0",
     "react-dom": "^19.1.0",
-    "react-draggable": "^4.4.6",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

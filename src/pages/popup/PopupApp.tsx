@@ -1,48 +1,55 @@
-import { createTheme, MantineProvider } from '@mantine/core'
-import { useShallow } from 'zustand/shallow'
-import { Navigation } from '@/components/navigation/Navigation'
-import { Preferences } from '@/pages/preferences/Preferences'
-import { useHandySetup } from '@/store/useHandyStore'
-import {
-  useNavigationSetup,
-  useNavigationStore,
-} from '@/store/useNavigationStore'
-import { HandyConnect } from '../handyConnect/HandyConnect'
+import { useState } from 'react'
+import { ButtplugConnect } from '@/components/ButtplugConnect'
+import { HandyConnect } from '@/components/HandyConnect'
+import { ScriptControl } from '@/components/ScriptControl'
+import { useDeviceSetup } from '@/store/useDeviceStore'
 import styles from './PopupApp.module.scss'
 
-const theme = createTheme({})
+type TabType = 'handy' | 'buttplug' | 'script'
 
 export const PopupApp = () => {
-  const { activeScreen, isLoaded } = useNavigationStore(
-    useShallow((state) => ({
-      activeScreen: state.activeScreen,
-      isLoaded: state.isLoaded,
-    })),
-  )
+  const [activeTab, setActiveTab] = useState<TabType>('script')
 
-  useHandySetup('popup', true)
-  useNavigationSetup()
+  useDeviceSetup()
 
-  // Render the active screen
-  const renderActiveScreen = () => {
-    switch (activeScreen) {
-      case 'device':
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case 'handy':
         return <HandyConnect />
-      case 'preferences':
-        return <Preferences />
+      case 'buttplug':
+        return <ButtplugConnect />
+      case 'script':
       default:
-        return <HandyConnect />
+        return <ScriptControl />
     }
   }
 
   return (
-    <MantineProvider theme={theme}>
-      <div className={styles.popupApp}>
-        <Navigation activeScreen={activeScreen} />
-        <div className={styles.screenContainer}>
-          {isLoaded ? renderActiveScreen() : null}
-        </div>
-      </div>
-    </MantineProvider>
+    <div className={styles.popupApp}>
+      <nav className={styles.navigation}>
+        <ul className={styles.tabList}>
+          <li
+            className={`${styles.tabItem} ${activeTab === 'handy' ? styles.active : ''}`}
+            onClick={() => setActiveTab('handy')}
+          >
+            Handy
+          </li>
+          <li
+            className={`${styles.tabItem} ${activeTab === 'buttplug' ? styles.active : ''}`}
+            onClick={() => setActiveTab('buttplug')}
+          >
+            Buttplug
+          </li>
+          <li
+            className={`${styles.tabItem} ${activeTab === 'script' ? styles.active : ''}`}
+            onClick={() => setActiveTab('script')}
+          >
+            Script
+          </li>
+        </ul>
+      </nav>
+
+      <main className={styles.content}>{renderActiveTab()}</main>
+    </div>
   )
 }

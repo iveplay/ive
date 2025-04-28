@@ -1,0 +1,141 @@
+.buttplugConnect {
+  padding: 8px;
+
+  .errorMessage {
+    color: #f44336;
+    margin-bottom: 16px;
+    padding: 8px;
+    background-color: rgba(244, 67, 54, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border-left: 4px solid #f44336;
+  }
+
+  .connectionForm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .urlInput {
+      background-color: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+
+      &:focus {
+        border-color: #7b024d;
+        box-shadow: 0 0 0 2px rgba(123, 2, 77, 0.3);
+      }
+    }
+
+    .connectButton {
+      flex: 1;
+      width: 100%;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      background-color: #7b024d;
+      border-color: #7b024d;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #a60569;
+        border-color: #a60569;
+      }
+
+      &.connected {
+        background-color: #444;
+        border-color: #444;
+        color: white;
+
+        &:hover {
+          background-color: #666;
+          border-color: #666;
+        }
+      }
+
+      &.connecting {
+        opacity: 0.7;
+        cursor: wait;
+      }
+    }
+  }
+
+  .scanControls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .scanButton {
+      font-weight: 500;
+      cursor: pointer;
+
+      &.scanning {
+        opacity: 0.7;
+        cursor: wait;
+      }
+    }
+
+    .deviceCount {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .deviceList {
+    margin-top: 12px;
+
+    .deviceItem {
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 8px;
+
+      .deviceName {
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      .deviceFeatures {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .feature {
+          font-size: 12px;
+          background-color: rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.8);
+          padding: 2px 6px;
+          border-radius: 4px;
+
+          &[data-feature='vibrate'] {
+            background-color: rgba(255, 105, 180, 0.2);
+            color: rgba(255, 105, 180, 0.9);
+          }
+
+          &[data-feature='rotate'] {
+            background-color: rgba(0, 191, 255, 0.2);
+            color: rgba(0, 191, 255, 0.9);
+          }
+
+          &[data-feature='linear'] {
+            background-color: rgba(50, 205, 50, 0.2);
+            color: rgba(50, 205, 50, 0.9);
+          }
+        }
+      }
+    }
+  }
+
+  .noDevices {
+    margin-top: 12px;
+    padding: 12px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+  }
+}

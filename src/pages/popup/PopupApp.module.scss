@@ -1,19 +1,44 @@
 .popupApp {
+  width: 350px;
+  max-height: 560px;
   background-color: rgba(41, 11, 29, 1);
   color: white;
-  font-size: 14px;
-  padding: 16px;
-  overflow: hidden;
-  border: 1px solid rgba(123, 2, 77, 0.3);
-  box-shadow: 0 4px 8px rgba(123, 2, 77, 0.2);
-  backdrop-filter: blur(4px);
   display: flex;
   flex-direction: column;
-  gap: 16px;
 
-  .screenContainer {
+  .navigation {
+    background-color: rgba(0, 0, 0, 0.2);
+
+    .tabList {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      .tabItem {
+        flex: 1;
+        padding: 8px 4px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 2px solid transparent;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        &.active {
+          border-bottom-color: #7b024d;
+          background-color: rgba(123, 2, 77, 0.1);
+        }
+      }
+    }
+  }
+
+  .content {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    padding: 8px;
   }
 }

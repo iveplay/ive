@@ -2,51 +2,56 @@ import { Slider, RangeSlider } from '@mantine/core'
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
-import { DeviceInfo } from '@/components/deviceInfo/DeviceInfo'
-import { useHandyStore } from '@/store/useHandyStore'
+import { useDeviceStore } from '@/store/useDeviceStore'
+import { DeviceInfo } from './DeviceInfo'
 import styles from './HandyConnect.module.scss'
 
 export const HandyConnect = () => {
   const {
-    config,
-    isConnected,
+    handyConnected,
+    handyConnectionKey,
+    handyOffset,
+    handyStrokeMin,
+    handyStrokeMax,
     error,
-    connect,
-    disconnect,
-    setOffset,
-    setStrokeSettings,
-    setConnectionKey,
-  } = useHandyStore(
+    connectHandy,
+    disconnectHandy,
+    setHandyOffset,
+    setHandyStrokeSettings,
+    setHandyConnectionKey,
+  } = useDeviceStore(
     useShallow((state) => ({
-      config: state.config,
-      isConnected: state.isConnected,
+      handyConnected: state.handyConnected,
+      handyConnectionKey: state.handyConnectionKey,
+      handyOffset: state.handyOffset,
+      handyStrokeMin: state.handyStrokeMin,
+      handyStrokeMax: state.handyStrokeMax,
       error: state.error,
-      connect: state.connect,
-      disconnect: state.disconnect,
-      setOffset: state.setOffset,
-      setStrokeSettings: state.setStrokeSettings,
-      setConnectionKey: state.setConnectionKey,
+      connectHandy: state.connectHandy,
+      disconnectHandy: state.disconnectHandy,
+      setHandyOffset: state.setHandyOffset,
+      setHandyStrokeSettings: state.setHandyStrokeSettings,
+      setHandyConnectionKey: state.setHandyConnectionKey,
     })),
   )
 
-  const [connectionKey, setLocalConnectionKey] = useState('')
+  const [localConnectionKey, setLocalConnectionKey] = useState('')
   const [currentOffset, setCurrentOffset] = useState(0)
   const [strokeRange, setStrokeRange] = useState<[number, number]>([0, 1])
+  const [isConnecting, setIsConnecting] = useState(false)
 
   // Load initial values from store
   useEffect(() => {
-    if (config.connectionKey) {
-      setLocalConnectionKey(config.connectionKey)
-    }
-  }, [config.connectionKey])
+    setLocalConnectionKey(handyConnectionKey)
+  }, [handyConnectionKey])
 
   useEffect(() => {
-    setCurrentOffset(config.offset)
-  }, [config.offset])
+    setCurrentOffset(handyOffset)
+  }, [handyOffset])
 
   useEffect(() => {
-    setStrokeRange([config.stroke.min, config.stroke.max])
-  }, [config.stroke])
+    setStrokeRange([handyStrokeMin, handyStrokeMax])
+  }, [handyStrokeMin, handyStrokeMax])
 
   // Update connection key in background when input changes
   const handleConnectionKeyChange = (
@@ -55,31 +60,31 @@ export const HandyConnect = () => {
     const newKey = e.target.value
     setLocalConnectionKey(newKey)
 
-    // Debounce the update to background
+    // Debounce the update to store
     if (newKey.length >= 5) {
-      setConnectionKey(newKey)
+      setHandyConnectionKey(newKey)
     }
   }
 
   const handleConnect = async () => {
     try {
-      if (isConnected) {
-        await disconnect()
+      setIsConnecting(true)
+
+      if (handyConnected) {
+        await disconnectHandy()
       } else {
-        // Make sure the connection key is updated before connecting
-        if (connectionKey !== config.connectionKey) {
-          await setConnectionKey(connectionKey)
-        }
-        await connect()
+        await connectHandy(localConnectionKey)
       }
     } catch (err) {
       console.error('Error during connect/disconnect:', err)
+    } finally {
+      setIsConnecting(false)
     }
   }
 
   const handleOffsetChangeEnd = async (value: number) => {
     try {
-      await setOffset(value)
+      await setHandyOffset(value)
     } catch (err) {
       console.error('Error changing offset:', err)
     }
@@ -91,7 +96,7 @@ export const HandyConnect = () => {
 
   const handleStrokeRangeChangeEnd = async (value: [number, number]) => {
     try {
-      await setStrokeSettings(value[0], value[1])
+      await setHandyStrokeSettings(value[0], value[1])
     } catch (err) {
       console.error('Error changing stroke settings:', err)
     }
@@ -99,7 +104,7 @@ export const HandyConnect = () => {
 
   return (
     <div className={styles.handyConnect}>
-      {error && !isConnected && (
+      {error && !handyConnected && (
         <div className={styles.errorMessage}>{error}</div>
       )}
 
@@ -108,26 +113,32 @@ export const HandyConnect = () => {
           type='text'
           className={clsx('input', styles.keyInput)}
           placeholder='Enter connection key'
-          value={connectionKey}
+          value={localConnectionKey}
           onChange={handleConnectionKeyChange}
-          disabled={isConnected}
+          disabled={handyConnected || isConnecting}
         />
 
         <button
           className={clsx(
             'button primary',
             styles.connectButton,
-            isConnected && styles.connected,
+            handyConnected && styles.connected,
+            isConnecting && styles.connecting,
           )}
           onClick={handleConnect}
+          disabled={isConnecting}
         >
-          {isConnected ? 'Disconnect' : 'Connect'}
+          {isConnecting
+            ? 'Connecting...'
+            : handyConnected
+              ? 'Disconnect'
+              : 'Connect'}
         </button>
       </div>
 
-      <DeviceInfo />
+      <DeviceInfo type='handy' />
 
-      {isConnected && (
+      {handyConnected && (
         <div className={styles.settings}>
           <h3 className={styles.title}>Device Settings</h3>
 

@@ -10,5 +10,5 @@ root.style.pointerEvents = 'none'
 document.body.appendChild(root)
 
 ReactDOM.createRoot(root).render(
-  <React.StrictMode>content here</React.StrictMode>,
+  <React.StrictMode>{/* TODO: content */}.</React.StrictMode>,
 )

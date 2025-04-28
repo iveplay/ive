@@ -1,148 +1,61 @@
-import {
-  connectDevice,
-  disconnectDevice,
-  setConnectionKey,
-  setOffset,
-  setStrokeSettings,
-  setupScript,
-  play,
-  stop,
-  syncVideoTime,
-} from './apiHandler'
-import {
-  preferences,
-  savePreferences,
-  broadcastPreferences,
-} from './preferences'
-import {
-  uploadScriptUrl,
-  saveCustomScriptMapping,
-  getCustomScriptForUrl,
-} from './scriptManager'
-import { activeTabs, handleContextUpdate } from './sessionManager'
-import { state } from './state'
+import { deviceService } from './service'
 
-// Broadcast state to all connected contexts
-export function broadcastState() {
-  const stateMessage = {
-    type: 'handy_state_update',
-    state: {
-      config: state.config,
-      isConnected: state.isConnected,
-      deviceInfo: state.deviceInfo,
-      isPlaying: state.isPlaying,
-      error: state.error,
-    },
-  }
-
-  // Send to popup using runtime messaging (which works fine for popup)
-  chrome.runtime.sendMessage(stateMessage).catch((err) => {
-    // This error is expected when popup is not open
-    if (!err.message.includes('Could not establish connection')) {
-      console.error('Error broadcasting to popup:', err)
-    }
-  })
-
-  // Send to all active content script tabs
-  activeTabs.forEach((tabId) => {
-    chrome.tabs.sendMessage(tabId, stateMessage).catch((err) => {
-      console.error(`Error sending to tab ${tabId}:`, err)
-      // If we get a connection error, assume tab is no longer valid
-      if (err.message.includes('Could not establish connection')) {
-        activeTabs.delete(tabId)
-      }
-    })
-  })
-}
-
-// Message handler
 export function setupMessageHandler() {
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('Background received message:', message.type, message, sender)
-
-    // Register tab if it's a content script and has a tab ID
-    if (sender.tab && sender.tab.id) {
-      activeTabs.add(sender.tab.id)
-    }
+  chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+    console.log('Background received message:', message.type, message)
 
     const handleAsyncOperation = async () => {
       try {
         switch (message.type) {
-          case 'handy_get_state':
-            return state
+          case 'ive:get_state':
+            return deviceService.getState()
 
-          case 'handy_connect':
-            return await connectDevice(broadcastState)
+          case 'ive:get_device_info':
+            return deviceService.getDeviceInfo()
 
-          case 'handy_disconnect':
-            return await disconnectDevice(broadcastState)
+          case 'ive:handy_connect':
+            return await deviceService.connectHandy(message.connectionKey)
 
-          case 'handy_set_connection_key':
-            await setConnectionKey(message.key)
-            broadcastState()
-            return true
+          case 'ive:handy_disconnect':
+            return await deviceService.disconnectHandy()
 
-          case 'handy_set_offset':
-            return await setOffset(message.offset, broadcastState)
+          case 'ive:handy_set_offset':
+            return await deviceService.updateHandySettings({
+              offset: message.offset,
+            })
 
-          case 'handy_set_stroke_settings':
-            return await setStrokeSettings(
-              message.min,
-              message.max,
-              broadcastState,
-            )
+          case 'ive:handy_set_stroke_settings':
+            return await deviceService.updateHandySettings({
+              stroke: { min: message.min, max: message.max },
+            })
 
-          case 'handy_setup_script':
-            return await setupScript(message.scriptUrl, broadcastState)
+          case 'ive:buttplug_connect':
+            return await deviceService.connectButtplug(message.serverUrl)
 
-          case 'handy_upload_script_url':
-            return await uploadScriptUrl(message.scriptUrl, broadcastState)
+          case 'ive:buttplug_disconnect':
+            return await deviceService.disconnectButtplug()
 
-          case 'handy_play':
-            return await play(
-              message.videoTime,
+          case 'ive:buttplug_scan':
+            return await deviceService.scanForButtplugDevices()
+
+          case 'ive:load_script_url':
+            return await deviceService.loadScriptFromUrl(message.url)
+
+          case 'ive:load_script_content':
+            return await deviceService.loadScriptFromContent(message.content)
+
+          case 'ive:play':
+            return await deviceService.play(
+              message.timeMs,
               message.playbackRate,
               message.loop,
-              broadcastState,
             )
 
-          case 'handy_stop':
-            return await stop(broadcastState)
+          case 'ive:stop':
+            return await deviceService.stop()
 
-          case 'handy_sync_video_time':
-            return await syncVideoTime(message.videoTime)
-
-          case 'handy_save_custom_script_mapping':
-            return await saveCustomScriptMapping(
-              message.videoUrl,
-              message.scriptUrl,
-            )
-
-          case 'handy_get_custom_script_for_url':
-            return await getCustomScriptForUrl(message.videoUrl)
-
-          case 'handy_context_active':
-            return handleContextUpdate(
-              broadcastState,
-              message.context,
-              message.active,
-              sender.tab?.id,
-            )
-
-          case 'preferences_get':
-            return preferences
-
-          case 'preferences_set_show_info_panel':
-            preferences.showInfoPanel = message.value
-            savePreferences()
-            broadcastPreferences()
-            return true
-
-          case 'preferences_set_show_load_panel':
-            preferences.showLoadPanel = message.value
-            savePreferences()
-            broadcastPreferences()
-            return true
+          case 'ive:sync_time':
+            return await deviceService.syncTime(message.timeMs)
 
           default:
             return { error: 'Unknown message type' }
@@ -157,10 +70,5 @@ export function setupMessageHandler() {
     // and then call sendResponse when the async operation completes
     handleAsyncOperation().then(sendResponse)
     return true
-  })
-
-  // Setup tab removal listener
-  chrome.tabs.onRemoved.addListener((tabId) => {
-    activeTabs.delete(tabId)
   })
 }

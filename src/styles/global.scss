@@ -1,8 +1,8 @@
-// Add these to your global.scss
+// Global styles for the extension
 
 body {
-  width: 300px;
-  max-height: 500px;
+  width: 350px;
+  max-height: 560px;
   padding: 0;
   margin: 0;
   background-color: black;
@@ -24,6 +24,42 @@ body {
   overflow-x: hidden;
 }
 
+.input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 32px;
+  font-size: 14px;
+  resize: vertical;
+  padding: 8px;
+  text-decoration: none;
+  border: 1px solid #3d3d3d;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.07);
+  color: white;
+
+  &:focus {
+    border-color: #7b024d;
+    box-shadow: 0 0 0 2px rgba(123, 2, 77, 0.3);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Override Mantine styles for our theme
+:root {
+  --mantine-primary-color-filled: #7b024d;
+  --mantine-primary-color-light: rgba(123, 2, 77, 0.1);
+  --mantine-primary-color-light-hover: rgba(123, 2, 77, 0.2);
+  --mantine-primary-color-light-color: rgba(123, 2, 77, 0.9);
+}
+
 .button {
   display: flex;
   align-items: center;
@@ -41,12 +77,13 @@ body {
   transition: all 0.2s ease;
   background-color: transparent;
   font-weight: 500;
+  color: white;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: rgba(255, 255, 255, 0.1);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: translateY(1px);
   }
 
@@ -60,30 +97,9 @@ body {
     background-color: #7b024d;
     border-color: #7b024d;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #a60569;
       border-color: #a60569;
     }
-  }
-}
-
-.input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 32px;
-  font-size: 14px;
-  resize: vertical;
-  padding: 8px;
-  text-decoration: none;
-  border: 1px solid #3d3d3d;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-
-  &:focus {
-    border-color: #7b024d;
-    box-shadow: 0 0 0 2px rgba(123, 2, 77, 0.3);
-    outline: none;
   }
 }
