@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ButtplugConnect } from '@/components/ButtplugConnect'
-import { HandyConnect } from '@/components/HandyConnect'
-import { ScriptControl } from '@/components/ScriptControl'
+import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
+import { HandyConnect } from '@/components/handyConnect/HandyConnect'
+import { ScriptControl } from '@/components/scriptControl/ScriptControl'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import styles from './PopupApp.module.scss'
 

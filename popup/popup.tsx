@@ -1,15 +1,13 @@
-import { createTheme, MantineProvider } from '@mantine/core'
+import { MantineProvider } from '@mantine/core'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { PopupApp } from '../src/pages/popup/PopupApp'
+import { PopupApp } from '@/pages/popup/PopupApp'
 import '@mantine/core/styles.css'
-import '../src/styles/global.scss'
-
-const theme = createTheme({})
+import '@/styles/global.scss'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MantineProvider theme={theme}>
+    <MantineProvider forceColorScheme='dark'>
       <PopupApp />
     </MantineProvider>
   </StrictMode>,

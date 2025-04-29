@@ -2,8 +2,8 @@ import clsx from 'clsx'
 import { useState, useEffect, ChangeEvent } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
+import { DeviceInfo as DeviceInfoComp } from '../deviceInfo/DeviceInfo'
 import styles from './ButtplugConnect.module.scss'
-import { DeviceInfo as DeviceInfoComponent } from './DeviceInfo'
 
 // Type for device features
 interface DeviceFeature {
@@ -198,7 +198,7 @@ export const ButtplugConnect = () => {
         </div>
       )}
 
-      <DeviceInfoComponent type='buttplug' />
+      <DeviceInfoComp type='buttplug' />
 
       {buttplugConnected && renderDeviceList()}
     </div>

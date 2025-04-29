@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { useState, useEffect, ChangeEvent } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
-import { DeviceInfo } from './DeviceInfo'
+import { DeviceInfo } from '../deviceInfo/DeviceInfo'
 import styles from './HandyConnect.module.scss'
 
 export const HandyConnect = () => {
