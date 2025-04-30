@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { DraggableModal } from '@/components/draggableModal/DraggableModal'
 import { useVideoElement } from '@/hooks/useVideoElement'
+import { useVideoListener } from '@/hooks/useVideoListener'
 import { Scripts } from '@/types/script'
 import styles from './VideoPanel.module.scss'
 
@@ -11,13 +12,13 @@ type VideoPanelProps = {
 export const VideoPanel = ({ scripts }: VideoPanelProps) => {
   const scriptEntries = Object.entries(scripts)
 
-  const { videoElement, isSearching, error, retry } = useVideoElement()
-
-  const [currentScript, setCurrentScript] = useState<string | null>(
-    scriptEntries.find(([, info]) => info.isDefault)?.[0] ?? null,
-  )
+  const [currentScript, setCurrentScript] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  const { videoElement, isSearching, error, retry } = useVideoElement()
+  useVideoListener(videoElement, currentScript, setIsPlaying)
 
   // Handle script selection
   const handleScriptSelect = useCallback(
@@ -29,24 +30,62 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       setIsLoading(true)
 
       try {
-        // Here we would load the script with the background service
+        // Load the script with the background service
         console.log('Loading script:', scriptUrl)
+        await chrome.runtime.sendMessage({
+          type: 'ive:load_script_url',
+          url: scriptUrl,
+        })
 
-        // For now, just simulate a successful load
-        setTimeout(() => {
-          setIsLoading(false)
-        }, 500)
+        // If video is already playing, start haptic playback immediately
+        if (!videoElement.paused) {
+          console.log('Video is playing, starting haptic playback')
+          await chrome.runtime.sendMessage({
+            type: 'ive:play',
+            timeMs: videoElement.currentTime,
+            playbackRate: videoElement.playbackRate,
+            loop: false,
+          })
+        }
+
+        setIsLoading(false)
       } catch (e) {
         setCurrentScript(null)
         setErrorMessage(
           `Error loading script: ${e instanceof Error ? e.message : String(e)}`,
         )
-      } finally {
         setIsLoading(false)
       }
     },
     [videoElement],
   )
+
+  // Select script on load
+  useEffect(() => {
+    if (videoElement && !currentScript) {
+      const defaultScript = scriptEntries.find(([, info]) => info.isDefault)
+      console.log('Auto loading script')
+      if (defaultScript) {
+        handleScriptSelect(defaultScript[0])
+      } else {
+        handleScriptSelect(scriptEntries[0][0])
+      }
+    }
+  }, [videoElement, currentScript, scriptEntries, handleScriptSelect])
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      chrome.runtime.sendMessage({
+        type: 'ive:stop',
+      })
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [])
 
   return (
     <DraggableModal
@@ -54,15 +93,15 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       headerContent={
         <div className={styles.statusSection}>
           <div
-            className={`${styles.statusDot} ${videoElement ? styles.active : ''} ${isSearching ? styles.searching : ''}`}
+            className={`${styles.statusDot} ${videoElement ? styles.active : ''} ${isSearching ? styles.searching : ''} ${isPlaying ? styles.playing : ''}`}
           ></div>
           <span className={styles.statusText}>
             {isSearching
               ? 'Searching for video...'
               : videoElement
-                ? currentScript
-                  ? 'Script active'
-                  : 'Video detected'
+                ? isPlaying
+                  ? 'Playing'
+                  : 'Video paused'
                 : 'No video detected'}
           </span>
         </div>

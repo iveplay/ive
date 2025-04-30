@@ -1,0 +1,100 @@
+import { useEffect } from 'react'
+
+export const useVideoListener = (
+  videoElement: HTMLVideoElement | null,
+  currentScript: string | null,
+  setIsPlaying: (isPlaying: boolean) => void,
+) => {
+  useEffect(() => {
+    if (!videoElement || !currentScript) return
+
+    // Handler for play event
+    const handlePlay = async () => {
+      setIsPlaying(true)
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'ive:play',
+          timeMs: videoElement.currentTime,
+          playbackRate: videoElement.playbackRate,
+          loop: false,
+        })
+      } catch (error) {
+        console.error('Error starting playback:', error)
+      }
+    }
+
+    // Handler for pause event
+    const handlePause = async () => {
+      setIsPlaying(false)
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'ive:stop',
+        })
+      } catch (error) {
+        console.error('Error stopping playback:', error)
+      }
+    }
+
+    // Handler for seeking
+    const handleSeeking = async () => {
+      if (!videoElement.paused) {
+        try {
+          await chrome.runtime.sendMessage({
+            type: 'ive:sync_time',
+            timeMs: videoElement.currentTime,
+          })
+        } catch (error) {
+          console.error('Error syncing time:', error)
+        }
+      }
+    }
+
+    // Handler for rate change
+    const handleRateChange = async () => {
+      if (!videoElement.paused) {
+        try {
+          // Stop and restart with new rate
+          await chrome.runtime.sendMessage({
+            type: 'ive:stop',
+          })
+          await chrome.runtime.sendMessage({
+            type: 'ive:play',
+            timeMs: videoElement.currentTime,
+            playbackRate: videoElement.playbackRate,
+            loop: false,
+          })
+        } catch (error) {
+          console.error('Error handling rate change:', error)
+        }
+      }
+    }
+
+    // Add event listeners
+    videoElement.addEventListener('play', handlePlay)
+    videoElement.addEventListener('pause', handlePause)
+    videoElement.addEventListener('seeking', handleSeeking)
+    videoElement.addEventListener('ratechange', handleRateChange)
+
+    // Check initial state - if video is already playing when script is loaded
+    if (!videoElement.paused) {
+      handlePlay()
+    }
+
+    // Clean up event listeners
+    return () => {
+      videoElement.removeEventListener('play', handlePlay)
+      videoElement.removeEventListener('pause', handlePause)
+      videoElement.removeEventListener('seeking', handleSeeking)
+      videoElement.removeEventListener('ratechange', handleRateChange)
+
+      // Stop playback when component unmounts
+      chrome.runtime
+        .sendMessage({
+          type: 'ive:stop',
+        })
+        .catch((error) => {
+          console.error('Error stopping playback on unmount:', error)
+        })
+    }
+  }, [videoElement, currentScript, setIsPlaying])
+}

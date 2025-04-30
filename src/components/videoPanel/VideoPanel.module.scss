@@ -27,6 +27,11 @@
         background-color: #ff9800;
         animation: pulse 1.5s infinite;
       }
+
+      &.playing {
+        background-color: #4caf50;
+        animation: pulse 1.5s infinite;
+      }
     }
 
     .statusText {
@@ -57,7 +62,7 @@
       border-radius: 4px;
       cursor: pointer;
 
-      &:hover {
+      &:hover:not(:disabled) {
         background-color: rgba(255, 255, 255, 0.2);
       }
 

@@ -14,7 +14,7 @@ export const SCRIPT_MAPPINGS: ScriptEntries = {
         },
     },
   'https://www.pornhub.com/view_video.php?viewkey=ph5ef6a1d92ae1f': {
-    'https://eroscripts-discourse.eroscripts.com/original/2X/0/05d086557c78ff1c1b5547331fadc8a712b025f6.funscript':
+    'https://sweettecheu.s3.eu-central-1.amazonaws.com/testsync/sync_video_2021.csv':
       {
         name: 'Script Name',
         creator: 'Creator Name',
