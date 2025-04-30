@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ContentApp } from '@/pages/content/ContentApp'
 import { ScriptEntries } from '@/types/script'
 
 export const SCRIPT_MAPPINGS: ScriptEntries = {
@@ -8,30 +7,46 @@ export const SCRIPT_MAPPINGS: ScriptEntries = {
     {
       'https://sweettecheu.s3.eu-central-1.amazonaws.com/testsync/sync_video_2021.csv':
         {
-          name: 'Script Name',
-          creator: 'Creator Name',
-          supportUrl: 'https://creator.com/support',
+          name: 'Handy test script',
+          creator: 'The Handy',
+          supportUrl: 'https://www.thehandy.com/',
           isDefault: true,
         },
     },
+  'https://www.pornhub.com/view_video.php?viewkey=ph5ef6a1d92ae1f': {
+    'https://eroscripts-discourse.eroscripts.com/original/2X/0/05d086557c78ff1c1b5547331fadc8a712b025f6.funscript':
+      {
+        name: 'Script Name',
+        creator: 'Creator Name',
+        supportUrl: 'https://creator.com/support',
+        isDefault: false,
+      },
+    'https://eroscripts-discourse.eroscripts.com/original/3X/5/8/5842f55e8a52834076424f909bdcf09059b4b81d.funscript':
+      {
+        name: 'Script Name 2',
+        creator: 'Creator Name 2',
+        supportUrl: 'https://creator.com/support',
+        isDefault: true,
+      },
+  },
 }
 
 const scripts = SCRIPT_MAPPINGS[window.location.href] ?? undefined
 
 if (scripts) {
-  // Create root element
-  const root = document.createElement('div')
-  root.id = 'crx-root'
-  root.style.zIndex = '2147483640'
-  root.style.position = 'fixed'
-  root.style.inset = '0'
-  root.style.pointerEvents = 'none'
-  document.body.appendChild(root)
+  import('@/pages/content/ContentApp').then(({ ContentApp }) => {
+    const root = document.createElement('div')
+    root.id = 'crx-root'
+    root.style.zIndex = '2147483640'
+    root.style.position = 'fixed'
+    root.style.inset = '0'
+    root.style.pointerEvents = 'none'
 
-  // Render React content
-  ReactDOM.createRoot(root).render(
-    <React.StrictMode>
-      <ContentApp scripts={scripts} />
-    </React.StrictMode>,
-  )
+    document.body.appendChild(root)
+    ReactDOM.createRoot(root).render(
+      <React.StrictMode>
+        <ContentApp scripts={scripts} />
+      </React.StrictMode>,
+    )
+  })
 }

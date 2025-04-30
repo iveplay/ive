@@ -16,9 +16,9 @@ class DeviceService {
   private buttplugDevice: ButtplugDevice | null = null
   private scriptLoaded = false
   private isPlaying = false
-  private currentTimeMs = 0
-  private playbackRate = 1.0
-  private loop = false
+  // private currentTimeMs = 0
+  // private playbackRate = 1.0
+  // private loop = false
 
   // Last known states for persistence
   private state: DeviceServiceState = {
@@ -355,9 +355,9 @@ class DeviceService {
     }
 
     try {
-      this.currentTimeMs = timeMs
-      this.playbackRate = playbackRate
-      this.loop = loop
+      // this.currentTimeMs = timeMs
+      // this.playbackRate = playbackRate
+      // this.loop = loop
 
       // Try-catch around specific devices to handle errors more gracefully
       const results: Record<string, boolean> = {}
@@ -428,7 +428,7 @@ class DeviceService {
 
   public async syncTime(timeMs: number): Promise<boolean> {
     try {
-      this.currentTimeMs = timeMs
+      // this.currentTimeMs = timeMs
 
       // Only sync if playing
       if (this.isPlaying) {

@@ -1,4 +1,3 @@
-import { Select } from '@mantine/core'
 import { useState, useCallback } from 'react'
 import { DraggableModal } from '@/components/draggableModal/DraggableModal'
 import { useVideoElement } from '@/hooks/useVideoElement'
@@ -37,20 +36,6 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
         setTimeout(() => {
           setIsLoading(false)
         }, 500)
-
-        // In the real implementation:
-        /*
-      const success = await chrome.runtime.sendMessage({
-        type: 'ive:load_script_url',
-        url: scriptUrl
-      })
-      
-      if (success) {
-        setCurrentScript(scriptUrl)
-      } else {
-        setErrorMessage('Failed to load script')
-      }
-      */
       } catch (e) {
         setCurrentScript(null)
         setErrorMessage(
@@ -107,16 +92,19 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       {videoElement && scriptEntries.length > 0 && (
         <div className={styles.scriptSection}>
           <div className={styles.scriptSelector}>
-            <Select
-              placeholder='Select a script'
-              data={scriptEntries.map(([url, info]) => ({
-                value: url,
-                label: `${info.name} by ${info.creator}`,
-              }))}
-              radius='lg'
-              value={currentScript || null}
-              onChange={(_value, option) => handleScriptSelect(option.value)}
-            />
+            <select
+              className={styles.scriptSelect}
+              value={currentScript || ''}
+              onChange={(e) => handleScriptSelect(e.target.value)}
+              disabled={isLoading}
+            >
+              <option value=''>Select a script</option>
+              {scriptEntries.map(([url, info]) => (
+                <option key={url} value={url}>
+                  {info.name} by {info.creator}
+                </option>
+              ))}
+            </select>
 
             {currentScript && (
               <div className={styles.scriptInfo}>
