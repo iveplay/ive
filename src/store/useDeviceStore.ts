@@ -362,7 +362,7 @@ export function useDeviceSetup(): void {
     // Get initial state
     const fetchInitialState = async () => {
       try {
-        await sendMessageToBackground({ type: 'ive:auto_connect' })
+        sendMessageToBackground({ type: 'ive:auto_connect' })
 
         const state = await sendMessageToBackground<DeviceStateUpdate>({
           type: 'ive:get_state',

@@ -113,9 +113,7 @@ class DeviceService {
 
       this.state.handyConnected = false
       await this.saveState()
-      await this.broadcastState({
-        error: `Handy connection error: ${errorMessage}`,
-      })
+      await this.broadcastState()
       throw error
     }
   }
@@ -217,9 +215,7 @@ class DeviceService {
 
       this.state.buttplugConnected = false
       await this.saveState()
-      await this.broadcastState({
-        error: `Intiface connection error: ${errorMessage}`,
-      })
+      await this.broadcastState()
       throw error
     }
   }
