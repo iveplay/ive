@@ -1,5 +1,10 @@
 import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
+import LoadingIcon from '@/assets/loading.svg'
+import logoImg from '@/assets/logo.png'
+import PauseIcon from '@/assets/pause.svg'
+import PlayIcon from '@/assets/play.svg'
+import WarningIcon from '@/assets/warning.svg'
 import { useVideoElement } from '@/hooks/useVideoElement'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { Scripts } from '@/types/script'
@@ -94,8 +99,9 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
     }
   }, [])
 
-  // Get current script info
   const currentScriptInfo = currentScript ? scripts[currentScript] : null
+  const isError = !!(videoError || errorMessage)
+  const isWorking = !!(isLoading || isSearching)
 
   return (
     <div
@@ -105,10 +111,27 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
         className={styles.statusButton}
         onClick={() => setExpanded(!expanded)}
       >
-        {isPlaying ? 'Pause' : 'Play'}
+        <div className={styles.statusIndicator}>
+          {isError ? (
+            <WarningIcon />
+          ) : isWorking ? (
+            <div className={styles.rotate}>
+              <LoadingIcon />
+            </div>
+          ) : isPlaying ? (
+            <PauseIcon />
+          ) : (
+            <PlayIcon />
+          )}
+        </div>
+        <img
+          src={chrome.runtime.getURL(logoImg)}
+          alt='Logo'
+          className={styles.logo}
+        />
       </div>
       <div className={styles.panel}>
-        {(videoError || errorMessage) && (
+        {isError && (
           <div className={styles.errorContainer}>
             <p className={styles.errorMessage}>{videoError || errorMessage}</p>
             {videoError && (
@@ -136,28 +159,22 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
                 </option>
               ) : (
                 <>
-                  <option value='' disabled>
-                    Select script
-                  </option>
                   {scriptEntries.map(([url, info]) => (
                     <option key={url} value={url}>
-                      {info.name} by {info.creator}
+                      {info.name}
                     </option>
                   ))}
                 </>
               )}
             </select>
             {isLoading && (
-              <div className={styles.loadingIndicator}>Loading...</div>
+              <div className={styles.loadingIndicator}>Loading</div>
             )}
           </div>
         )}
         {currentScript && currentScriptInfo && (
           <div className={styles.scriptInfo}>
-            <h4>{currentScriptInfo.name}</h4>
-            <p className={styles.scriptCreator}>
-              by {currentScriptInfo.creator}
-            </p>
+            <p className={styles.scriptCreator}>{currentScriptInfo.creator}</p>
             {currentScriptInfo.supportUrl && (
               <a
                 href={currentScriptInfo.supportUrl}
