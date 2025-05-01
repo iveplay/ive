@@ -1,6 +1,7 @@
-import React from 'react'
+import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { ContentApp } from '@/pages/content/ContentApp'
+import { LoadPanel } from '@/pages/loadPanel/LoadPanel'
+import { VideoPanel } from '@/pages/videoPanel/VideoPanel'
 import { ScriptEntries } from '@/types/script'
 
 export const SCRIPT_MAPPINGS: ScriptEntries = {
@@ -32,11 +33,17 @@ export const SCRIPT_MAPPINGS: ScriptEntries = {
   },
 }
 
+const LOAD_SCRIPT_PAGES = ['discuss.eroscripts.com/t/', 'faptap.net/v']
+
 const scripts = SCRIPT_MAPPINGS[window.location.href] ?? undefined
+
+const loadScriptPage = LOAD_SCRIPT_PAGES.find((page) =>
+  window.location.href.includes(page),
+)
 
 if (scripts) {
   const root = document.createElement('div')
-  root.id = 'crx-root'
+  root.id = 'ive'
   root.style.zIndex = '2147483640'
   root.style.position = 'fixed'
   root.style.inset = '0'
@@ -44,8 +51,23 @@ if (scripts) {
 
   document.body.appendChild(root)
   ReactDOM.createRoot(root).render(
-    <React.StrictMode>
-      <ContentApp scripts={scripts} />
-    </React.StrictMode>,
+    <StrictMode>
+      <VideoPanel scripts={scripts} />
+    </StrictMode>,
+  )
+}
+
+if (loadScriptPage) {
+  const root = document.createElement('div')
+  root.id = 'ive'
+
+  document
+    .getElementsByClassName('timeline-footer-controls')[0]
+    ?.appendChild(root)
+
+  ReactDOM.createRoot(root).render(
+    <StrictMode>
+      <LoadPanel page={loadScriptPage} />
+    </StrictMode>,
   )
 }
