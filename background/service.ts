@@ -16,6 +16,7 @@ class DeviceService {
   private buttplugDevice: ButtplugDevice | null = null
   private scriptLoaded = false
   private isPlaying = false
+  private lastLoadedScript: ScriptData | null = null
   // private currentTimeMs = 0
   // private playbackRate = 1.0
   // private loop = false
@@ -102,6 +103,11 @@ class DeviceService {
         this.state.handyConnected = true
         await this.saveState()
         await this.broadcastState()
+
+        if (this.lastLoadedScript) {
+          await this.loadScriptToDevice(this.handyDevice, this.lastLoadedScript)
+        }
+
         return true
       }
 
@@ -204,6 +210,14 @@ class DeviceService {
         this.state.buttplugConnected = true
         await this.saveState()
         await this.broadcastState()
+
+        if (this.lastLoadedScript) {
+          await this.loadScriptToDevice(
+            this.buttplugDevice,
+            this.lastLoadedScript,
+          )
+        }
+
         return true
       }
 
@@ -264,11 +278,23 @@ class DeviceService {
     }
   }
 
+  private async loadScriptToDevice(
+    device: HandyDevice | ButtplugDevice,
+    scriptData: ScriptData,
+  ): Promise<boolean> {
+    try {
+      return await device.loadScript(scriptData)
+    } catch (error) {
+      console.error('Error loading script to device:', error)
+      return false
+    }
+  }
+
   // Script management
   public async loadScriptFromUrl(url: string): Promise<boolean> {
-    if (!this.state.handyConnected && !this.state.buttplugConnected) {
-      throw new Error('No devices connected')
-    }
+    // if (!this.state.handyConnected && !this.state.buttplugConnected) {
+    //   throw new Error('No devices connected')
+    // }
 
     try {
       this.state.scriptUrl = url
@@ -278,6 +304,9 @@ class DeviceService {
         type: 'funscript',
         url: url,
       }
+
+      // Store the script data in memory only
+      this.lastLoadedScript = scriptData
 
       // Load script to all connected devices
       const results = await this.deviceManager.loadScriptAll(scriptData)
@@ -306,15 +335,18 @@ class DeviceService {
   public async loadScriptFromContent(
     content: Record<string, unknown>,
   ): Promise<boolean> {
-    if (!this.state.handyConnected && !this.state.buttplugConnected) {
-      throw new Error('No devices connected')
-    }
+    // if (!this.state.handyConnected && !this.state.buttplugConnected) {
+    //   throw new Error('No devices connected')
+    // }
 
     try {
       const scriptData: ScriptData = {
         type: 'funscript',
         content: content,
       }
+
+      // Store the script data in memory only
+      this.lastLoadedScript = scriptData
 
       // Load script to all connected devices
       const results = await this.deviceManager.loadScriptAll(scriptData)

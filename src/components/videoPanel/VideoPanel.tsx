@@ -127,16 +127,25 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
             )}
           </div>
         )}
-        <div className={styles.status}>
-          <span className={styles.label}>Status:</span>
-          <span
-            className={clsx(
-              styles.value,
-              isPlaying ? styles.playing : styles.stopped,
-            )}
+        <div className={styles.scriptContainer}>
+          <div className={styles.status}>
+            <span className={styles.label}>Status:</span>
+            <span
+              className={clsx(
+                styles.value,
+                isPlaying ? styles.playing : styles.stopped,
+              )}
+            >
+              {isPlaying ? 'Playing' : 'Stopped'}
+            </span>
+          </div>
+          <button
+            className={styles.syncButton}
+            onClick={() => handleScriptSelect(currentScript || '')}
+            disabled={isLoading}
           >
-            {isPlaying ? 'Playing' : 'Stopped'}
-          </span>
+            Sync
+          </button>
         </div>
         {scriptEntries.length > 1 && (
           <div className={styles.scriptDropdownContainer}>

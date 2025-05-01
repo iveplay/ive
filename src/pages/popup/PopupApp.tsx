@@ -14,13 +14,13 @@ export const PopupApp = () => {
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case 'handy':
-        return <HandyConnect />
       case 'buttplug':
         return <ButtplugConnect />
       case 'script':
-      default:
         return <ScriptControl />
+      case 'handy':
+      default:
+        return <HandyConnect />
     }
   }
 
@@ -40,12 +40,14 @@ export const PopupApp = () => {
           >
             Intiface
           </li>
-          <li
-            className={`${styles.tabItem} ${activeTab === 'script' ? styles.active : ''}`}
-            onClick={() => setActiveTab('script')}
-          >
-            Script
-          </li>
+          {import.meta.env.DEV && (
+            <li
+              className={`${styles.tabItem} ${activeTab === 'script' ? styles.active : ''}`}
+              onClick={() => setActiveTab('script')}
+            >
+              Script
+            </li>
+          )}
         </ul>
       </nav>
 

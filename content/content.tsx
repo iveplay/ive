@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { ContentApp } from '@/pages/content/ContentApp'
 import { ScriptEntries } from '@/types/script'
 
 export const SCRIPT_MAPPINGS: ScriptEntries = {
@@ -34,19 +35,17 @@ export const SCRIPT_MAPPINGS: ScriptEntries = {
 const scripts = SCRIPT_MAPPINGS[window.location.href] ?? undefined
 
 if (scripts) {
-  import('@/pages/content/ContentApp').then(({ ContentApp }) => {
-    const root = document.createElement('div')
-    root.id = 'crx-root'
-    root.style.zIndex = '2147483640'
-    root.style.position = 'fixed'
-    root.style.inset = '0'
-    root.style.pointerEvents = 'none'
+  const root = document.createElement('div')
+  root.id = 'crx-root'
+  root.style.zIndex = '2147483640'
+  root.style.position = 'fixed'
+  root.style.inset = '0'
+  root.style.pointerEvents = 'none'
 
-    document.body.appendChild(root)
-    ReactDOM.createRoot(root).render(
-      <React.StrictMode>
-        <ContentApp scripts={scripts} />
-      </React.StrictMode>,
-    )
-  })
+  document.body.appendChild(root)
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <ContentApp scripts={scripts} />
+    </React.StrictMode>,
+  )
 }
