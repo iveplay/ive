@@ -1,10 +1,6 @@
 import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
-import LoadingIcon from '@/assets/loading.svg'
 import logoImg from '@/assets/logo.png'
-import PauseIcon from '@/assets/pause.svg'
-import PlayIcon from '@/assets/play.svg'
-import WarningIcon from '@/assets/warning.svg'
 import { useVideoElement } from '@/hooks/useVideoElement'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { Scripts } from '@/types/script'
@@ -101,7 +97,6 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
 
   const currentScriptInfo = currentScript ? scripts[currentScript] : null
   const isError = !!(videoError || errorMessage)
-  const isWorking = !!(isLoading || isSearching)
 
   return (
     <div
@@ -111,19 +106,6 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
         className={styles.statusButton}
         onClick={() => setExpanded(!expanded)}
       >
-        <div className={styles.statusIndicator}>
-          {isError ? (
-            <WarningIcon />
-          ) : isWorking ? (
-            <div className={styles.rotate}>
-              <LoadingIcon />
-            </div>
-          ) : isPlaying ? (
-            <PauseIcon />
-          ) : (
-            <PlayIcon />
-          )}
-        </div>
         <img
           src={chrome.runtime.getURL(logoImg)}
           alt='Logo'
@@ -145,6 +127,17 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
             )}
           </div>
         )}
+        <div className={styles.status}>
+          <span className={styles.label}>Status:</span>
+          <span
+            className={clsx(
+              styles.value,
+              isPlaying ? styles.playing : styles.stopped,
+            )}
+          >
+            {isPlaying ? 'Playing' : 'Stopped'}
+          </span>
+        </div>
         {scriptEntries.length > 1 && (
           <div className={styles.scriptDropdownContainer}>
             <select

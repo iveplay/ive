@@ -16,7 +16,7 @@
   z-index: 1;
   position: relative;
   width: 48px;
-  height: 64px;
+  height: 48px;
   padding-inline: 8px;
   background-color: rgba(41, 11, 29, 0.95);
   border-radius: 8px 0 0 8px;
@@ -86,10 +86,44 @@
     }
   }
 
+  .status {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 16px;
+    margin-inline: 16px;
+    font-size: 14px;
+
+    .label {
+      font-weight: 500;
+      margin-right: 8px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .value {
+      color: rgba(255, 255, 255, 0.6);
+
+      &.playing {
+        color: #4caf50;
+        font-weight: 500;
+      }
+
+      &.stopped {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      &.empty {
+        color: rgba(255, 255, 255, 0.4);
+        font-style: italic;
+      }
+    }
+  }
+
   .scriptInfo {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
-    padding: 12px;
+    padding: 8px;
     margin-top: 16px;
     margin-inline: 16px;
 
