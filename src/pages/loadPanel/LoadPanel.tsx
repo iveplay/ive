@@ -7,6 +7,7 @@ type LoadPanelProps = {
 
 export const LoadPanel = ({ page }: LoadPanelProps) => {
   console.log('LoadPanel page:', page)
+
   return (
     <button className={styles.openPanel}>
       <img

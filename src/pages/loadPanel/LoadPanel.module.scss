@@ -1,17 +1,15 @@
 .openPanel {
-  width: 48px;
-  height: 48px;
+  height: 100%;
+  margin-right: 8px;
   padding-inline: 8px;
   background-color: rgba(41, 11, 29, 0.95);
-  border-radius: 8px 0 0 8px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-left: 1px solid rgba(123, 2, 77, 0.5);
-  border-top: 1px solid rgba(123, 2, 77, 0.5);
-  border-bottom: 1px solid rgba(123, 2, 77, 0.5);
+  border: 1px solid rgba(123, 2, 77, 0.5);
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
 
   &:hover {

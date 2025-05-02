@@ -35,39 +35,49 @@ export const SCRIPT_MAPPINGS: ScriptEntries = {
 
 const LOAD_SCRIPT_PAGES = ['discuss.eroscripts.com/t/', 'faptap.net/v']
 
-const scripts = SCRIPT_MAPPINGS[window.location.href] ?? undefined
+let currentUrl = window.location.href
 
-const loadScriptPage = LOAD_SCRIPT_PAGES.find((page) =>
-  window.location.href.includes(page),
-)
+setInterval(() => {
+  if (window.location.href !== currentUrl) {
+    currentUrl = window.location.href
+    handleUrlChange()
+  }
+}, 1000)
 
-if (scripts) {
-  const root = document.createElement('div')
-  root.id = 'ive'
-  root.style.zIndex = '2147483640'
-  root.style.position = 'fixed'
-  root.style.inset = '0'
-  root.style.pointerEvents = 'none'
-
-  document.body.appendChild(root)
-  ReactDOM.createRoot(root).render(
-    <StrictMode>
-      <VideoPanel scripts={scripts} />
-    </StrictMode>,
+function handleUrlChange() {
+  const scripts = SCRIPT_MAPPINGS[currentUrl] ?? undefined
+  const loadScriptPage = LOAD_SCRIPT_PAGES.find((page) =>
+    currentUrl.includes(page),
   )
+
+  document.getElementById('ive')?.remove()
+
+  if (scripts) {
+    const root = document.createElement('div')
+    root.id = 'ive'
+    root.style.zIndex = '2147483640'
+    root.style.position = 'fixed'
+    root.style.inset = '0'
+    root.style.pointerEvents = 'none'
+    document.body.appendChild(root)
+    ReactDOM.createRoot(root).render(
+      <StrictMode>
+        <VideoPanel scripts={scripts} />
+      </StrictMode>,
+    )
+  }
+
+  if (loadScriptPage) {
+    const root = document.createElement('div')
+    root.id = 'ive'
+    document.getElementsByClassName('icons d-header-icons')[0]?.prepend(root)
+    ReactDOM.createRoot(root).render(
+      <StrictMode>
+        <LoadPanel page={loadScriptPage} />
+      </StrictMode>,
+    )
+  }
 }
 
-if (loadScriptPage) {
-  const root = document.createElement('div')
-  root.id = 'ive'
-
-  document
-    .getElementsByClassName('timeline-footer-controls')[0]
-    ?.appendChild(root)
-
-  ReactDOM.createRoot(root).render(
-    <StrictMode>
-      <LoadPanel page={loadScriptPage} />
-    </StrictMode>,
-  )
-}
+// Initial setup
+handleUrlChange()
