@@ -123,12 +123,8 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
                 {videoError || errorMessage}
               </p>
               {videoError && (
-                <button
-                  className={styles.retryButton}
-                  onClick={retry}
-                  disabled={isSearching}
-                >
-                  {isSearching ? 'Searching...' : 'Search again'}
+                <button className={styles.retryButton} onClick={retry}>
+                  Search again
                 </button>
               )}
             </div>
@@ -175,9 +171,6 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
                   </>
                 )}
               </select>
-              {isLoading && (
-                <div className={styles.loadingIndicator}>Loading</div>
-              )}
             </div>
           )}
           {currentScript && currentScriptInfo && (
@@ -195,6 +188,11 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
                   Support creator
                 </a>
               )}
+            </div>
+          )}
+          {(isLoading || isSearching) && (
+            <div className={styles.loadingIndicator}>
+              {isSearching ? 'Searching video element' : 'Loading'}
             </div>
           )}
         </div>

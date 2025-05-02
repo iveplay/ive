@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, DragEvent } from 'react'
 import logoImg from '@/assets/logo.png'
+import { ScriptEntries } from '@/types/script'
+import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
 import styles from './EroLoadPanel.module.scss'
 
 export const EroLoadPanel = () => {
@@ -47,6 +49,46 @@ export const EroLoadPanel = () => {
     }
   }
 
+  const saveAndLoadScript = async () => {
+    if (!script.url || !script.script) {
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const result = await chrome.storage.local.get('ive:scripts')
+      const scripts: ScriptEntries = result['ive:scripts'] || {}
+
+      const currentUrl = script.url
+      const scriptUrl = script.script
+
+      if (!scripts[currentUrl]) {
+        scripts[currentUrl] = {}
+      }
+
+      const ownerInfo = extractTopicOwnerInfo()
+      const scriptName = getScriptLinkName(scriptUrl)
+
+      scripts[currentUrl][scriptUrl] = {
+        name: scriptName ?? '',
+        creator: ownerInfo.username ?? '',
+        supportUrl: window.location.href,
+        isDefault: false,
+      }
+
+      await chrome.storage.local.set({ 'ive:scripts': scripts })
+      await chrome.runtime.sendMessage({
+        type: 'ive:load_script_url',
+        url: scriptUrl,
+      })
+
+      window.open(currentUrl, '_blank')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className={styles.container}>
       <button
@@ -81,7 +123,7 @@ export const EroLoadPanel = () => {
             </div>
             <button
               className={styles.loadButton}
-              onClick={() => {}}
+              onClick={saveAndLoadScript}
               disabled={!script.script || !script.url || isLoading}
             >
               {isLoading ? 'Loading...' : 'Load and play'}

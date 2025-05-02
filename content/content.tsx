@@ -4,55 +4,50 @@ import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
 import { VideoPanel } from '@/pages/videoPanel/VideoPanel'
 import { ScriptEntries } from '@/types/script'
 
-export const SCRIPT_MAPPINGS: ScriptEntries = {
-  'https://sweettecheu.s3.eu-central-1.amazonaws.com/testsync/sync_video_2021.mp4':
-    {
-      'https://sweettecheu.s3.eu-central-1.amazonaws.com/testsync/sync_video_2021.csv':
-        {
-          name: 'Handy test script',
-          creator: 'The Handy',
-          supportUrl: 'https://www.thehandy.com/',
-          isDefault: true,
-        },
-    },
-  'https://www.pornhub.com/view_video.php?viewkey=ph5ef6a1d92ae1f': {
-    'https://sweettecheu.s3.eu-central-1.amazonaws.com/testsync/sync_video_2021.csv':
-      {
-        name: 'Script Name',
-        creator: 'Creator Name',
-        supportUrl: 'https://creator.com/support',
-        isDefault: false,
-      },
-    'https://eroscripts-discourse.eroscripts.com/original/3X/5/8/5842f55e8a52834076424f909bdcf09059b4b81d.funscript':
-      {
-        name: 'Script Name 2',
-        creator: 'Creator Name 2',
-        supportUrl: 'https://creator.com/support',
-        isDefault: true,
-      },
-  },
-}
-
 const LOAD_SCRIPT_PAGES = ['discuss.eroscripts.com/t/', 'faptap.net/v']
 
 let currentUrl = window.location.href
 
 setInterval(() => {
   if (window.location.href !== currentUrl) {
+    const loadScriptPage = LOAD_SCRIPT_PAGES.find((page) =>
+      currentUrl.includes(page),
+    )
+
     currentUrl = window.location.href
-    handleUrlChange()
+    if (!loadScriptPage) {
+      handleUrlChange()
+    }
   }
 }, 1000)
 
-function handleUrlChange() {
-  const scripts = SCRIPT_MAPPINGS[currentUrl] ?? undefined
+async function getScripts(): Promise<ScriptEntries> {
+  try {
+    const result = await chrome.storage.local.get('ive:scripts')
+    return result['ive:scripts'] || {}
+  } catch (error) {
+    console.error('Error loading script mappings:', error)
+    return {}
+  }
+}
+
+async function handleUrlChange() {
+  const scriptMappings = await getScripts()
+
+  const scripts = Object.entries(scriptMappings).find(([url, scripts]) => {
+    if (currentUrl.includes(url)) {
+      return scripts
+    }
+    return undefined
+  })
+
   const loadScriptPage = LOAD_SCRIPT_PAGES.find((page) =>
-    currentUrl.includes(page),
+    window.location.href.includes(page),
   )
 
   document.getElementById('ive')?.remove()
 
-  if (scripts) {
+  if (scripts && scripts[1]) {
     const root = document.createElement('div')
     root.id = 'ive'
     root.style.zIndex = '2147483640'
@@ -64,7 +59,7 @@ function handleUrlChange() {
 
     ReactDOM.createRoot(root).render(
       <StrictMode>
-        <VideoPanel scripts={scripts} />
+        <VideoPanel scripts={scripts[1]} />
       </StrictMode>,
     )
   }
