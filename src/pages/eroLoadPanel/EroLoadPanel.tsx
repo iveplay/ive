@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, DragEvent } from 'react'
 import logoImg from '@/assets/logo.png'
-import { ScriptEntries } from '@/types/script'
 import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
+import { getScripts, saveScripts } from '@/utils/idb-client'
 import styles from './EroLoadPanel.module.scss'
 
 export const EroLoadPanel = () => {
@@ -57,8 +57,7 @@ export const EroLoadPanel = () => {
     setIsLoading(true)
 
     try {
-      const result = await chrome.storage.local.get('ive:scripts')
-      const scripts: ScriptEntries = result['ive:scripts'] || {}
+      const scripts = await getScripts()
 
       const currentUrl = script.url
       const scriptUrl = script.script
@@ -77,7 +76,7 @@ export const EroLoadPanel = () => {
         isDefault: false,
       }
 
-      await chrome.storage.local.set({ 'ive:scripts': scripts })
+      await saveScripts(scripts)
       await chrome.runtime.sendMessage({
         type: 'ive:load_script_url',
         url: scriptUrl,

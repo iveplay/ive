@@ -1,3 +1,4 @@
+import { idbService } from './idb.service'
 import { deviceService } from './service'
 import { UIMessage } from './types'
 
@@ -61,6 +62,13 @@ export function setupMessageHandler(): void {
 
             case 'ive:sync_time':
               return await deviceService.syncTime(message.timeMs)
+
+            // Add IndexedDB handlers
+            case 'idb:get_scripts':
+              return await idbService.getScripts()
+
+            case 'idb:save_scripts':
+              return await idbService.saveScripts(message.scripts)
 
             default:
               return {

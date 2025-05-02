@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
 import { VideoPanel } from '@/pages/videoPanel/VideoPanel'
-import { ScriptEntries } from '@/types/script'
+import { getScripts } from '@/utils/idb-client'
 
 const LOAD_SCRIPT_PAGES = ['discuss.eroscripts.com/t/', 'faptap.net/v']
 
@@ -20,16 +20,6 @@ setInterval(() => {
     }
   }
 }, 1000)
-
-async function getScripts(): Promise<ScriptEntries> {
-  try {
-    const result = await chrome.storage.local.get('ive:scripts')
-    return result['ive:scripts'] || {}
-  } catch (error) {
-    console.error('Error loading script mappings:', error)
-    return {}
-  }
-}
 
 async function handleUrlChange() {
   const scriptMappings = await getScripts()
