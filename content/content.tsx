@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { LoadPanel } from '@/pages/loadPanel/LoadPanel'
+import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
 import { VideoPanel } from '@/pages/videoPanel/VideoPanel'
 import { ScriptEntries } from '@/types/script'
 
@@ -59,7 +59,9 @@ function handleUrlChange() {
     root.style.position = 'fixed'
     root.style.inset = '0'
     root.style.pointerEvents = 'none'
+
     document.body.appendChild(root)
+
     ReactDOM.createRoot(root).render(
       <StrictMode>
         <VideoPanel scripts={scripts} />
@@ -70,10 +72,13 @@ function handleUrlChange() {
   if (loadScriptPage) {
     const root = document.createElement('div')
     root.id = 'ive'
+    root.style.position = 'relative'
+
     document.getElementsByClassName('icons d-header-icons')[0]?.prepend(root)
+
     ReactDOM.createRoot(root).render(
       <StrictMode>
-        <LoadPanel page={loadScriptPage} />
+        <EroLoadPanel />
       </StrictMode>,
     )
   }
