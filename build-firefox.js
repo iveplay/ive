@@ -16,10 +16,12 @@ fs.cpSync('dist', 'dist-firefox', { recursive: true })
 const chromeManifest = JSON.parse(
   fs.readFileSync('./dist/manifest.json', 'utf8'),
 )
+
 const firefoxManifest = {
   ...chromeManifest,
   background: {
-    scripts: ['background/background.js'],
+    scripts: [chromeManifest.background.service_worker],
+    type: 'module',
   },
   browser_specific_settings: {
     gecko: {
