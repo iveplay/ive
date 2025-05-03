@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "concurrently --names \"vite,chrome\" --prefix-colors \"green,yellow\" \"vite\" \"wait-on http://localhost:5173 && npm run launch-chrome\"",
     "build": "tsc -b && vite build",
+    "build:firefox": "npm run build && node build-firefox.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "launch-chrome": "node launch-chrome.js"
