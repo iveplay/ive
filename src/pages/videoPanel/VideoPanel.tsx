@@ -49,7 +49,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
           console.log('Video is playing, starting haptic playback')
           await chrome.runtime.sendMessage({
             type: 'ive:play',
-            timeMs: videoElement.currentTime,
+            timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
             loop: false,
           })

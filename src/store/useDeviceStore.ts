@@ -1,5 +1,5 @@
 import { DeviceInfo } from 'ive-connect'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
 
 // Device store state
@@ -358,9 +358,14 @@ interface DeviceStateUpdate {
 
 // Hook to handle state updates from background
 export function useDeviceSetup(): void {
+  const hasRanRef = useRef(false)
+
   useEffect(() => {
     // Get initial state
     const fetchInitialState = async () => {
+      if (hasRanRef.current) return
+      hasRanRef.current = true
+
       try {
         sendMessageToBackground({ type: 'ive:auto_connect' })
 

@@ -104,7 +104,7 @@ class DeviceService {
         await this.saveState()
         await this.broadcastState()
 
-        if (this.lastLoadedScript) {
+        if (!this.isPlaying && this.lastLoadedScript) {
           await this.loadScriptToDevice(this.handyDevice, this.lastLoadedScript)
         }
 
@@ -211,7 +211,7 @@ class DeviceService {
         await this.saveState()
         await this.broadcastState()
 
-        if (this.lastLoadedScript) {
+        if (!this.isPlaying && this.lastLoadedScript) {
           await this.loadScriptToDevice(
             this.buttplugDevice,
             this.lastLoadedScript,

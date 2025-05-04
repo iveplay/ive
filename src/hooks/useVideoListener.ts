@@ -14,7 +14,7 @@ export const useVideoListener = (
       try {
         await chrome.runtime.sendMessage({
           type: 'ive:play',
-          timeMs: videoElement.currentTime,
+          timeMs: videoElement.currentTime * 1000,
           playbackRate: videoElement.playbackRate,
           loop: false,
         })
@@ -40,8 +40,10 @@ export const useVideoListener = (
       if (!videoElement.paused) {
         try {
           await chrome.runtime.sendMessage({
-            type: 'ive:sync_time',
-            timeMs: videoElement.currentTime,
+            type: 'ive:play',
+            timeMs: videoElement.currentTime * 1000,
+            playbackRate: videoElement.playbackRate,
+            loop: false,
           })
         } catch (error) {
           console.error('Error syncing time:', error)
@@ -59,7 +61,7 @@ export const useVideoListener = (
           })
           await chrome.runtime.sendMessage({
             type: 'ive:play',
-            timeMs: videoElement.currentTime,
+            timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
             loop: false,
           })
