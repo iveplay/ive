@@ -77,10 +77,6 @@ export const EroLoadPanel = () => {
       }
 
       await saveScripts(scripts)
-      await chrome.runtime.sendMessage({
-        type: 'ive:load_script_url',
-        url: scriptUrl,
-      })
 
       window.open(currentUrl, '_blank')
     } finally {

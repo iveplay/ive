@@ -19,6 +19,10 @@ const chromeManifest = JSON.parse(
 
 const firefoxManifest = {
   ...chromeManifest,
+  content_security_policy: {
+    extension_pages:
+      "default-src 'self'; connect-src 'self' ws://0.0.0.0:* ws://localhost:* https://*; style-src 'self' 'unsafe-inline'",
+  },
   background: {
     scripts: [chromeManifest.background.service_worker],
     type: 'module',

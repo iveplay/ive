@@ -5,7 +5,8 @@
   "author": "iveplay",
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently --names \"vite,chrome\" --prefix-colors \"green,yellow\" \"vite\" \"wait-on http://localhost:5173 && npm run launch-chrome\"",
+    "dev": "vite",
+    "dev:chrome": "concurrently --names \"vite,chrome\" --prefix-colors \"green,yellow\" \"vite\" \"wait-on http://localhost:5173 && npm run launch-chrome\"",
     "build": "tsc -b && vite build",
     "build:firefox": "npm run build && node build-firefox.js",
     "lint": "eslint .",
@@ -16,7 +17,7 @@
     "@mantine/core": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
     "clsx": "^2.1.1",
-    "ive-connect": "^0.1.1",
+    "ive-connect": "^0.1.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zustand": "^5.0.3"
