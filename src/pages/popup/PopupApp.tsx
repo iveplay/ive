@@ -8,7 +8,7 @@ import styles from './PopupApp.module.scss'
 type TabType = 'handy' | 'buttplug' | 'script'
 
 export const PopupApp = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('script')
+  const [activeTab, setActiveTab] = useState<TabType>('handy')
 
   useDeviceSetup()
 
