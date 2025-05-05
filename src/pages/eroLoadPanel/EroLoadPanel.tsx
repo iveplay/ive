@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, DragEvent } from 'react'
 import logoImg from '@/assets/logo.png'
 import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
-import { getScripts, saveScripts } from '@/utils/idb-client'
+import { saveScript } from '@/utils/saveScripts'
 import styles from './EroLoadPanel.module.scss'
 
 export const EroLoadPanel = () => {
@@ -57,26 +57,18 @@ export const EroLoadPanel = () => {
     setIsLoading(true)
 
     try {
-      const scripts = await getScripts()
-
       const currentUrl = script.url
       const scriptUrl = script.script
-
-      if (!scripts[currentUrl]) {
-        scripts[currentUrl] = {}
-      }
 
       const ownerInfo = extractTopicOwnerInfo()
       const scriptName = getScriptLinkName(scriptUrl)
 
-      scripts[currentUrl][scriptUrl] = {
+      await saveScript(currentUrl, scriptUrl, {
         name: scriptName ?? '',
         creator: ownerInfo.username ?? '',
         supportUrl: window.location.href,
         isDefault: false,
-      }
-
-      await saveScripts(scripts)
+      })
 
       window.open(currentUrl, '_blank')
     } finally {

@@ -2,7 +2,23 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
 import { VideoPanel } from '@/pages/videoPanel/VideoPanel'
-import { getScripts } from '@/utils/idb-client'
+import { getScripts, saveScript } from '@/utils/saveScripts'
+
+// Extend Window interface
+declare global {
+  interface Window {
+    ive: {
+      saveScript: typeof saveScript
+      getScripts: typeof getScripts
+    }
+  }
+}
+
+// Exports to window
+window.ive = {
+  saveScript,
+  getScripts,
+}
 
 const LOAD_SCRIPT_PAGES = ['discuss.eroscripts.com/t/', 'faptap.net/v']
 

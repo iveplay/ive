@@ -67,8 +67,12 @@ export function setupMessageHandler(): void {
             case 'idb:get_scripts':
               return await idbService.getScripts()
 
-            case 'idb:save_scripts':
-              return await idbService.saveScripts(message.scripts)
+            case 'idb:save_script':
+              return await idbService.saveScript(
+                message.websiteKey,
+                message.scriptId,
+                message.scriptInfo,
+              )
 
             default:
               return {

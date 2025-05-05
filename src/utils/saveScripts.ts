@@ -1,4 +1,4 @@
-import { ScriptEntries } from '@/types/script'
+import { ScriptEntries, ScriptInfo } from '@/types/script'
 
 export const getScripts = async (): Promise<ScriptEntries> => {
   try {
@@ -9,11 +9,17 @@ export const getScripts = async (): Promise<ScriptEntries> => {
   }
 }
 
-export const saveScripts = async (scripts: ScriptEntries) => {
+export const saveScript = async (
+  websiteKey: string,
+  scriptId: string,
+  scriptInfo: ScriptInfo,
+) => {
   try {
     await chrome.runtime.sendMessage({
-      type: 'idb:save_scripts',
-      scripts,
+      type: 'idb:save_script',
+      websiteKey,
+      scriptId,
+      scriptInfo,
     })
   } catch (error) {
     console.error('Error saving scripts:', error)

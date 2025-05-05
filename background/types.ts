@@ -1,5 +1,5 @@
 import { DeviceInfo as IVEDeviceInfo } from 'ive-connect'
-import { ScriptEntries } from '@/types/script'
+import { ScriptInfo } from '@/types/script'
 
 export interface DeviceServiceState {
   // Connection state
@@ -55,5 +55,10 @@ export type UIMessage =
   | { type: 'ive:play'; timeMs: number; playbackRate?: number; loop?: boolean }
   | { type: 'ive:stop' }
   | { type: 'ive:sync_time'; timeMs: number }
-  | { type: 'idb:save_scripts'; scripts: ScriptEntries }
+  | {
+      type: 'idb:save_script'
+      websiteKey: string
+      scriptId: string
+      scriptInfo: ScriptInfo
+    }
   | { type: 'idb:get_scripts' }

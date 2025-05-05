@@ -1,4 +1,4 @@
-import { ScriptEntries } from '@/types/script'
+import { ScriptEntries, ScriptInfo } from '@/types/script'
 
 export class IDBService {
   private db: IDBDatabase | null = null
@@ -49,7 +49,7 @@ export class IDBService {
     }
   }
 
-  async saveScripts(scripts: ScriptEntries): Promise<void> {
+  private async _saveScripts(scripts: ScriptEntries): Promise<void> {
     try {
       const db = await this.openDB()
 
@@ -63,6 +63,31 @@ export class IDBService {
       })
     } catch (error) {
       console.error('Error saving scripts:', error)
+      throw error
+    }
+  }
+
+  async saveScript(
+    websiteKey: string,
+    scriptId: string,
+    scriptInfo: ScriptInfo,
+  ): Promise<void> {
+    try {
+      // Get current scripts
+      const currentScripts = await this.getScripts()
+
+      // Initialize the website entry if it doesn't exist
+      if (!currentScripts[websiteKey]) {
+        currentScripts[websiteKey] = {}
+      }
+
+      // Add/update the script
+      currentScripts[websiteKey][scriptId] = scriptInfo
+
+      // Save the updated scripts object
+      return this._saveScripts(currentScripts)
+    } catch (error) {
+      console.error(`Error saving script ${scriptId} for ${websiteKey}:`, error)
       throw error
     }
   }
