@@ -29,7 +29,7 @@ const firefoxManifest = {
   },
   browser_specific_settings: {
     gecko: {
-      id: 'contact@iveplay.io',
+      id: 'firefox@iveplay.io',
     },
   },
 }
