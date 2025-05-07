@@ -1,0 +1,11 @@
+.heatmapContainer {
+  position: fixed;
+  display: flex;
+  height: 128px;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 2147483640;
+  background-color: #cc1100;
+  color: #fff;
+}

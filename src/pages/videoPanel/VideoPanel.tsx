@@ -99,103 +99,94 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
   const isError = !!(videoError || errorMessage)
 
   return (
-    <div className={styles.floatingContainer}>
+    <div
+      className={clsx(styles.controlContainer, expanded ? styles.expanded : '')}
+    >
       <div
-        className={clsx(
-          styles.controlContainer,
-          expanded ? styles.expanded : '',
-        )}
+        className={styles.statusButton}
+        onClick={() => setExpanded(!expanded)}
       >
-        <div
-          className={styles.statusButton}
-          onClick={() => setExpanded(!expanded)}
-        >
-          <img
-            src={chrome.runtime.getURL(logoImg)}
-            alt='Logo'
-            className={styles.logo}
-          />
-        </div>
-        <div className={styles.panel}>
-          {isError && (
-            <div className={styles.errorContainer}>
-              <p className={styles.errorMessage}>
-                {videoError || errorMessage}
-              </p>
-              {videoError && (
-                <button className={styles.retryButton} onClick={retry}>
-                  Search again
-                </button>
-              )}
-            </div>
-          )}
-          <div className={styles.scriptContainer}>
-            <div className={styles.status}>
-              <span className={styles.label}>Status:</span>
-              <span
-                className={clsx(
-                  styles.value,
-                  isPlaying ? styles.playing : styles.stopped,
-                )}
-              >
-                {isPlaying ? 'Playing' : 'Stopped'}
-              </span>
-            </div>
-            <button
-              className={styles.syncButton}
-              onClick={() => handleScriptSelect(currentScript || '')}
-              disabled={isLoading}
-            >
-              Sync
-            </button>
+        <img
+          src={chrome.runtime.getURL(logoImg)}
+          alt='Logo'
+          className={styles.logo}
+        />
+      </div>
+      <div className={styles.panel}>
+        {isError && (
+          <div className={styles.errorContainer}>
+            <p className={styles.errorMessage}>{videoError || errorMessage}</p>
+            {videoError && (
+              <button className={styles.retryButton} onClick={retry}>
+                Search again
+              </button>
+            )}
           </div>
-          {scriptEntries.length > 1 && (
-            <div className={styles.scriptDropdownContainer}>
-              <select
-                className={styles.scriptDropdown}
-                value={currentScript || ''}
-                onChange={(e) => handleScriptSelect(e.target.value)}
-                disabled={isLoading || scriptEntries.length === 0}
-              >
-                {scriptEntries.length === 0 ? (
-                  <option value='' disabled>
-                    No scripts available
-                  </option>
-                ) : (
-                  <>
-                    {scriptEntries.map(([url, info]) => (
-                      <option key={url} value={url}>
-                        {info.name}
-                      </option>
-                    ))}
-                  </>
-                )}
-              </select>
-            </div>
-          )}
-          {currentScript && currentScriptInfo && (
-            <div className={styles.scriptInfo}>
-              <p className={styles.scriptCreator}>
-                {currentScriptInfo.creator}
-              </p>
-              {currentScriptInfo.supportUrl && (
-                <a
-                  href={currentScriptInfo.supportUrl}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className={styles.supportLink}
-                >
-                  Support creator
-                </a>
+        )}
+        <div className={styles.scriptContainer}>
+          <div className={styles.status}>
+            <span className={styles.label}>Status:</span>
+            <span
+              className={clsx(
+                styles.value,
+                isPlaying ? styles.playing : styles.stopped,
               )}
-            </div>
-          )}
-          {(isLoading || isSearching) && (
-            <div className={styles.loadingIndicator}>
-              {isSearching ? 'Searching video element' : 'Loading'}
-            </div>
-          )}
+            >
+              {isPlaying ? 'Playing' : 'Stopped'}
+            </span>
+          </div>
+          <button
+            className={styles.syncButton}
+            onClick={() => handleScriptSelect(currentScript || '')}
+            disabled={isLoading}
+          >
+            Sync
+          </button>
         </div>
+        {scriptEntries.length > 1 && (
+          <div className={styles.scriptDropdownContainer}>
+            <select
+              className={styles.scriptDropdown}
+              value={currentScript || ''}
+              onChange={(e) => handleScriptSelect(e.target.value)}
+              disabled={isLoading || scriptEntries.length === 0}
+            >
+              {scriptEntries.length === 0 ? (
+                <option value='' disabled>
+                  No scripts available
+                </option>
+              ) : (
+                <>
+                  {scriptEntries.map(([url, info]) => (
+                    <option key={url} value={url}>
+                      {info.name}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
+          </div>
+        )}
+        {currentScript && currentScriptInfo && (
+          <div className={styles.scriptInfo}>
+            <p className={styles.scriptCreator}>{currentScriptInfo.creator}</p>
+            {currentScriptInfo.supportUrl && (
+              <a
+                href={currentScriptInfo.supportUrl}
+                target='_blank'
+                rel='noopener noreferrer'
+                className={styles.supportLink}
+              >
+                Support creator
+              </a>
+            )}
+          </div>
+        )}
+        {(isLoading || isSearching) && (
+          <div className={styles.loadingIndicator}>
+            {isSearching ? 'Searching video element' : 'Loading'}
+          </div>
+        )}
       </div>
     </div>
   )

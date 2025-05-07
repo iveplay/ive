@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
-import { VideoPanel } from '@/pages/videoPanel/VideoPanel'
+import { VideoPage } from '@/pages/videoPage/VideoPage'
 import { getScripts, saveScript } from '@/utils/saveScripts'
 
 // Extend Window interface
@@ -65,7 +65,7 @@ async function handleUrlChange() {
 
     ReactDOM.createRoot(root).render(
       <StrictMode>
-        <VideoPanel scripts={scripts[1]} />
+        <VideoPage scripts={scripts[1]} />
       </StrictMode>,
     )
   }
