@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, DragEvent } from 'react'
 import logoImg from '@/assets/logo.png'
+import { useMobileEroLoadButtons } from '@/hooks/useMobileEroLoadButtons'
 import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
 import { saveScript } from '@/utils/saveScripts'
 import styles from './EroLoadPanel.module.scss'
@@ -17,13 +18,16 @@ export const EroLoadPanel = () => {
   const processDroppedUrl = useCallback(
     (url: string) => {
       if (url.endsWith('.funscript') || url.endsWith('.csv')) {
-        setScript({ url: script?.url ?? '', script: url })
+        setScript((prevState) => ({ url: prevState.url, script: url }))
       } else {
-        setScript({ url, script: script?.script ?? null })
+        setScript((prevState) => ({ url, script: prevState.script }))
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [script],
   )
+
+  useMobileEroLoadButtons(processDroppedUrl, styles.linkLoaderButton)
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault()

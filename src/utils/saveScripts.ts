@@ -2,7 +2,7 @@ import { ScriptEntries, ScriptInfo } from '@/types/script'
 
 export const getScripts = async (): Promise<ScriptEntries> => {
   try {
-    return await chrome.runtime.sendMessage({ type: 'idb:get_scripts' })
+    return await chrome.runtime.sendMessage({ type: 'ive:get_scripts' })
   } catch (error) {
     console.error('Error getting scripts:', error)
     return {}
@@ -16,7 +16,7 @@ export const saveScript = async (
 ) => {
   try {
     await chrome.runtime.sendMessage({
-      type: 'idb:save_script',
+      type: 'ive:save_script',
       websiteKey,
       scriptId,
       scriptInfo,

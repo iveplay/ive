@@ -64,10 +64,10 @@ export function setupMessageHandler(): void {
               return await deviceService.syncTime(message.timeMs)
 
             // Add IndexedDB handlers
-            case 'idb:get_scripts':
+            case 'ive:get_scripts':
               return await idbService.getScripts()
 
-            case 'idb:save_script':
+            case 'ive:save_script':
               return await idbService.saveScript(
                 message.websiteKey,
                 message.scriptId,

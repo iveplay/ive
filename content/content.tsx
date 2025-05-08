@@ -2,27 +2,15 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
 import { VideoPage } from '@/pages/videoPage/VideoPage'
-import { getScripts, saveScript } from '@/utils/saveScripts'
-
-// Extend Window interface
-declare global {
-  interface Window {
-    ive: {
-      saveScript: typeof saveScript
-      getScripts: typeof getScripts
-    }
-  }
-}
-
-// Exports to window
-window.ive = {
-  saveScript,
-  getScripts,
-}
+import { setupIveEventApi } from '@/utils/iveEventApi'
+import { getScripts } from '@/utils/saveScripts'
 
 const LOAD_SCRIPT_PAGES = ['discuss.eroscripts.com/t/', 'faptap.net/v']
 
 let currentUrl = window.location.href
+
+// Expose extension API to the page
+setupIveEventApi()
 
 setInterval(() => {
   if (window.location.href !== currentUrl) {

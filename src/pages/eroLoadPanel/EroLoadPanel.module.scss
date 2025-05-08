@@ -42,6 +42,10 @@
   border: 1px solid rgba(123, 2, 77, 0.5);
   overflow: hidden;
   animation: fadeIn 0.2s ease;
+
+  @media screen and (max-width: 768px) {
+    right: -109px;
+  }
 }
 
 .loadPanel {
@@ -127,6 +131,24 @@
       cursor: not-allowed;
     }
   }
+}
+
+.linkLoaderButton {
+  font-weight: normal;
+  border: 1px solid rgba(123, 2, 77, 0.5);
+  background-color: rgba(123, 2, 77, 0.2);
+  color: #fff;
+  position: relative;
+  top: -1px;
+  padding: 0.21em 0.42em;
+  min-width: 0.5em;
+  line-height: var(--line-height-small);
+  font-size: var(--font-down-2);
+  text-align: center;
+  border-radius: 10px;
+  white-space: nowrap;
+  display: inline-block;
+  margin: 0.15em;
 }
 
 @keyframes fadeIn {

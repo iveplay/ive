@@ -56,9 +56,9 @@ export type UIMessage =
   | { type: 'ive:stop' }
   | { type: 'ive:sync_time'; timeMs: number }
   | {
-      type: 'idb:save_script'
+      type: 'ive:save_script'
       websiteKey: string
       scriptId: string
       scriptInfo: ScriptInfo
     }
-  | { type: 'idb:get_scripts' }
+  | { type: 'ive:get_scripts' }
