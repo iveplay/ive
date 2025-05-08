@@ -41,7 +41,19 @@ async function handleUrlChange() {
 
   document.getElementById('ive')?.remove()
 
-  if (scripts && scripts[1]) {
+  if (loadScriptPage) {
+    const root = document.createElement('div')
+    root.id = 'ive'
+    root.style.position = 'relative'
+
+    document.getElementsByClassName('icons d-header-icons')[0]?.prepend(root)
+
+    ReactDOM.createRoot(root).render(
+      <StrictMode>
+        <EroLoadPanel />
+      </StrictMode>,
+    )
+  } else if (scripts && scripts[1]) {
     const root = document.createElement('div')
     root.id = 'ive'
     root.style.zIndex = '2147483640'
@@ -54,20 +66,6 @@ async function handleUrlChange() {
     ReactDOM.createRoot(root).render(
       <StrictMode>
         <VideoPage scripts={scripts[1]} />
-      </StrictMode>,
-    )
-  }
-
-  if (loadScriptPage) {
-    const root = document.createElement('div')
-    root.id = 'ive'
-    root.style.position = 'relative'
-
-    document.getElementsByClassName('icons d-header-icons')[0]?.prepend(root)
-
-    ReactDOM.createRoot(root).render(
-      <StrictMode>
-        <EroLoadPanel />
       </StrictMode>,
     )
   }
