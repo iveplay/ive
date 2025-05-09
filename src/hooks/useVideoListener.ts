@@ -1,18 +1,12 @@
 import { useEffect } from 'react'
-import { useVideoStore } from '@/store/useVideoStore'
 
 export const useVideoListener = (
   videoElement: HTMLVideoElement | null,
   currentScript: string | null,
   setIsPlaying: (isPlaying: boolean) => void,
 ) => {
-  const setVideoElement = useVideoStore((state) => state.setVideoElement)
-
   useEffect(() => {
     if (!videoElement || !currentScript) return
-
-    // Set video element in the shared store
-    setVideoElement(videoElement)
 
     // Handler for play event
     const handlePlay = async () => {
@@ -103,9 +97,6 @@ export const useVideoListener = (
         .catch((error) => {
           console.error('Error stopping playback on unmount:', error)
         })
-
-      // Clear the video element from store
-      setVideoElement(null)
     }
-  }, [videoElement, currentScript, setIsPlaying, setVideoElement])
+  }, [videoElement, currentScript, setIsPlaying])
 }
