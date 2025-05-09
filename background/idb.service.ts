@@ -81,6 +81,15 @@ export class IDBService {
         currentScripts[websiteKey] = {}
       }
 
+      // If the new script is default, set all other scripts for this website to non-default
+      if (scriptInfo.isDefault) {
+        Object.keys(currentScripts[websiteKey]).forEach((id) => {
+          if (id !== scriptId) {
+            currentScripts[websiteKey][id].isDefault = false
+          }
+        })
+      }
+
       // Add/update the script
       currentScripts[websiteKey][scriptId] = scriptInfo
 
