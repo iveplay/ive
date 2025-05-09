@@ -1,4 +1,6 @@
+import { Burger, Drawer, ScrollArea, Text } from '@mantine/core'
 import { useState } from 'react'
+import logoImg from '@/assets/logo.png'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { ScriptControl } from '@/components/scriptControl/ScriptControl'
@@ -6,61 +8,80 @@ import { Settings } from '@/components/settings/Settings'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import styles from './PopupApp.module.scss'
 
-type TabType = 'handy' | 'buttplug' | 'script' | 'settings'
+type NavItem = {
+  id: string
+  label: string
+  component: React.ReactNode
+}
 
 export const PopupApp = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('handy')
+  const [opened, setOpened] = useState(false)
+  const [activeItem, setActiveItem] = useState<string>('handy')
 
   useDeviceSetup()
 
-  const renderActiveTab = () => {
-    switch (activeTab) {
-      case 'buttplug':
-        return <ButtplugConnect />
-      case 'script':
-        return <ScriptControl />
-      case 'settings':
-        return <Settings />
-      case 'handy':
-      default:
-        return <HandyConnect />
-    }
+  const navItems: NavItem[] = [
+    { id: 'handy', label: 'Handy', component: <HandyConnect /> },
+    { id: 'buttplug', label: 'Intiface', component: <ButtplugConnect /> },
+    { id: 'settings', label: 'Settings', component: <Settings /> },
+  ]
+
+  // Add Script tab only in dev mode
+  if (import.meta.env.DEV) {
+    navItems.push({
+      id: 'script',
+      label: 'Script',
+      component: <ScriptControl />,
+    })
   }
+
+  const currentItem =
+    navItems.find((item) => item.id === activeItem) || navItems[0]
 
   return (
     <div className={styles.popupApp}>
-      <nav className={styles.navigation}>
-        <ul className={styles.tabList}>
-          <li
-            className={`${styles.tabItem} ${activeTab === 'handy' ? styles.active : ''}`}
-            onClick={() => setActiveTab('handy')}
-          >
-            Handy
-          </li>
-          <li
-            className={`${styles.tabItem} ${activeTab === 'buttplug' ? styles.active : ''}`}
-            onClick={() => setActiveTab('buttplug')}
-          >
-            Intiface
-          </li>
-          <li
-            className={`${styles.tabItem} ${activeTab === 'settings' ? styles.active : ''}`}
-            onClick={() => setActiveTab('settings')}
-          >
-            Settings
-          </li>
-          {import.meta.env.DEV && (
-            <li
-              className={`${styles.tabItem} ${activeTab === 'script' ? styles.active : ''}`}
-              onClick={() => setActiveTab('script')}
-            >
-              Script
-            </li>
-          )}
-        </ul>
-      </nav>
+      <header className={styles.header}>
+        <Burger
+          opened={opened}
+          onClick={() => setOpened((o) => !o)}
+          size='sm'
+          color='#fff'
+          className={styles.burger}
+        />
+        <Text className={styles.title}>{currentItem.label}</Text>
+      </header>
 
-      <main className={styles.content}>{renderActiveTab()}</main>
+      <Drawer
+        opened={opened}
+        onClose={() => setOpened(false)}
+        size='50%'
+        className={styles.drawer}
+        withCloseButton={false}
+      >
+        <img
+          src={chrome.runtime.getURL(logoImg)}
+          alt='Logo'
+          className={styles.logo}
+        />
+        <ScrollArea className={styles.scrollArea}>
+          <div className={styles.navList}>
+            {navItems.map((item) => (
+              <div
+                key={item.id}
+                className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                onClick={() => {
+                  setActiveItem(item.id)
+                  setOpened(false)
+                }}
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </Drawer>
+
+      <main className={styles.content}>{currentItem.component}</main>
     </div>
   )
 }
