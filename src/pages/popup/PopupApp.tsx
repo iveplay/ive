@@ -6,6 +6,7 @@ import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { ScriptControl } from '@/components/scriptControl/ScriptControl'
 import { Settings } from '@/components/settings/Settings'
+import { VideoControl } from '@/components/videoControl/VideoControl'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import styles from './PopupApp.module.scss'
 
@@ -17,11 +18,12 @@ type NavItem = {
 
 export const PopupApp = () => {
   const [opened, setOpened] = useState(false)
-  const [activeItem, setActiveItem] = useState<string>('handy')
+  const [activeItem, setActiveItem] = useState<string>('video')
 
   useDeviceSetup()
 
   const navItems: NavItem[] = [
+    { id: 'video', label: 'Video Control', component: <VideoControl /> },
     { id: 'handy', label: 'Handy', component: <HandyConnect /> },
     { id: 'buttplug', label: 'Intiface', component: <ButtplugConnect /> },
     { id: 'settings', label: 'Settings', component: <Settings /> },
