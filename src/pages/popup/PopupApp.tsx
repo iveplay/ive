@@ -1,6 +1,7 @@
 import { Burger, Drawer, ScrollArea, Text } from '@mantine/core'
 import { useState } from 'react'
 import logoImg from '@/assets/logo.png'
+import PatreonIcon from '@/assets/patreon.svg'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { ScriptControl } from '@/components/scriptControl/ScriptControl'
@@ -23,6 +24,9 @@ export const PopupApp = () => {
   const navItems: NavItem[] = [
     { id: 'handy', label: 'Handy', component: <HandyConnect /> },
     { id: 'buttplug', label: 'Intiface', component: <ButtplugConnect /> },
+    { id: 'settings', label: 'Settings', component: <Settings /> },
+    { id: 'settings', label: 'Settings', component: <Settings /> },
+    { id: 'settings', label: 'Settings', component: <Settings /> },
     { id: 'settings', label: 'Settings', component: <Settings /> },
   ]
 
@@ -63,7 +67,7 @@ export const PopupApp = () => {
           alt='Logo'
           className={styles.logo}
         />
-        <ScrollArea className={styles.scrollArea}>
+        <ScrollArea className={styles.scrollArea} type='always'>
           <div className={styles.navList}>
             {navItems.map((item) => (
               <div
@@ -79,6 +83,20 @@ export const PopupApp = () => {
             ))}
           </div>
         </ScrollArea>
+        <div className={styles.drawerFooter}>
+          <a
+            href='https://patreon.com/iveplay'
+            target='_blank'
+            rel='noopener noreferrer'
+            className={styles.supportLink}
+          >
+            <PatreonIcon />
+            Support us
+          </a>
+          <Text size='xs' c='dimmed' className={styles.versionText}>
+            Version {chrome.runtime.getManifest().version}
+          </Text>
+        </div>
       </Drawer>
 
       <main className={styles.content}>{currentItem.component}</main>
