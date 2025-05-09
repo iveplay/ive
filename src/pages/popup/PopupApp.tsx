@@ -25,9 +25,6 @@ export const PopupApp = () => {
     { id: 'handy', label: 'Handy', component: <HandyConnect /> },
     { id: 'buttplug', label: 'Intiface', component: <ButtplugConnect /> },
     { id: 'settings', label: 'Settings', component: <Settings /> },
-    { id: 'settings', label: 'Settings', component: <Settings /> },
-    { id: 'settings', label: 'Settings', component: <Settings /> },
-    { id: 'settings', label: 'Settings', component: <Settings /> },
   ]
 
   // Add Script tab only in dev mode
