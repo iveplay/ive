@@ -1,3 +1,4 @@
+import { MESSAGES } from '@background/types'
 import { useEffect } from 'react'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -30,7 +31,7 @@ export const useSettingsStore = create<SettingsStore>()(
           tabs.forEach((tab) => {
             if (tab.id) {
               chrome.tabs.sendMessage(tab.id, {
-                type: 'ive:settings_update',
+                type: MESSAGES.SETTINGS_UPDATE,
                 settings: getPersistedState(state),
               })
             }
@@ -57,7 +58,7 @@ export const useSettingsSetup = () => {
       type: string
       settings: SettingsStore
     }) => {
-      if (message.type === 'ive:settings_update') {
+      if (message.type === MESSAGES.SETTINGS_UPDATE) {
         const { settings } = message
         useSettingsStore.setState(settings)
       }

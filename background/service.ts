@@ -5,7 +5,7 @@ import {
   ButtplugConnectionType,
   ScriptData,
 } from 'ive-connect'
-import { DeviceServiceState, DevicesInfo, StateUpdateMessage } from './types'
+import { DeviceServiceState, DevicesInfo, MESSAGES } from './types'
 
 /**
  * Core service that manages devices and state
@@ -573,8 +573,8 @@ class DeviceService {
   ): Promise<void> {
     const deviceInfo = this.getDeviceInfo()
 
-    const messageState: StateUpdateMessage = {
-      type: 'state_update',
+    const messageState = {
+      type: MESSAGES.DEVICE_STATE_UPDATE,
       state: {
         ...this.getState(),
         ...extra,

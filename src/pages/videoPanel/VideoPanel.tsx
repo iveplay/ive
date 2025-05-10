@@ -1,3 +1,4 @@
+import { MESSAGES } from '@background/types'
 import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
 import logoImg from '@/assets/logo.png'
@@ -49,7 +50,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
         // Load the script with the background service
         console.log('Loading script:', scriptUrl)
         await chrome.runtime.sendMessage({
-          type: 'ive:load_script_url',
+          type: MESSAGES.LOAD_SCRIPT_URL,
           url: scriptUrl,
         })
 
@@ -57,7 +58,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
         if (!videoElement.paused) {
           console.log('Video is playing, starting haptic playback')
           await chrome.runtime.sendMessage({
-            type: 'ive:play',
+            type: MESSAGES.PLAY,
             timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
             loop: false,
@@ -93,7 +94,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
   useEffect(() => {
     const handleBeforeUnload = () => {
       chrome.runtime.sendMessage({
-        type: 'ive:stop',
+        type: MESSAGES.STOP,
       })
     }
 

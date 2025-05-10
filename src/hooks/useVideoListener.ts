@@ -1,3 +1,4 @@
+import { MESSAGES } from '@background/types'
 import { useEffect } from 'react'
 
 export const useVideoListener = (
@@ -13,7 +14,7 @@ export const useVideoListener = (
       setIsPlaying(true)
       try {
         await chrome.runtime.sendMessage({
-          type: 'ive:play',
+          type: MESSAGES.PLAY,
           timeMs: videoElement.currentTime * 1000,
           playbackRate: videoElement.playbackRate,
           loop: false,
@@ -28,7 +29,7 @@ export const useVideoListener = (
       setIsPlaying(false)
       try {
         await chrome.runtime.sendMessage({
-          type: 'ive:stop',
+          type: MESSAGES.STOP,
         })
       } catch (error) {
         console.error('Error stopping playback:', error)
@@ -40,7 +41,7 @@ export const useVideoListener = (
       if (!videoElement.paused) {
         try {
           await chrome.runtime.sendMessage({
-            type: 'ive:play',
+            type: MESSAGES.PLAY,
             timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
             loop: false,
@@ -57,10 +58,10 @@ export const useVideoListener = (
         try {
           // Stop and restart with new rate
           await chrome.runtime.sendMessage({
-            type: 'ive:stop',
+            type: MESSAGES.STOP,
           })
           await chrome.runtime.sendMessage({
-            type: 'ive:play',
+            type: MESSAGES.PLAY,
             timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
             loop: false,
@@ -92,7 +93,7 @@ export const useVideoListener = (
       // Stop playback when component unmounts
       chrome.runtime
         .sendMessage({
-          type: 'ive:stop',
+          type: MESSAGES.STOP,
         })
         .catch((error) => {
           console.error('Error stopping playback on unmount:', error)

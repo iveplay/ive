@@ -31,34 +31,81 @@ export interface DevicesInfo {
   buttplug: IVEDeviceInfo | null
 }
 
-export interface StateUpdateMessage {
-  type: 'state_update'
-  state: DeviceServiceState & {
-    deviceInfo?: DevicesInfo
-    timestamp: number
-  }
+export const EVENTS = {
+  SAVE_SCRIPT: 'ive:events:save_script',
 }
 
+export type EventType = (typeof EVENTS)[keyof typeof EVENTS]
+
+export const MESSAGES = {
+  GET_STATE: 'ive:get_state',
+  GET_DEVICE_INFO: 'ive:get_device_info',
+  AUTO_CONNECT: 'ive:auto_connect',
+  HANDY_CONNECT: 'ive:handy_connect',
+  HANDY_DISCONNECT: 'ive:handy_disconnect',
+  HANDY_SET_OFFSET: 'ive:handy_set_offset',
+  HANDY_SET_STROKE_SETTINGS: 'ive:handy_set_stroke_settings',
+  BUTTPLUG_CONNECT: 'ive:buttplug_connect',
+  BUTTPLUG_DISCONNECT: 'ive:buttplug_disconnect',
+  BUTTPLUG_SCAN: 'ive:buttplug_scan',
+  LOAD_SCRIPT_URL: 'ive:load_script_url',
+  LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
+  PLAY: 'ive:play',
+  STOP: 'ive:stop',
+  SYNC_TIME: 'ive:sync_time',
+  SAVE_SCRIPT: 'ive:save_script',
+  GET_SCRIPTS: 'ive:get_scripts',
+  DEVICE_STATE_UPDATE: 'ive:device_state_update',
+  SETTINGS_UPDATE: 'ive:settings_update',
+} as const
+
+export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
+
 export type UIMessage =
-  | { type: 'ive:get_state' }
-  | { type: 'ive:get_device_info' }
-  | { type: 'ive:auto_connect' }
-  | { type: 'ive:handy_connect'; connectionKey: string }
-  | { type: 'ive:handy_disconnect' }
-  | { type: 'ive:handy_set_offset'; offset: number }
-  | { type: 'ive:handy_set_stroke_settings'; min: number; max: number }
-  | { type: 'ive:buttplug_connect'; serverUrl: string }
-  | { type: 'ive:buttplug_disconnect' }
-  | { type: 'ive:buttplug_scan' }
-  | { type: 'ive:load_script_url'; url: string }
-  | { type: 'ive:load_script_content'; content: Record<string, unknown> }
-  | { type: 'ive:play'; timeMs: number; playbackRate?: number; loop?: boolean }
-  | { type: 'ive:stop' }
-  | { type: 'ive:sync_time'; timeMs: number }
+  | { type: typeof MESSAGES.GET_STATE }
+  | { type: typeof MESSAGES.GET_DEVICE_INFO }
+  | { type: typeof MESSAGES.AUTO_CONNECT }
+  | { type: typeof MESSAGES.HANDY_CONNECT; connectionKey: string }
+  | { type: typeof MESSAGES.HANDY_DISCONNECT }
+  | { type: typeof MESSAGES.HANDY_SET_OFFSET; offset: number }
   | {
-      type: 'ive:save_script'
+      type: typeof MESSAGES.HANDY_SET_STROKE_SETTINGS
+      min: number
+      max: number
+    }
+  | { type: typeof MESSAGES.BUTTPLUG_CONNECT; serverUrl: string }
+  | { type: typeof MESSAGES.BUTTPLUG_DISCONNECT }
+  | { type: typeof MESSAGES.BUTTPLUG_SCAN }
+  | { type: typeof MESSAGES.LOAD_SCRIPT_URL; url: string }
+  | {
+      type: typeof MESSAGES.LOAD_SCRIPT_CONTENT
+      content: Record<string, unknown>
+    }
+  | {
+      type: typeof MESSAGES.PLAY
+      timeMs: number
+      playbackRate?: number
+      loop?: boolean
+    }
+  | { type: typeof MESSAGES.STOP }
+  | { type: typeof MESSAGES.SYNC_TIME; timeMs: number }
+  | {
+      type: typeof MESSAGES.SAVE_SCRIPT
       websiteKey: string
       scriptId: string
       scriptInfo: ScriptInfo
     }
-  | { type: 'ive:get_scripts' }
+  | { type: typeof MESSAGES.GET_SCRIPTS }
+  | {
+      type: typeof MESSAGES.DEVICE_STATE_UPDATE
+      state: DeviceServiceState & {
+        deviceInfo?: DevicesInfo
+        timestamp: number
+      }
+    }
+  | {
+      type: typeof MESSAGES.SETTINGS_UPDATE
+      settings: {
+        showHeatmap: boolean
+      }
+    }

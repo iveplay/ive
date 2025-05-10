@@ -1,6 +1,6 @@
 import { idbService } from './idb.service'
 import { deviceService } from './service'
-import { UIMessage } from './types'
+import { MESSAGES, UIMessage } from './types'
 
 export function setupMessageHandler(): void {
   chrome.runtime.onMessage.addListener(
@@ -10,64 +10,64 @@ export function setupMessageHandler(): void {
       const handleAsyncOperation = async () => {
         try {
           switch (message.type) {
-            case 'ive:get_state':
+            case MESSAGES.GET_STATE:
               return deviceService.getState()
 
-            case 'ive:get_device_info':
+            case MESSAGES.GET_DEVICE_INFO:
               return deviceService.getDeviceInfo()
 
-            case 'ive:auto_connect':
+            case MESSAGES.AUTO_CONNECT:
               return await deviceService.autoConnect()
 
-            case 'ive:handy_connect':
+            case MESSAGES.HANDY_CONNECT:
               return await deviceService.connectHandy(message.connectionKey)
 
-            case 'ive:handy_disconnect':
+            case MESSAGES.HANDY_DISCONNECT:
               return await deviceService.disconnectHandy()
 
-            case 'ive:handy_set_offset':
+            case MESSAGES.HANDY_SET_OFFSET:
               return await deviceService.updateHandySettings({
                 offset: message.offset,
               })
 
-            case 'ive:handy_set_stroke_settings':
+            case MESSAGES.HANDY_SET_STROKE_SETTINGS:
               return await deviceService.updateHandySettings({
                 stroke: { min: message.min, max: message.max },
               })
 
-            case 'ive:buttplug_connect':
+            case MESSAGES.BUTTPLUG_CONNECT:
               return await deviceService.connectButtplug(message.serverUrl)
 
-            case 'ive:buttplug_disconnect':
+            case MESSAGES.BUTTPLUG_DISCONNECT:
               return await deviceService.disconnectButtplug()
 
-            case 'ive:buttplug_scan':
+            case MESSAGES.BUTTPLUG_SCAN:
               return await deviceService.scanForButtplugDevices()
 
-            case 'ive:load_script_url':
+            case MESSAGES.LOAD_SCRIPT_URL:
               return await deviceService.loadScriptFromUrl(message.url)
 
-            case 'ive:load_script_content':
+            case MESSAGES.LOAD_SCRIPT_CONTENT:
               return await deviceService.loadScriptFromContent(message.content)
 
-            case 'ive:play':
+            case MESSAGES.PLAY:
               return await deviceService.play(
                 message.timeMs,
                 message.playbackRate,
                 message.loop,
               )
 
-            case 'ive:stop':
+            case MESSAGES.STOP:
               return await deviceService.stop()
 
-            case 'ive:sync_time':
+            case MESSAGES.SYNC_TIME:
               return await deviceService.syncTime(message.timeMs)
 
             // Add IndexedDB handlers
-            case 'ive:get_scripts':
+            case MESSAGES.GET_SCRIPTS:
               return await idbService.getScripts()
 
-            case 'ive:save_script':
+            case MESSAGES.SAVE_SCRIPT:
               return await idbService.saveScript(
                 message.websiteKey,
                 message.scriptId,

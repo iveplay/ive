@@ -1,7 +1,8 @@
+import { EVENTS } from '@background/types'
 import { saveScript } from '@/utils/saveScripts'
 
 export const setupIveEventApi = () => {
-  document.addEventListener('ive:saveScript', async (event) => {
+  document.addEventListener(EVENTS.SAVE_SCRIPT, async (event) => {
     const { videoUrl, scriptUrl, scriptInfo } = (event as CustomEvent).detail
 
     try {

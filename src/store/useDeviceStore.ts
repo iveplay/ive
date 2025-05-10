@@ -1,3 +1,4 @@
+import { MESSAGES } from '@background/types'
 import { DeviceInfo } from 'ive-connect'
 import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
@@ -63,12 +64,8 @@ interface DeviceActions {
   setError: (error: string | null) => void
 }
 
-// Combined store type
 type DeviceStore = DeviceState & DeviceActions
 
-/**
- * Helper function to send messages to background
- */
 async function sendMessageToBackground<T>(message: unknown): Promise<T> {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (response) => {
@@ -85,11 +82,7 @@ async function sendMessageToBackground<T>(message: unknown): Promise<T> {
   })
 }
 
-/**
- * Main device store
- */
 export const useDeviceStore = create<DeviceStore>()((set) => ({
-  // Initial state
   handyConnected: false,
   buttplugConnected: false,
   handyConnectionKey: '',
@@ -105,12 +98,11 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   error: null,
   isLoaded: false,
 
-  // Handy actions
   connectHandy: async (connectionKey: string) => {
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:handy_connect',
+        type: MESSAGES.HANDY_CONNECT,
         connectionKey,
       })
       return success
@@ -126,7 +118,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:handy_disconnect',
+        type: MESSAGES.HANDY_DISCONNECT,
       })
       return success
     } catch (error) {
@@ -141,7 +133,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:handy_set_offset',
+        type: MESSAGES.HANDY_SET_OFFSET,
         offset,
       })
       if (success) {
@@ -160,7 +152,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:handy_set_stroke_settings',
+        type: MESSAGES.HANDY_SET_STROKE_SETTINGS,
         min,
         max,
       })
@@ -181,7 +173,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:buttplug_connect',
+        type: MESSAGES.BUTTPLUG_CONNECT,
         serverUrl,
       })
       return success
@@ -197,7 +189,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:buttplug_disconnect',
+        type: MESSAGES.BUTTPLUG_DISCONNECT,
       })
       return success
     } catch (error) {
@@ -212,7 +204,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:buttplug_scan',
+        type: MESSAGES.BUTTPLUG_SCAN,
       })
       return success
     } catch (error) {
@@ -228,7 +220,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:load_script_url',
+        type: MESSAGES.LOAD_SCRIPT_URL,
         url,
       })
       if (success) {
@@ -265,7 +257,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
       )
 
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:load_script_content',
+        type: MESSAGES.LOAD_SCRIPT_CONTENT,
         content,
       })
 
@@ -278,12 +270,11 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
-  // Playback actions
   play: async (timeMs: number, playbackRate = 1.0, loop = false) => {
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:play',
+        type: MESSAGES.PLAY,
         timeMs,
         playbackRate,
         loop,
@@ -301,7 +292,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     try {
       set({ error: null })
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:stop',
+        type: MESSAGES.STOP,
       })
       return success
     } catch (error) {
@@ -315,7 +306,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   syncTime: async (timeMs: number) => {
     try {
       const success = await sendMessageToBackground<boolean>({
-        type: 'ive:sync_time',
+        type: MESSAGES.SYNC_TIME,
         timeMs,
       })
       return success
@@ -367,10 +358,10 @@ export function useDeviceSetup(): void {
       hasRanRef.current = true
 
       try {
-        sendMessageToBackground({ type: 'ive:auto_connect' })
+        sendMessageToBackground({ type: MESSAGES.AUTO_CONNECT })
 
         const state = await sendMessageToBackground<DeviceStateUpdate>({
-          type: 'ive:get_state',
+          type: MESSAGES.GET_STATE,
         })
 
         useDeviceStore.setState({
@@ -386,7 +377,7 @@ export function useDeviceSetup(): void {
           handy: DeviceInfo | null
           buttplug: DeviceInfo | null
         }>({
-          type: 'ive:get_device_info',
+          type: MESSAGES.GET_DEVICE_INFO,
         })
 
         useDeviceStore.setState({
@@ -406,7 +397,7 @@ export function useDeviceSetup(): void {
       type: string
       state: DeviceStateUpdate
     }) => {
-      if (message.type === 'state_update') {
+      if (message.type === MESSAGES.DEVICE_STATE_UPDATE) {
         // Update store with new state
         useDeviceStore.setState({
           handyConnected: message.state.handyConnected,
