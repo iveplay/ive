@@ -5,7 +5,6 @@ import logoImg from '@/assets/logo.png'
 import { useVideoElement } from '@/hooks/useVideoElement'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { Scripts } from '@/types/script'
-import { setupVideoMessageHandler } from '@/utils/videoMessageHandler'
 import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
@@ -27,15 +26,10 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
     error: videoError,
     retry,
   } = useVideoElement()
+
   useVideoListener(videoElement, currentScript, setIsPlaying)
-
-  // Set up video message handler for popup communication
-  useEffect(() => {
-    if (!videoElement) return
-
-    const cleanup = setupVideoMessageHandler(videoElement)
-    return cleanup
-  }, [videoElement])
+  // This could be used to update the video element based on messages from elsewhere in the app
+  // useVideoUpdater(videoElement)
 
   // Handle script selection
   const handleScriptSelect = useCallback(

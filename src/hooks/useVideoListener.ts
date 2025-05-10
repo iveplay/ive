@@ -56,18 +56,41 @@ export const useVideoListener = (
     const handleRateChange = async () => {
       if (!videoElement.paused) {
         try {
-          // Stop and restart with new rate
-          await chrome.runtime.sendMessage({
-            type: MESSAGES.STOP,
-          })
           await chrome.runtime.sendMessage({
             type: MESSAGES.PLAY,
-            timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
-            loop: false,
           })
         } catch (error) {
           console.error('Error handling rate change:', error)
+        }
+      }
+    }
+
+    // Handler for time update
+    const handleTimeUpdate = async () => {
+      if (!videoElement.paused) {
+        try {
+          await chrome.runtime.sendMessage({
+            type: MESSAGES.TIME_UPDATE,
+            timeMs: videoElement.currentTime * 1000,
+          })
+        } catch (error) {
+          console.error('Error syncing time:', error)
+        }
+      }
+    }
+
+    // Handler for volume change
+    const handleVolumeChange = async () => {
+      if (!videoElement.paused) {
+        try {
+          await chrome.runtime.sendMessage({
+            type: MESSAGES.VOLUME_CHANGE,
+            volume: videoElement.volume,
+            muted: videoElement.muted,
+          })
+        } catch (error) {
+          console.error('Error handling volume change:', error)
         }
       }
     }
@@ -77,6 +100,8 @@ export const useVideoListener = (
     videoElement.addEventListener('pause', handlePause)
     videoElement.addEventListener('seeking', handleSeeking)
     videoElement.addEventListener('ratechange', handleRateChange)
+    videoElement.addEventListener('timeupdate', handleTimeUpdate)
+    videoElement.addEventListener('volumechange', handleVolumeChange)
 
     // Check initial state - if video is already playing when script is loaded
     if (!videoElement.paused) {
@@ -89,6 +114,8 @@ export const useVideoListener = (
       videoElement.removeEventListener('pause', handlePause)
       videoElement.removeEventListener('seeking', handleSeeking)
       videoElement.removeEventListener('ratechange', handleRateChange)
+      videoElement.removeEventListener('timeupdate', handleTimeUpdate)
+      videoElement.removeEventListener('volumechange', handleVolumeChange)
 
       // Stop playback when component unmounts
       chrome.runtime

@@ -50,13 +50,28 @@ export const MESSAGES = {
   BUTTPLUG_SCAN: 'ive:buttplug_scan',
   LOAD_SCRIPT_URL: 'ive:load_script_url',
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
-  PLAY: 'ive:play',
-  STOP: 'ive:stop',
   SYNC_TIME: 'ive:sync_time',
+  DEVICE_STATE_UPDATE: 'ive:device_state_update',
+
+  // Video changes
+  PLAY: 'ive:video:play',
+  STOP: 'ive:video:stop',
+  RATE_CHANGE: 'ive:video:rate_change',
+  TIME_UPDATE: 'ive:video:time_update',
+  VOLUME_CHANGE: 'ive:video:volume_change',
+
+  // Video updates
+  PLAY_UPDATE: 'ive:video:play_update',
+  PAUSE_UPDATE: 'ive:video:pause_update',
+  SEEK_UPDATE: 'ive:video:seek_update',
+  VOLUME_UPDATE: 'ive:video:volume_update',
+
+  // IDB changes
   SAVE_SCRIPT: 'ive:save_script',
   GET_SCRIPTS: 'ive:get_scripts',
-  DEVICE_STATE_UPDATE: 'ive:device_state_update',
-  SETTINGS_UPDATE: 'ive:settings_update',
+
+  // Settings
+  SETTINGS_UPDATE: 'ive:settings:update',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -81,6 +96,8 @@ export type UIMessage =
       type: typeof MESSAGES.LOAD_SCRIPT_CONTENT
       content: Record<string, unknown>
     }
+  | { type: typeof MESSAGES.SYNC_TIME; timeMs: number }
+  // Video changes
   | {
       type: typeof MESSAGES.PLAY
       timeMs: number
@@ -88,7 +105,15 @@ export type UIMessage =
       loop?: boolean
     }
   | { type: typeof MESSAGES.STOP }
-  | { type: typeof MESSAGES.SYNC_TIME; timeMs: number }
+  | { type: typeof MESSAGES.RATE_CHANGE; playbackRate: number }
+  | { type: typeof MESSAGES.TIME_UPDATE; timeMs: number }
+  | { type: typeof MESSAGES.VOLUME_CHANGE; volume: number; muted: boolean }
+  // Video updates
+  | { type: typeof MESSAGES.PLAY_UPDATE }
+  | { type: typeof MESSAGES.PAUSE_UPDATE }
+  | { type: typeof MESSAGES.SEEK_UPDATE; timeMs: number }
+  | { type: typeof MESSAGES.VOLUME_UPDATE; volume: number; muted: boolean }
+  // IDB changes
   | {
       type: typeof MESSAGES.SAVE_SCRIPT
       websiteKey: string
@@ -96,6 +121,7 @@ export type UIMessage =
       scriptInfo: ScriptInfo
     }
   | { type: typeof MESSAGES.GET_SCRIPTS }
+  // Settings
   | {
       type: typeof MESSAGES.DEVICE_STATE_UPDATE
       state: DeviceServiceState & {

@@ -1,25 +1,19 @@
-import { MESSAGES } from '@background/types'
+import { MESSAGES, UIMessage } from '@background/types'
 import { DeviceInfo } from 'ive-connect'
 import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
 
-// Device store state
 export interface DeviceState {
-  // Connection state
   handyConnected: boolean
   buttplugConnected: boolean
-
-  // Settings
   handyConnectionKey: string
   buttplugServerUrl: string
-
-  // Device info
   handyDeviceInfo: DeviceInfo | null
   buttplugDeviceInfo: DeviceInfo | null
 
   // Script state
-  scriptLoaded: boolean
   scriptUrl: string
+  scriptLoaded: boolean
   isPlaying: boolean
 
   // Settings
@@ -66,22 +60,6 @@ interface DeviceActions {
 
 type DeviceStore = DeviceState & DeviceActions
 
-async function sendMessageToBackground<T>(message: unknown): Promise<T> {
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(message, (response) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError)
-      } else {
-        if (response && typeof response === 'object' && 'error' in response) {
-          reject(new Error(response.error as string))
-        } else {
-          resolve(response as T)
-        }
-      }
-    })
-  })
-}
-
 export const useDeviceStore = create<DeviceStore>()((set) => ({
   handyConnected: false,
   buttplugConnected: false,
@@ -101,7 +79,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   connectHandy: async (connectionKey: string) => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.HANDY_CONNECT,
         connectionKey,
       })
@@ -117,7 +95,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   disconnectHandy: async () => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.HANDY_DISCONNECT,
       })
       return success
@@ -132,7 +110,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   setHandyOffset: async (offset: number) => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.HANDY_SET_OFFSET,
         offset,
       })
@@ -151,7 +129,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   setHandyStrokeSettings: async (min: number, max: number) => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.HANDY_SET_STROKE_SETTINGS,
         min,
         max,
@@ -168,11 +146,10 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
-  // Buttplug actions
   connectButtplug: async (serverUrl: string) => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.BUTTPLUG_CONNECT,
         serverUrl,
       })
@@ -188,7 +165,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   disconnectButtplug: async () => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.BUTTPLUG_DISCONNECT,
       })
       return success
@@ -203,7 +180,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   scanForButtplugDevices: async () => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.BUTTPLUG_SCAN,
       })
       return success
@@ -215,11 +192,10 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
-  // Script actions
   loadScriptFromUrl: async (url: string) => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.LOAD_SCRIPT_URL,
         url,
       })
@@ -256,7 +232,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
         },
       )
 
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.LOAD_SCRIPT_CONTENT,
         content,
       })
@@ -273,7 +249,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   play: async (timeMs: number, playbackRate = 1.0, loop = false) => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.PLAY,
         timeMs,
         playbackRate,
@@ -291,7 +267,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   stop: async () => {
     try {
       set({ error: null })
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.STOP,
       })
       return success
@@ -305,7 +281,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
 
   syncTime: async (timeMs: number) => {
     try {
-      const success = await sendMessageToBackground<boolean>({
+      const success = await chrome.runtime.sendMessage({
         type: MESSAGES.SYNC_TIME,
         timeMs,
       })
@@ -331,22 +307,6 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   },
 }))
 
-interface DeviceStateUpdate {
-  handyConnected: boolean
-  buttplugConnected: boolean
-  scriptLoaded: boolean
-  isPlaying: boolean
-  handySettings?: {
-    offset: number
-    stroke: { min: number; max: number }
-  }
-  error?: string | null
-  deviceInfo?: {
-    handy: DeviceInfo | null
-    buttplug: DeviceInfo | null
-  }
-}
-
 // Hook to handle state updates from background
 export function useDeviceSetup(): void {
   const hasRanRef = useRef(false)
@@ -358,9 +318,9 @@ export function useDeviceSetup(): void {
       hasRanRef.current = true
 
       try {
-        sendMessageToBackground({ type: MESSAGES.AUTO_CONNECT })
+        chrome.runtime.sendMessage({ type: MESSAGES.AUTO_CONNECT })
 
-        const state = await sendMessageToBackground<DeviceStateUpdate>({
+        const state = await chrome.runtime.sendMessage({
           type: MESSAGES.GET_STATE,
         })
 
@@ -373,10 +333,7 @@ export function useDeviceSetup(): void {
         })
 
         // Also fetch device info
-        const deviceInfo = await sendMessageToBackground<{
-          handy: DeviceInfo | null
-          buttplug: DeviceInfo | null
-        }>({
+        const deviceInfo = await chrome.runtime.sendMessage({
           type: MESSAGES.GET_DEVICE_INFO,
         })
 
@@ -392,16 +349,13 @@ export function useDeviceSetup(): void {
 
     fetchInitialState()
 
-    // Listen for state updates from background
-    const handleMessage = (message: {
-      type: string
-      state: DeviceStateUpdate
-    }) => {
+    const handleMessage = (message: UIMessage) => {
       if (message.type === MESSAGES.DEVICE_STATE_UPDATE) {
         // Update store with new state
         useDeviceStore.setState({
           handyConnected: message.state.handyConnected,
           buttplugConnected: message.state.buttplugConnected,
+          scriptUrl: message.state.scriptUrl,
           scriptLoaded: message.state.scriptLoaded,
           isPlaying: message.state.isPlaying,
           handyOffset: message.state.handySettings?.offset || 0,
@@ -422,7 +376,6 @@ export function useDeviceSetup(): void {
 
     chrome.runtime.onMessage.addListener(handleMessage)
 
-    // Cleanup
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage)
     }
