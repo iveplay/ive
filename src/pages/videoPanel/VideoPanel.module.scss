@@ -7,6 +7,11 @@
   transition: right 0.3s ease;
   color: #fff;
 
+  @media (hover: none) and (pointer: coarse) {
+    top: auto;
+    bottom: 5vh;
+  }
+
   &.expanded {
     right: 0;
   }

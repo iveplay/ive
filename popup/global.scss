@@ -20,6 +20,11 @@ body {
     sans-serif;
   font-weight: 400;
   overflow-x: hidden;
+
+  @media (hover: none) and (pointer: coarse) {
+    width: 100%;
+    height: 100vh;
+  }
 }
 
 .input {
