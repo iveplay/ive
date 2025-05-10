@@ -1,42 +1,48 @@
 import { Burger, Drawer, ScrollArea, Text } from '@mantine/core'
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import logoImg from '@/assets/logo.png'
 import PatreonIcon from '@/assets/patreon.svg'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { ScriptControl } from '@/components/scriptControl/ScriptControl'
 import { Settings } from '@/components/settings/Settings'
-import { VideoControl } from '@/components/videoControl/VideoControl'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import styles from './PopupApp.module.scss'
 
 type NavItem = {
   id: string
   label: string
-  component: React.ReactNode
+  component: ReactNode
+  visible: boolean
 }
 
 export const PopupApp = () => {
   const [opened, setOpened] = useState(false)
-  const [activeItem, setActiveItem] = useState<string>('video')
+  const [activeItem, setActiveItem] = useState<string>('handy')
 
   useDeviceSetup()
 
   const navItems: NavItem[] = [
-    { id: 'video', label: 'Video Control', component: <VideoControl /> },
-    { id: 'handy', label: 'Handy', component: <HandyConnect /> },
-    { id: 'buttplug', label: 'Intiface', component: <ButtplugConnect /> },
-    { id: 'settings', label: 'Settings', component: <Settings /> },
-  ]
-
-  // Add Script tab only in dev mode
-  if (import.meta.env.DEV) {
-    navItems.push({
+    { id: 'handy', label: 'Handy', component: <HandyConnect />, visible: true },
+    {
+      id: 'buttplug',
+      label: 'Intiface',
+      component: <ButtplugConnect />,
+      visible: true,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      component: <Settings />,
+      visible: import.meta.env.DEV,
+    },
+    {
       id: 'script',
       label: 'Script',
       component: <ScriptControl />,
-    })
-  }
+      visible: import.meta.env.DEV,
+    },
+  ]
 
   const currentItem =
     navItems.find((item) => item.id === activeItem) || navItems[0]
@@ -68,18 +74,20 @@ export const PopupApp = () => {
         />
         <ScrollArea className={styles.scrollArea} type='always'>
           <div className={styles.navList}>
-            {navItems.map((item) => (
-              <div
-                key={item.id}
-                className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
-                onClick={() => {
-                  setActiveItem(item.id)
-                  setOpened(false)
-                }}
-              >
-                {item.label}
-              </div>
-            ))}
+            {navItems.map((item) =>
+              !item.visible ? null : (
+                <div
+                  key={item.id}
+                  className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
+                  onClick={() => {
+                    setActiveItem(item.id)
+                    setOpened(false)
+                  }}
+                >
+                  {item.label}
+                </div>
+              ),
+            )}
           </div>
         </ScrollArea>
         <div className={styles.drawerFooter}>

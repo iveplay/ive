@@ -10,16 +10,10 @@ export interface SettingsStore {
   broadcastSettings: () => void
 }
 
-const getPersistedState = (state: SettingsStore) => {
-  return {
-    showHeatmap: state.showHeatmap,
-  }
-}
-
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
-      showHeatmap: true,
+      showHeatmap: false,
       setShowHeatmap: async (showHeatmap: boolean) => {
         set({ showHeatmap })
         get().broadcastSettings()
@@ -69,4 +63,10 @@ export const useSettingsSetup = () => {
       chrome.runtime.onMessage.removeListener(settingsListener)
     }
   }, [])
+}
+
+const getPersistedState = (state: SettingsStore) => {
+  return {
+    showHeatmap: state.showHeatmap,
+  }
 }
