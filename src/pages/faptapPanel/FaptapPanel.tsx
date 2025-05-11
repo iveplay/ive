@@ -15,6 +15,7 @@ type FaptapVideoResponse = {
       }
     }
     stream_url: string
+    stream_url_selfhosted?: string
     script?: {
       url?: string
     }
@@ -48,10 +49,18 @@ export const FaptapPanel = () => {
       }
 
       const scriptUrl = `https://faptap.net/api/assets/${data.script.url}`
-      const videoUrl = data.stream_url
+      const videoUrl =
+        data.stream_url ||
+        (data.stream_url_selfhosted?.includes('faptap')
+          ? ''
+          : data.stream_url_selfhosted)
       const creator = data.user.username
       const supportUrl =
         data.user.profile?.support_url || `https://faptap.net/u/${creator}`
+
+      if (!videoUrl) {
+        throw new Error('No video URL available')
+      }
 
       await saveScript(videoUrl, scriptUrl, {
         name: data.name,
