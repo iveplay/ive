@@ -72,6 +72,10 @@ export class IDBService {
     scriptId: string,
     scriptInfo: ScriptInfo,
   ): Promise<void> {
+    if (!websiteKey || !scriptId) {
+      throw new Error('Invalid parameters for saving script')
+    }
+
     try {
       // Get current scripts
       const currentScripts = await this.getScripts()
