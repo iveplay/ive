@@ -67,12 +67,16 @@ export const EroLoadPanel = () => {
       const ownerInfo = extractTopicOwnerInfo()
       const scriptName = getScriptLinkName(scriptUrl)
 
-      await saveScript(currentUrl, scriptUrl, {
+      const result = await saveScript(currentUrl, scriptUrl, {
         name: scriptName ?? '',
         creator: ownerInfo.username ?? '',
         supportUrl: window.location.href,
         isDefault: false,
       })
+
+      if (!result) {
+        throw new Error('Failed to save script')
+      }
 
       window.open(currentUrl, '_blank')
     } finally {

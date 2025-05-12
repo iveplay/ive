@@ -62,12 +62,16 @@ export const FaptapPanel = () => {
         throw new Error('No video URL available')
       }
 
-      await saveScript(videoUrl, scriptUrl, {
+      const result = await saveScript(videoUrl, scriptUrl, {
         name: data.name,
         creator,
         supportUrl,
         isDefault: true,
       })
+
+      if (!result) {
+        throw new Error('Failed to save script')
+      }
 
       window.open(videoUrl, '_blank')
     } catch (error) {

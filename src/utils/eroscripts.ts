@@ -24,7 +24,7 @@ export const getScriptLinkName = (scriptUrl: string) => {
     return null
   }
 
-  const links = topicOwnerPost.querySelectorAll('a.attachment')
+  const links = topicOwnerPost.querySelectorAll('a[href]')
 
   for (const link of links) {
     const href = link.getAttribute('href')

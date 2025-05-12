@@ -90,12 +90,16 @@ export const IvdbPanel = () => {
       const creator =
         bestScript.scripter?.name || videoData.partnerName || 'IVDB'
 
-      await saveScript(videoData.videoUrl, tokenData.url, {
+      const result = await saveScript(videoData.videoUrl, tokenData.url, {
         name: videoData.title,
         creator,
         supportUrl: `https://ivdb.io/#/videos/${videoId}`,
         isDefault: true,
       })
+
+      if (!result) {
+        throw new Error('Failed to save script')
+      }
 
       window.open(videoData.videoUrl, '_blank')
     } catch (error) {

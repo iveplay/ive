@@ -72,7 +72,7 @@ export class IDBService {
     scriptId: string,
     scriptInfo: ScriptInfo,
   ): Promise<void> {
-    if (!websiteKey || !scriptId) {
+    if (!websiteKey || !scriptId || !scriptInfo || !scriptInfo.name) {
       throw new Error('Invalid parameters for saving script')
     }
 

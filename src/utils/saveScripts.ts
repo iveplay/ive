@@ -16,12 +16,14 @@ export const saveScript = async (
   scriptInfo: ScriptInfo,
 ) => {
   try {
-    await chrome.runtime.sendMessage({
+    const result = await chrome.runtime.sendMessage({
       type: MESSAGES.SAVE_SCRIPT,
       websiteKey,
       scriptId,
       scriptInfo,
     })
+
+    return !result?.error
   } catch (error) {
     console.error('Error saving scripts:', error)
     throw error
