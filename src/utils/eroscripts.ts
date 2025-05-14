@@ -18,13 +18,13 @@ export const extractTopicOwnerInfo = () => {
 }
 
 export const getScriptLinkName = (scriptUrl: string) => {
-  const topicOwnerPost = document.querySelector('.topic-post.topic-owner')
+  const postStream = document.querySelector('.post-stream')
 
-  if (!topicOwnerPost) {
+  if (!postStream) {
     return null
   }
 
-  const links = topicOwnerPost.querySelectorAll('a[href]')
+  const links = postStream.querySelectorAll('a[href]')
 
   for (const link of links) {
     const href = link.getAttribute('href')

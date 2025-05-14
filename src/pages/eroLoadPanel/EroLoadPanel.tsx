@@ -75,6 +75,17 @@ export const EroLoadPanel = () => {
       })
 
       if (!result) {
+        console.error('Failed to save script', {
+          currentUrl,
+          scriptUrl,
+          ownerInfo: {
+            name:
+              scriptName ?? `Script by ${ownerInfo.username ?? 'not found'}`,
+            creator: ownerInfo.username ?? '',
+            supportUrl: window.location.href,
+            isDefault: false,
+          },
+        })
         throw new Error('Failed to save script')
       }
 
