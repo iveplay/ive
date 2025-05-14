@@ -83,7 +83,7 @@ class DeviceService {
       if (!this.handyDevice) {
         this.handyDevice = new HandyDevice({
           connectionKey,
-          applicationId: 'qPH5gJibT7vahb3v27DdWkagy53yeOqD',
+          applicationId: 'h_Jw26kJiyU3JZ2vV_X5TYutefunJJKe',
         })
 
         // Register device with manager
