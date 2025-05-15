@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 import logoImg from '@/assets/logo.png'
+import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
 import { saveScript } from '@/utils/saveScripts'
 import styles from './IvdbPanel.module.scss'
 
@@ -21,6 +22,10 @@ type IvdbScriptResponse = {
 
 export const IvdbPanel = () => {
   const [isLoading, setIsLoading] = useState(false)
+
+  useDeviceSetup()
+
+  const handyConnectionKey = useDeviceStore((state) => state.handyConnectionKey)
 
   const handleClick = async () => {
     try {
@@ -72,7 +77,7 @@ export const IvdbPanel = () => {
         `https://scripts01.handyfeeling.com/api/script/index/v0/videos/${videoId}/scripts/${bestScript.scriptId}/token`,
         {
           headers: {
-            Authorization: 'Bearer 7ZfVUxRdBQp',
+            Authorization: `Bearer ${handyConnectionKey}`,
           },
         },
       )
@@ -111,9 +116,16 @@ export const IvdbPanel = () => {
 
   return (
     <button
-      className={clsx(styles.openPanel, { [styles.loading]: isLoading })}
+      title={
+        !handyConnectionKey
+          ? 'Connect with The Handy through the IVE extension'
+          : ''
+      }
+      className={clsx(styles.openPanel, {
+        [styles.loading]: isLoading || !handyConnectionKey,
+      })}
       onClick={handleClick}
-      disabled={isLoading}
+      disabled={isLoading || !handyConnectionKey}
     >
       <img
         src={chrome.runtime.getURL(logoImg)}

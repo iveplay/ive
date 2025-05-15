@@ -355,6 +355,8 @@ export function useDeviceSetup(): void {
         useDeviceStore.setState({
           handyConnected: message.state.handyConnected,
           buttplugConnected: message.state.buttplugConnected,
+          handyConnectionKey: message.state.handyConnectionKey,
+          buttplugServerUrl: message.state.buttplugServerUrl,
           scriptUrl: message.state.scriptUrl,
           scriptLoaded: message.state.scriptLoaded,
           isPlaying: message.state.isPlaying,
