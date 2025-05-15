@@ -22,7 +22,11 @@ setInterval(() => {
   if (window.location.href !== currentUrl) {
     currentUrl = window.location.href
     mountedComponent = false
-    document.getElementById('ive')?.remove()
+
+    if (!currentUrl.includes(EROSCRIPT_URL)) {
+      document.getElementById('ive')?.remove()
+    }
+
     handleUrlChange()
   } else if (!mountedComponent && window.location.href.includes(FAPTAP_URL)) {
     handleUrlChange()
