@@ -136,6 +136,23 @@ export const HandyConnect = () => {
 
       <DeviceInfo type='handy' />
 
+      {!handyConnected && (
+        <p className={styles.handyAffiliate}>
+          Don't have the best
+          <br />
+          interactive stroker toy yet?
+          <br />
+          Check out{' '}
+          <a
+            href='https://www.thehandy.com/?ref=otjlmgq&utm_source=otjlmgq&utm_medium=affiliate&utm_campaign=The+Handy+Affiliate+program'
+            target='_blank'
+          >
+            The Handy Store
+          </a>
+          .
+        </p>
+      )}
+
       {handyConnected && (
         <div className={styles.settings}>
           <h3 className={styles.title}>Device Settings</h3>
