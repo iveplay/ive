@@ -147,7 +147,7 @@ export const HandyConnect = () => {
             href='https://www.thehandy.com/?ref=otjlmgq&utm_source=otjlmgq&utm_medium=affiliate&utm_campaign=The+Handy+Affiliate+program'
             target='_blank'
           >
-            The Handy Store
+            The Handy
           </a>
           .
         </p>

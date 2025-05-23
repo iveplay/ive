@@ -100,7 +100,9 @@ export const PopupApp = () => {
             <PatreonIcon />
             Support us
           </a>
-          <Text size='xs' c='dimmed' className={styles.versionText}>
+          <Text size='xs' c='dimmed' ta='center' className={styles.versionText}>
+            Contains affiliate links
+            <br />
             Version {chrome.runtime.getManifest().version}
           </Text>
         </div>
