@@ -34,7 +34,7 @@ export const PopupApp = () => {
       id: 'settings',
       label: 'Settings',
       component: <Settings />,
-      visible: import.meta.env.DEV,
+      visible: true,
     },
     {
       id: 'script',
