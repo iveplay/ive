@@ -1,4 +1,4 @@
-import { MESSAGES, UIMessage } from '@background/types'
+import { Funscript, MESSAGES, UIMessage } from '@background/types'
 import { DeviceInfo } from 'ive-connect'
 import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
@@ -15,6 +15,7 @@ export interface DeviceState {
   scriptUrl: string
   scriptLoaded: boolean
   isPlaying: boolean
+  funscript: Funscript | null
 
   // Settings
   handyOffset: number
@@ -69,6 +70,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   buttplugDeviceInfo: null,
   scriptLoaded: false,
   scriptUrl: '',
+  funscript: null,
   isPlaying: false,
   handyOffset: 0,
   handyStrokeMin: 0,
@@ -359,6 +361,7 @@ export function useDeviceSetup(): void {
           buttplugServerUrl: message.state.buttplugServerUrl,
           scriptUrl: message.state.scriptUrl,
           scriptLoaded: message.state.scriptLoaded,
+          funscript: message.state.funscript || null,
           isPlaying: message.state.isPlaying,
           handyOffset: message.state.handySettings?.offset || 0,
           handyStrokeMin: message.state.handySettings?.stroke?.min || 0,

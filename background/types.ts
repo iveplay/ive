@@ -11,6 +11,7 @@ export interface DeviceServiceState {
   // Script state
   scriptUrl: string
   scriptLoaded?: boolean
+  funscript?: Funscript | null
   isPlaying?: boolean
 
   // Device settings

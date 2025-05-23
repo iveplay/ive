@@ -5,7 +5,7 @@ import {
   ButtplugConnectionType,
   ScriptData,
 } from 'ive-connect'
-import { DeviceServiceState, DevicesInfo, MESSAGES } from './types'
+import { DeviceServiceState, DevicesInfo, Funscript, MESSAGES } from './types'
 
 /**
  * Core service that manages devices and state
@@ -15,7 +15,7 @@ class DeviceService {
   private handyDevice: HandyDevice | null = null
   private buttplugDevice: ButtplugDevice | null = null
   private scriptLoaded = false
-  private scriptData: ScriptData | null = null
+  private funscript: Funscript | null = null
   private isPlaying = false
   private lastLoadedScript: ScriptData | null = null
   // private currentTimeMs = 0
@@ -70,6 +70,7 @@ class DeviceService {
       ...this.state,
       isPlaying: this.isPlaying,
       scriptLoaded: this.scriptLoaded,
+      funscript: this.funscript,
     }
   }
 
@@ -316,7 +317,7 @@ class DeviceService {
 
       if (successCount > 0) {
         this.scriptLoaded = true
-        this.scriptData = results['script'] as ScriptData
+        this.funscript = results['script'] as unknown as Funscript
         await this.broadcastState()
         return true
       }
@@ -357,6 +358,7 @@ class DeviceService {
 
       if (successCount > 0) {
         this.scriptLoaded = true
+        this.funscript = results['script'] as unknown as Funscript
         await this.broadcastState()
         return true
       }
