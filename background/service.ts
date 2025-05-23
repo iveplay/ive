@@ -15,6 +15,7 @@ class DeviceService {
   private handyDevice: HandyDevice | null = null
   private buttplugDevice: ButtplugDevice | null = null
   private scriptLoaded = false
+  private scriptData: ScriptData | null = null
   private isPlaying = false
   private lastLoadedScript: ScriptData | null = null
   // private currentTimeMs = 0
@@ -283,7 +284,8 @@ class DeviceService {
     scriptData: ScriptData,
   ): Promise<boolean> {
     try {
-      return await device.loadScript(scriptData)
+      const result = await device.loadScript(scriptData)
+      return result.success
     } catch (error) {
       console.error('Error loading script to device:', error)
       return false
@@ -314,6 +316,7 @@ class DeviceService {
 
       if (successCount > 0) {
         this.scriptLoaded = true
+        this.scriptData = results['script'] as ScriptData
         await this.broadcastState()
         return true
       }

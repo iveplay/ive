@@ -26,6 +26,17 @@ export interface DeviceServiceState {
   error?: string | null
 }
 
+export interface Funscript {
+  actions: {
+    at: number
+    pos: number
+  }[]
+  inverted?: boolean
+  range?: number
+  version?: string
+  [key: string]: unknown
+}
+
 export interface DevicesInfo {
   handy: IVEDeviceInfo | null
   buttplug: IVEDeviceInfo | null

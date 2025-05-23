@@ -17,7 +17,7 @@
     "@mantine/core": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
     "clsx": "^2.1.1",
-    "ive-connect": "^0.3.1",
+    "ive-connect": "^0.4.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "ua-parser-js": "^2.0.3",

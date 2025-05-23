@@ -16,7 +16,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   return (
     <div className={styles.videoPage}>
       <VideoPanel scripts={scripts} />
-      {showHeatmap && <Heatmap />}
+      {showHeatmap && <Heatmap funscript={null} />}
     </div>
   )
 }
