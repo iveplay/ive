@@ -4,10 +4,10 @@ import logoImg from '@/assets/logo.png'
 import PatreonIcon from '@/assets/patreon.svg'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
-import { ScriptControl } from '@/components/scriptControl/ScriptControl'
 import { Settings } from '@/components/settings/Settings'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import { useSettingsSetup } from '@/store/useSettingsStore'
+import { useVideoControlsSetup } from '@/store/useVideoControlsStore'
 import styles from './PopupApp.module.scss'
 
 type NavItem = {
@@ -22,6 +22,7 @@ export const PopupApp = () => {
   const [activeItem, setActiveItem] = useState<string>('handy')
 
   useDeviceSetup()
+  useVideoControlsSetup()
   useSettingsSetup()
 
   const navItems: NavItem[] = [
@@ -37,12 +38,6 @@ export const PopupApp = () => {
       label: 'Settings',
       component: <Settings />,
       visible: true,
-    },
-    {
-      id: 'script',
-      label: 'Script',
-      component: <ScriptControl />,
-      visible: import.meta.env.DEV,
     },
   ]
 

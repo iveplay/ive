@@ -16,11 +16,16 @@ class DeviceService {
   private buttplugDevice: ButtplugDevice | null = null
   private scriptLoaded = false
   private funscript: Funscript | null = null
-  private isPlaying = false
   private lastLoadedScript: ScriptData | null = null
-  // private currentTimeMs = 0
-  // private playbackRate = 1.0
-  // private loop = false
+
+  // Playback state
+  private isPlaying = false
+  private currentTimeMs = 0
+  private playbackRate = 1.0
+  private volume = 1.0
+  private muted = false
+  private duration = 0
+  private loop = false
 
   // Last known states for persistence
   private state: DeviceServiceState = {
@@ -69,9 +74,15 @@ class DeviceService {
   public getState(): DeviceServiceState {
     return {
       ...this.state,
-      isPlaying: this.isPlaying,
       scriptLoaded: this.scriptLoaded,
       funscript: this.funscript,
+      isPlaying: this.isPlaying,
+      currentTimeMs: this.currentTimeMs,
+      playbackRate: this.playbackRate,
+      volume: this.volume,
+      muted: this.muted,
+      duration: this.duration,
+      loop: this.loop,
     }
   }
 
@@ -393,6 +404,7 @@ class DeviceService {
   public async play(
     timeMs: number,
     playbackRate: number = 1.0,
+    duration: number = 0,
     loop: boolean = false,
   ): Promise<boolean> {
     if (!this.scriptLoaded) {
@@ -400,9 +412,10 @@ class DeviceService {
     }
 
     try {
-      // this.currentTimeMs = timeMs
-      // this.playbackRate = playbackRate
-      // this.loop = loop
+      this.currentTimeMs = timeMs
+      this.playbackRate = playbackRate
+      this.duration = duration
+      this.loop = loop
 
       // Try-catch around specific devices to handle errors more gracefully
       const results: Record<string, boolean> = {}
@@ -473,7 +486,7 @@ class DeviceService {
 
   public async syncTime(timeMs: number): Promise<boolean> {
     try {
-      // this.currentTimeMs = timeMs
+      this.currentTimeMs = timeMs
 
       // Only sync if playing
       if (this.isPlaying) {
@@ -487,6 +500,31 @@ class DeviceService {
       console.error('Error syncing time:', errorMessage)
       throw error
     }
+  }
+
+  public async seek(timeMs: number): Promise<boolean> {
+    return this.syncTime(timeMs)
+  }
+
+  public async timeUpdate(timeMs: number): Promise<void> {
+    this.currentTimeMs = timeMs
+    await this.broadcastState()
+  }
+
+  public async setPlaybackRate(playbackRate: number): Promise<void> {
+    this.playbackRate = playbackRate
+    await this.broadcastState()
+  }
+
+  public async setVolume(volume: number, muted: boolean): Promise<void> {
+    this.volume = volume
+    this.muted = muted
+    await this.broadcastState()
+  }
+
+  public async setLoop(loop: boolean): Promise<void> {
+    this.loop = loop
+    await this.broadcastState()
   }
 
   // Event listeners
@@ -596,6 +634,7 @@ class DeviceService {
         ...this.getState(),
         ...extra,
         deviceInfo,
+
         timestamp: Date.now(),
       },
     }

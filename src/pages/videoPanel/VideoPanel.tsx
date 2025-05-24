@@ -55,6 +55,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
             type: MESSAGES.PLAY,
             timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
+            duration: videoElement.duration * 1000,
             loop: false,
           })
         }

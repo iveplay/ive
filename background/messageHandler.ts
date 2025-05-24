@@ -50,15 +50,32 @@ export function setupMessageHandler(): void {
             case MESSAGES.LOAD_SCRIPT_CONTENT:
               return await deviceService.loadScriptFromContent(message.content)
 
+            // Video playback controls
             case MESSAGES.PLAY:
               return await deviceService.play(
                 message.timeMs,
                 message.playbackRate,
+                message.duration,
                 message.loop,
               )
 
             case MESSAGES.STOP:
               return await deviceService.stop()
+
+            case MESSAGES.SEEK:
+              return await deviceService.seek(message.timeMs)
+
+            case MESSAGES.RATE_CHANGE:
+              return await deviceService.setPlaybackRate(message.playbackRate)
+
+            case MESSAGES.TIME_UPDATE:
+              return await deviceService.timeUpdate(message.timeMs)
+
+            case MESSAGES.VOLUME_CHANGE:
+              return await deviceService.setVolume(
+                message.volume,
+                message.muted,
+              )
 
             case MESSAGES.SYNC_TIME:
               return await deviceService.syncTime(message.timeMs)

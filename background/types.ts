@@ -12,8 +12,15 @@ export interface DeviceServiceState {
   scriptUrl: string
   scriptLoaded?: boolean
   funscript?: Funscript | null
+
+  // Player state
   isPlaying?: boolean
-  timestamp?: number
+  currentTimeMs?: number
+  playbackRate?: number
+  volume?: number
+  muted?: boolean
+  duration?: number
+  loop?: boolean
 
   // Device settings
   deviceInfo?: DevicesInfo
@@ -30,6 +37,7 @@ export interface DeviceServiceState {
 
   // Error state
   error?: string | null
+  timestamp?: number
 }
 
 export interface Funscript {
@@ -69,14 +77,16 @@ export const MESSAGES = {
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
   SYNC_TIME: 'ive:sync_time',
 
-  // Video changes
+  // Video playback controls
   PLAY: 'ive:video:play',
+  PAUSE: 'ive:video:pause',
   STOP: 'ive:video:stop',
+  SEEK: 'ive:video:seek',
   RATE_CHANGE: 'ive:video:rate_change',
   TIME_UPDATE: 'ive:video:time_update',
   VOLUME_CHANGE: 'ive:video:volume_change',
 
-  // Video updates
+  // Video state updates (for sending to content scripts)
   PLAY_UPDATE: 'ive:video:play_update',
   PAUSE_UPDATE: 'ive:video:pause_update',
   SEEK_UPDATE: 'ive:video:seek_update',
@@ -116,18 +126,21 @@ export type UIMessage =
       content: Record<string, unknown>
     }
   | { type: typeof MESSAGES.SYNC_TIME; timeMs: number }
-  // Video changes
+  // Video playback controls
   | {
       type: typeof MESSAGES.PLAY
       timeMs: number
       playbackRate?: number
+      duration?: number
       loop?: boolean
     }
+  | { type: typeof MESSAGES.PAUSE }
   | { type: typeof MESSAGES.STOP }
+  | { type: typeof MESSAGES.SEEK; timeMs: number }
   | { type: typeof MESSAGES.RATE_CHANGE; playbackRate: number }
   | { type: typeof MESSAGES.TIME_UPDATE; timeMs: number }
   | { type: typeof MESSAGES.VOLUME_CHANGE; volume: number; muted: boolean }
-  // Video updates
+  // Video state updates
   | { type: typeof MESSAGES.PLAY_UPDATE }
   | { type: typeof MESSAGES.PAUSE_UPDATE }
   | { type: typeof MESSAGES.SEEK_UPDATE; timeMs: number }

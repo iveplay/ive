@@ -14,7 +14,6 @@ export interface DeviceState {
   // Script state
   scriptUrl: string
   scriptLoaded: boolean
-  isPlaying: boolean
   funscript: Funscript | null
 
   // Settings
@@ -44,15 +43,6 @@ interface DeviceActions {
   loadScriptFromUrl: (url: string) => Promise<boolean>
   loadScriptFile: (file: File) => Promise<boolean>
 
-  // Playback actions
-  play: (
-    timeMs: number,
-    playbackRate?: number,
-    loop?: boolean,
-  ) => Promise<boolean>
-  stop: () => Promise<boolean>
-  syncTime: (timeMs: number) => Promise<boolean>
-
   // Handle local state updates
   setHandyConnectionKey: (key: string) => void
   setButtplugServerUrl: (url: string) => void
@@ -71,7 +61,6 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   scriptLoaded: false,
   scriptUrl: '',
   funscript: null,
-  isPlaying: false,
   handyOffset: 0,
   handyStrokeMin: 0,
   handyStrokeMax: 1,
@@ -248,53 +237,6 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
-  play: async (timeMs: number, playbackRate = 1.0, loop = false) => {
-    try {
-      set({ error: null })
-      const success = await chrome.runtime.sendMessage({
-        type: MESSAGES.PLAY,
-        timeMs,
-        playbackRate,
-        loop,
-      })
-      return success
-    } catch (error) {
-      set({
-        error: `Play error: ${error instanceof Error ? error.message : String(error)}`,
-      })
-      return false
-    }
-  },
-
-  stop: async () => {
-    try {
-      set({ error: null })
-      const success = await chrome.runtime.sendMessage({
-        type: MESSAGES.STOP,
-      })
-      return success
-    } catch (error) {
-      set({
-        error: `Stop error: ${error instanceof Error ? error.message : String(error)}`,
-      })
-      return false
-    }
-  },
-
-  syncTime: async (timeMs: number) => {
-    try {
-      const success = await chrome.runtime.sendMessage({
-        type: MESSAGES.SYNC_TIME,
-        timeMs,
-      })
-      return success
-    } catch (error) {
-      console.error('Sync time error:', error)
-      // Don't set error for sync failures
-      return false
-    }
-  },
-
   // Local state updates
   setHandyConnectionKey: (key: string) => {
     set({ handyConnectionKey: key })
@@ -362,7 +304,6 @@ export function useDeviceSetup(): void {
           scriptUrl: message.state.scriptUrl,
           scriptLoaded: message.state.scriptLoaded,
           funscript: message.state.funscript || null,
-          isPlaying: message.state.isPlaying,
           handyOffset: message.state.handySettings?.offset || 0,
           handyStrokeMin: message.state.handySettings?.stroke?.min || 0,
           handyStrokeMax: message.state.handySettings?.stroke?.max || 1,

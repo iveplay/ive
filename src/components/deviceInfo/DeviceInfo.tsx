@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
+import { useVideoControlsStore } from '@/store/useVideoControlsStore'
 import styles from './DeviceInfo.module.scss'
 
 interface DeviceInfoProps {
@@ -13,16 +14,16 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
     buttplugConnected,
     handyDeviceInfo,
     buttplugDeviceInfo,
-    isPlaying,
   } = useDeviceStore(
     useShallow((state) => ({
       handyConnected: state.handyConnected,
       buttplugConnected: state.buttplugConnected,
       handyDeviceInfo: state.handyDeviceInfo,
       buttplugDeviceInfo: state.buttplugDeviceInfo,
-      isPlaying: state.isPlaying,
     })),
   )
+
+  const isPlaying = useVideoControlsStore((state) => state.isPlaying)
 
   // Check connection status based on device type
   const isConnected = type === 'handy' ? handyConnected : buttplugConnected
