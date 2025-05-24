@@ -29,6 +29,7 @@ class DeviceService {
     handyConnected: false,
     buttplugConnected: false,
     scriptUrl: '',
+    showHeatmap: false,
     handySettings: {
       offset: 0,
       stroke: { min: 0, max: 1 },
@@ -72,6 +73,17 @@ class DeviceService {
       scriptLoaded: this.scriptLoaded,
       funscript: this.funscript,
     }
+  }
+
+  // Settings
+  public async setSettings({
+    showHeatmap,
+  }: {
+    showHeatmap: boolean
+  }): Promise<void> {
+    this.state.showHeatmap = showHeatmap
+    await this.saveState()
+    await this.broadcastState()
   }
 
   // Handy device methods
@@ -280,6 +292,7 @@ class DeviceService {
     }
   }
 
+  // Script management
   private async loadScriptToDevice(
     device: HandyDevice | ButtplugDevice,
     scriptData: ScriptData,
@@ -293,7 +306,6 @@ class DeviceService {
     }
   }
 
-  // Script management
   public async loadScriptFromUrl(url: string): Promise<boolean> {
     // if (!this.state.handyConnected && !this.state.buttplugConnected) {
     //   throw new Error('No devices connected')

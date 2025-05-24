@@ -13,8 +13,10 @@ export interface DeviceServiceState {
   scriptLoaded?: boolean
   funscript?: Funscript | null
   isPlaying?: boolean
+  timestamp?: number
 
   // Device settings
+  deviceInfo?: DevicesInfo
   handySettings: {
     offset: number
     stroke: {
@@ -22,6 +24,9 @@ export interface DeviceServiceState {
       max: number
     }
   }
+
+  // Settings
+  showHeatmap: boolean
 
   // Error state
   error?: string | null
@@ -63,7 +68,6 @@ export const MESSAGES = {
   LOAD_SCRIPT_URL: 'ive:load_script_url',
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
   SYNC_TIME: 'ive:sync_time',
-  DEVICE_STATE_UPDATE: 'ive:device_state_update',
 
   // Video changes
   PLAY: 'ive:video:play',
@@ -83,7 +87,10 @@ export const MESSAGES = {
   GET_SCRIPTS: 'ive:get_scripts',
 
   // Settings
-  SETTINGS_UPDATE: 'ive:settings:update',
+  SHOW_HEATMAP: 'ive:settings:show_heatmap',
+
+  // Device state
+  DEVICE_STATE_UPDATE: 'ive:device_state_update',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -135,15 +142,13 @@ export type UIMessage =
   | { type: typeof MESSAGES.GET_SCRIPTS }
   // Settings
   | {
-      type: typeof MESSAGES.DEVICE_STATE_UPDATE
-      state: DeviceServiceState & {
-        deviceInfo?: DevicesInfo
-        timestamp: number
-      }
-    }
-  | {
-      type: typeof MESSAGES.SETTINGS_UPDATE
+      type: typeof MESSAGES.SHOW_HEATMAP
       settings: {
         showHeatmap: boolean
       }
+    }
+  // Device state
+  | {
+      type: typeof MESSAGES.DEVICE_STATE_UPDATE
+      state: DeviceServiceState
     }

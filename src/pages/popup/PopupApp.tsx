@@ -7,6 +7,7 @@ import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { ScriptControl } from '@/components/scriptControl/ScriptControl'
 import { Settings } from '@/components/settings/Settings'
 import { useDeviceSetup } from '@/store/useDeviceStore'
+import { useSettingsSetup } from '@/store/useSettingsStore'
 import styles from './PopupApp.module.scss'
 
 type NavItem = {
@@ -21,6 +22,7 @@ export const PopupApp = () => {
   const [activeItem, setActiveItem] = useState<string>('handy')
 
   useDeviceSetup()
+  useSettingsSetup()
 
   const navItems: NavItem[] = [
     { id: 'handy', label: 'Handy', component: <HandyConnect />, visible: true },

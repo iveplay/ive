@@ -367,15 +367,9 @@ export function useDeviceSetup(): void {
           handyStrokeMin: message.state.handySettings?.stroke?.min || 0,
           handyStrokeMax: message.state.handySettings?.stroke?.max || 1,
           error: message.state.error || null,
+          handyDeviceInfo: message.state.deviceInfo?.handy || null,
+          buttplugDeviceInfo: message.state.deviceInfo?.buttplug || null,
         })
-
-        // Also update device info if available
-        if (message.state.deviceInfo) {
-          useDeviceStore.setState({
-            handyDeviceInfo: message.state.deviceInfo.handy || null,
-            buttplugDeviceInfo: message.state.deviceInfo.buttplug || null,
-          })
-        }
       }
     }
 

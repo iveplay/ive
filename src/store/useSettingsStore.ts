@@ -1,72 +1,62 @@
-import { MESSAGES } from '@background/types'
-import { useEffect } from 'react'
+import { MESSAGES, UIMessage } from '@background/types'
+import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import { chromeStorageAdapter } from '@/utils/chromeStorageAdapter'
 
 export interface SettingsStore {
   showHeatmap: boolean
   setShowHeatmap: (showHeatmap: boolean) => Promise<void>
-  broadcastSettings: () => void
 }
 
-export const useSettingsStore = create<SettingsStore>()(
-  persist(
-    (set, get) => ({
-      showHeatmap: false,
-      setShowHeatmap: async (showHeatmap: boolean) => {
-        set({ showHeatmap })
-        get().broadcastSettings()
+export const useSettingsStore = create<SettingsStore>()((set) => ({
+  showHeatmap: false,
+  setShowHeatmap: async (showHeatmap: boolean) => {
+    set({ showHeatmap })
+    await chrome.runtime.sendMessage({
+      type: MESSAGES.SHOW_HEATMAP,
+      settings: {
+        showHeatmap,
       },
-      broadcastSettings: () => {
-        const state = get()
+    })
+  },
+}))
 
-        chrome.tabs.query({}).then((tabs) => {
-          tabs.forEach((tab) => {
-            if (tab.id) {
-              chrome.tabs.sendMessage(tab.id, {
-                type: MESSAGES.SETTINGS_UPDATE,
-                settings: getPersistedState(state),
-              })
-            }
-          })
-        })
-      },
-    }),
-    {
-      name: 'ive-settings',
-      storage: createJSONStorage(() => chromeStorageAdapter),
-      partialize: (state) => getPersistedState(state),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.broadcastSettings()
-        }
-      },
-    },
-  ),
-)
+export function useSettingsSetup(): void {
+  const hasRanRef = useRef(false)
 
-export const useSettingsSetup = () => {
   useEffect(() => {
-    const settingsListener = (message: {
-      type: string
-      settings: SettingsStore
-    }) => {
-      if (message.type === MESSAGES.SETTINGS_UPDATE) {
-        const { settings } = message
-        useSettingsStore.setState(settings)
+    // Get initial state
+    const fetchInitialState = async () => {
+      if (hasRanRef.current) return
+      hasRanRef.current = true
+
+      try {
+        const state = await chrome.runtime.sendMessage({
+          type: MESSAGES.GET_STATE,
+        })
+
+        useSettingsStore.setState({
+          showHeatmap: state.showHeatmap,
+        })
+      } catch (error) {
+        console.error('Error fetching initial state:', error)
       }
     }
 
-    chrome.runtime.onMessage.addListener(settingsListener)
+    fetchInitialState()
+
+    const handleMessage = (message: UIMessage) => {
+      if (message.type === MESSAGES.DEVICE_STATE_UPDATE) {
+        // Update store with new state
+        useSettingsStore.setState({
+          showHeatmap: message.state.showHeatmap,
+        })
+      }
+    }
+
+    chrome.runtime.onMessage.addListener(handleMessage)
+
     return () => {
-      chrome.runtime.onMessage.removeListener(settingsListener)
+      chrome.runtime.onMessage.removeListener(handleMessage)
     }
   }, [])
-}
-
-const getPersistedState = (state: SettingsStore) => {
-  return {
-    showHeatmap: state.showHeatmap,
-  }
 }

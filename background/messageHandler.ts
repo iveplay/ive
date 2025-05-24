@@ -63,6 +63,10 @@ export function setupMessageHandler(): void {
             case MESSAGES.SYNC_TIME:
               return await deviceService.syncTime(message.timeMs)
 
+            // Settings
+            case MESSAGES.SHOW_HEATMAP:
+              return await deviceService.setSettings(message.settings)
+
             // Add IndexedDB handlers
             case MESSAGES.GET_SCRIPTS:
               return await idbService.getScripts()
