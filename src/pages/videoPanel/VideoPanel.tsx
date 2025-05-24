@@ -1,10 +1,10 @@
 import { MESSAGES } from '@background/types'
 import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
+import { useShallow } from 'zustand/shallow'
 import logoImg from '@/assets/logo.png'
-import { useVideoElement } from '@/hooks/useVideoElement'
 import { useVideoListener } from '@/hooks/useVideoListener'
-import { useVideoUpdater } from '@/hooks/useVideoUpdater'
+import { useVideoStore } from '@/store/useVideoStore'
 import { Scripts } from '@/types/script'
 import styles from './VideoPanel.module.scss'
 
@@ -25,11 +25,17 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
     videoElement,
     isSearching,
     error: videoError,
-    retry,
-  } = useVideoElement()
+    searchForVideo,
+  } = useVideoStore(
+    useShallow((state) => ({
+      videoElement: state.videoElement,
+      isSearching: state.isSearching,
+      error: state.error,
+      searchForVideo: state.searchForVideo,
+    })),
+  )
 
   useVideoListener(videoElement, currentScript, setIsPlaying)
-  useVideoUpdater(videoElement)
 
   // Handle script selection
   const handleScriptSelect = useCallback(
@@ -122,7 +128,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
           <div className={styles.errorContainer}>
             <p className={styles.errorMessage}>{videoError || errorMessage}</p>
             {videoError && (
-              <button className={styles.retryButton} onClick={retry}>
+              <button className={styles.retryButton} onClick={searchForVideo}>
                 Search again
               </button>
             )}

@@ -45,6 +45,7 @@ export const useVideoListener = (
             type: MESSAGES.PLAY,
             timeMs: videoElement.currentTime * 1000,
             playbackRate: videoElement.playbackRate,
+            duration: videoElement.duration * 1000,
             loop: false,
           })
         } catch (error) {
@@ -60,6 +61,9 @@ export const useVideoListener = (
           await chrome.runtime.sendMessage({
             type: MESSAGES.PLAY,
             playbackRate: videoElement.playbackRate,
+            timeMs: videoElement.currentTime * 1000,
+            duration: videoElement.duration * 1000,
+            loop: false,
           })
         } catch (error) {
           console.error('Error handling rate change:', error)

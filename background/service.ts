@@ -508,7 +508,8 @@ class DeviceService {
 
   public async timeUpdate(timeMs: number): Promise<void> {
     this.currentTimeMs = timeMs
-    await this.broadcastState()
+    // Disabled, try to not have this, it spams broadcasts
+    // await this.broadcastState()
   }
 
   public async setPlaybackRate(playbackRate: number): Promise<void> {

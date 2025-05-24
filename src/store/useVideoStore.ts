@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { create } from 'zustand'
 
 const findVideoElement = (): HTMLVideoElement | null => {
   const videos = Array.from(document.getElementsByTagName('video'))
@@ -25,17 +25,20 @@ const findVideoElement = (): HTMLVideoElement | null => {
   })
 }
 
-export const useVideoElement = () => {
-  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
-    null,
-  )
-  const [isSearching, setIsSearching] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+interface VideoStore {
+  videoElement: HTMLVideoElement | null
+  isSearching: boolean
+  error: string | null
+  searchForVideo: () => void
+}
 
-  // Function to search for video with retry
-  const searchForVideo = () => {
-    setIsSearching(true)
-    setError(null)
+export const useVideoStore = create<VideoStore>((set) => ({
+  videoElement: null,
+  isSearching: false,
+  error: null,
+
+  searchForVideo: () => {
+    set({ isSearching: true, error: null })
 
     let attempts = 0
     const maxAttempts = 5
@@ -44,15 +47,13 @@ export const useVideoElement = () => {
       const video = findVideoElement()
 
       if (video) {
-        setVideoElement(video)
-        setIsSearching(false)
+        set({ videoElement: video, isSearching: false })
         return
       }
 
       attempts++
 
       if (attempts < maxAttempts) {
-        // Exponential backoff
         const delay = 500 * Math.pow(2, attempts - 1)
         console.log(
           `Video not found, retrying in ${delay}ms (attempt ${attempts})`,
@@ -60,22 +61,15 @@ export const useVideoElement = () => {
         setTimeout(attemptFind, delay)
       } else {
         console.error('Failed to find video player after maximum attempts')
-        setError('No video player found on this page')
-        setIsSearching(false)
+        set({
+          error: 'No video player found on this page',
+          isSearching: false,
+        })
       }
     }
 
     attemptFind()
-  }
+  },
+}))
 
-  useEffect(() => {
-    searchForVideo()
-  }, [])
-
-  return {
-    videoElement,
-    isSearching,
-    error,
-    retry: searchForVideo,
-  }
-}
+useVideoStore.getState().searchForVideo()
