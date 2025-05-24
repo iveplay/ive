@@ -66,7 +66,7 @@ export const useVideoControlsStore = create<VideoControlsStore>()(
     seek: async (timeMs: number) => {
       try {
         await chrome.runtime.sendMessage({
-          type: MESSAGES.SEEK_UPDATE,
+          type: MESSAGES.SEEK,
           timeMs,
         })
         set({ currentTime: timeMs })

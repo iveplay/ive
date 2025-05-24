@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import logoImg from '@/assets/logo.png'
 import { useVideoElement } from '@/hooks/useVideoElement'
 import { useVideoListener } from '@/hooks/useVideoListener'
+import { useVideoUpdater } from '@/hooks/useVideoUpdater'
 import { Scripts } from '@/types/script'
 import styles from './VideoPanel.module.scss'
 
@@ -28,8 +29,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
   } = useVideoElement()
 
   useVideoListener(videoElement, currentScript, setIsPlaying)
-  // This could be used to update the video element based on messages from elsewhere in the app
-  // useVideoUpdater(videoElement)
+  useVideoUpdater(videoElement)
 
   // Handle script selection
   const handleScriptSelect = useCallback(
