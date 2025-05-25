@@ -10,9 +10,13 @@ import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
   scripts: Scripts
+  onOpenFloatingWindow?: () => void
 }
 
-export const VideoPanel = ({ scripts }: VideoPanelProps) => {
+export const VideoPanel = ({
+  scripts,
+  onOpenFloatingWindow,
+}: VideoPanelProps) => {
   const scriptEntries = Object.entries(scripts)
 
   const [currentScript, setCurrentScript] = useState<string | null>(null)
@@ -134,6 +138,23 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
             )}
           </div>
         )}
+        <div className={styles.actions}>
+          <button
+            className={styles.syncButton}
+            onClick={() => handleScriptSelect(currentScript || '')}
+            disabled={isLoading}
+          >
+            Sync
+          </button>
+          <button
+            className={styles.floatButton}
+            onClick={onOpenFloatingWindow}
+            disabled={!videoElement}
+            title='Open floating video window'
+          >
+            Float
+          </button>
+        </div>
         <div className={styles.scriptContainer}>
           <div className={styles.status}>
             <span className={styles.label}>Status:</span>
@@ -146,13 +167,6 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
               {isPlaying ? 'Playing' : 'Stopped'}
             </span>
           </div>
-          <button
-            className={styles.syncButton}
-            onClick={() => handleScriptSelect(currentScript || '')}
-            disabled={isLoading}
-          >
-            Sync
-          </button>
         </div>
         {scriptEntries.length > 1 && (
           <div className={styles.scriptDropdownContainer}>

@@ -20,6 +20,7 @@
     "ive-connect": "^0.4.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-draggable": "^4.4.6",
     "ua-parser-js": "^2.0.3",
     "zustand": "^5.0.3"
   },
