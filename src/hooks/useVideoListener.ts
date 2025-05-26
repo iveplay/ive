@@ -1,17 +1,41 @@
 import { MESSAGES } from '@background/types'
 import { useEffect } from 'react'
+import { useShallow } from 'zustand/shallow'
+import { useVideoStore } from '@/store/useVideoStore'
 
 export const useVideoListener = (
   videoElement: HTMLVideoElement | null,
   currentScript: string | null,
-  setIsPlaying: (isPlaying: boolean) => void,
 ) => {
+  const {
+    isPlaying,
+    setIsPlaying,
+    setCurrentTime,
+    setDuration,
+    setVolume,
+    setIsMuted,
+  } = useVideoStore(
+    useShallow((state) => ({
+      isPlaying: state.isPlaying,
+      setIsPlaying: state.setIsPlaying,
+      setCurrentTime: state.setCurrentTime,
+      setDuration: state.setDuration,
+      setVolume: state.setVolume,
+      setIsMuted: state.setIsMuted,
+    })),
+  )
+
   useEffect(() => {
     if (!videoElement || !currentScript) return
 
     // Handler for play event
     const handlePlay = async () => {
       setIsPlaying(true)
+      setCurrentTime(videoElement.currentTime * 1000)
+      setDuration(videoElement.duration * 1000)
+      setVolume(videoElement.volume)
+      setIsMuted(videoElement.muted)
+
       try {
         await chrome.runtime.sendMessage({
           type: MESSAGES.PLAY,
@@ -28,6 +52,9 @@ export const useVideoListener = (
     // Handler for pause event
     const handlePause = async () => {
       setIsPlaying(false)
+      setCurrentTime(videoElement.currentTime * 1000)
+      setDuration(videoElement.duration * 1000)
+
       try {
         await chrome.runtime.sendMessage({
           type: MESSAGES.STOP,
@@ -40,6 +67,9 @@ export const useVideoListener = (
     // Handler for seeking
     const handleSeeking = async () => {
       if (!videoElement.paused) {
+        setCurrentTime(videoElement.currentTime * 1000)
+        setDuration(videoElement.duration * 1000)
+
         try {
           await chrome.runtime.sendMessage({
             type: MESSAGES.PLAY,
@@ -57,6 +87,9 @@ export const useVideoListener = (
     // Handler for rate change
     const handleRateChange = async () => {
       if (!videoElement.paused) {
+        setCurrentTime(videoElement.currentTime * 1000)
+        setDuration(videoElement.duration * 1000)
+
         try {
           await chrome.runtime.sendMessage({
             type: MESSAGES.PLAY,
@@ -74,9 +107,10 @@ export const useVideoListener = (
     // Handler for time update
     const handleTimeUpdate = async () => {
       if (!videoElement.paused) {
+        setCurrentTime(videoElement.currentTime * 1000)
         try {
           await chrome.runtime.sendMessage({
-            type: MESSAGES.TIME_UPDATE,
+            type: MESSAGES.TIME_CHANGE,
             timeMs: videoElement.currentTime * 1000,
           })
         } catch (error) {
@@ -85,9 +119,28 @@ export const useVideoListener = (
       }
     }
 
+    // Handler for duration change
+    const handleDurationChange = async () => {
+      if (!videoElement.paused) {
+        setDuration(videoElement.duration * 1000)
+
+        try {
+          await chrome.runtime.sendMessage({
+            type: MESSAGES.DURATION_CHANGE,
+            duration: videoElement.duration * 1000,
+          })
+        } catch (error) {
+          console.error('Error handling duration change:', error)
+        }
+      }
+    }
+
     // Handler for volume change
     const handleVolumeChange = async () => {
       if (!videoElement.paused) {
+        setVolume(videoElement.volume)
+        setIsMuted(videoElement.muted)
+
         try {
           await chrome.runtime.sendMessage({
             type: MESSAGES.VOLUME_CHANGE,
@@ -106,6 +159,7 @@ export const useVideoListener = (
     videoElement.addEventListener('seeking', handleSeeking)
     videoElement.addEventListener('ratechange', handleRateChange)
     videoElement.addEventListener('timeupdate', handleTimeUpdate)
+    videoElement.addEventListener('durationchange', handleDurationChange)
     videoElement.addEventListener('volumechange', handleVolumeChange)
 
     // Check initial state - if video is already playing when script is loaded
@@ -120,6 +174,7 @@ export const useVideoListener = (
       videoElement.removeEventListener('seeking', handleSeeking)
       videoElement.removeEventListener('ratechange', handleRateChange)
       videoElement.removeEventListener('timeupdate', handleTimeUpdate)
+      videoElement.removeEventListener('durationchange', handleDurationChange)
       videoElement.removeEventListener('volumechange', handleVolumeChange)
 
       // Stop playback when component unmounts
@@ -131,5 +186,15 @@ export const useVideoListener = (
           console.error('Error stopping playback on unmount:', error)
         })
     }
-  }, [videoElement, currentScript, setIsPlaying])
+  }, [
+    videoElement,
+    currentScript,
+    setIsPlaying,
+    setCurrentTime,
+    setDuration,
+    setVolume,
+    setIsMuted,
+  ])
+
+  return { isPlaying }
 }

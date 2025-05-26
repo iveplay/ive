@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { Controls } from '@/components/controls/Controls'
-import { FloatingVideoWindow } from '@/components/floatingVideoWindow/FloatingVideoWindow'
+import { FloatingVideo } from '@/components/floatingVideo/FloatingVideo'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import { useSettingsStore, useSettingsSetup } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
@@ -13,38 +12,20 @@ type VideoPageProps = {
 }
 
 export const VideoPage = ({ scripts }: VideoPageProps) => {
-  const [showFloatingWindow, setShowFloatingWindow] = useState(false)
-
   useSettingsSetup()
   useDeviceSetup()
 
   const showHeatmap = useSettingsStore((state) => state.showHeatmap)
   const videoElement = useVideoStore((state) => state.videoElement)
-
-  const handleOpenFloatingWindow = () => {
-    if (videoElement) {
-      setShowFloatingWindow(true)
-    }
-  }
-
-  const handleCloseFloatingWindow = () => {
-    setShowFloatingWindow(false)
-  }
+  const isFloating = useVideoStore((state) => state.isFloating)
 
   return (
     <div className={styles.videoPage}>
-      <VideoPanel
-        scripts={scripts}
-        onOpenFloatingWindow={handleOpenFloatingWindow}
-      />
-      {showHeatmap && <Controls />}
-
-      {/* {showFloatingWindow && videoElement && (
-        <FloatingVideoWindow
-          videoElement={videoElement}
-          onClose={handleCloseFloatingWindow}
-        />
-      )} */}
+      <VideoPanel scripts={scripts} />
+      {!isFloating && showHeatmap && <Controls />}
+      {isFloating && videoElement && (
+        <FloatingVideo videoElement={videoElement} />
+      )}
     </div>
   )
 }

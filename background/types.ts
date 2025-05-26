@@ -83,7 +83,8 @@ export const MESSAGES = {
   STOP: 'ive:video:stop',
   SEEK: 'ive:video:seek',
   RATE_CHANGE: 'ive:video:rate_change',
-  TIME_UPDATE: 'ive:video:time_update',
+  TIME_CHANGE: 'ive:video:time_change',
+  DURATION_CHANGE: 'ive:video:duration_change',
   VOLUME_CHANGE: 'ive:video:volume_change',
 
   // Video state updates (for sending to content scripts)
@@ -138,7 +139,8 @@ export type UIMessage =
   | { type: typeof MESSAGES.STOP }
   | { type: typeof MESSAGES.SEEK; timeMs: number }
   | { type: typeof MESSAGES.RATE_CHANGE; playbackRate: number }
-  | { type: typeof MESSAGES.TIME_UPDATE; timeMs: number }
+  | { type: typeof MESSAGES.TIME_CHANGE; timeMs: number }
+  | { type: typeof MESSAGES.DURATION_CHANGE; duration: number }
   | { type: typeof MESSAGES.VOLUME_CHANGE; volume: number; muted: boolean }
   // Video state updates
   | { type: typeof MESSAGES.PLAY_UPDATE }

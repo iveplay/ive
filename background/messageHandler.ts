@@ -68,8 +68,11 @@ export function setupMessageHandler(): void {
             case MESSAGES.RATE_CHANGE:
               return await deviceService.setPlaybackRate(message.playbackRate)
 
-            case MESSAGES.TIME_UPDATE:
+            case MESSAGES.TIME_CHANGE:
               return await deviceService.timeUpdate(message.timeMs)
+
+            case MESSAGES.DURATION_CHANGE:
+              return await deviceService.durationChange(message.duration)
 
             case MESSAGES.VOLUME_CHANGE:
               return await deviceService.setVolume(

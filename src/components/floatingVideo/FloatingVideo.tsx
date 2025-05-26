@@ -1,26 +1,30 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useShallow } from 'zustand/shallow'
 import { DraggableWrapper } from '@/components/draggableWrapper/DraggableWrapper'
-import styles from './FloatingVideoWindow.module.scss'
+import { useVideoStore } from '@/store/useVideoStore'
+import { formatTime } from '@/utils/formatTime'
+import styles from './FloatingVideo.module.scss'
 
-interface FloatingVideoWindowProps {
+type FloatingVideoProps = {
   videoElement: HTMLVideoElement
-  onClose: () => void
 }
 
-export const FloatingVideoWindow = ({
-  videoElement,
-  onClose,
-}: FloatingVideoWindowProps) => {
-  const [isPlaying, setIsPlaying] = useState(!videoElement.paused)
-  const [currentTime, setCurrentTime] = useState(videoElement.currentTime)
-  const [duration, setDuration] = useState(videoElement.duration || 0)
-  const [volume, setVolume] = useState(videoElement.volume)
-  const [isMuted, setIsMuted] = useState(videoElement.muted)
+export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
+  const { isPlaying, currentTime, duration, volume, isMuted } = useVideoStore(
+    useShallow((state) => ({
+      isPlaying: state.isPlaying,
+      currentTime: state.currentTime,
+      duration: state.duration,
+      volume: state.volume,
+      isMuted: state.isMuted,
+    })),
+  )
+
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(true)
 
   const videoContainerRef = useRef<HTMLDivElement>(null)
-  const hideControlsTimeoutRef = useRef<NodeJS.Timeout>()
+  const hideControlsTimeoutRef = useRef<NodeJS.Timeout>(null)
 
   // Store original parent to restore later
   const [originalParent, setOriginalParent] = useState<{
@@ -30,7 +34,7 @@ export const FloatingVideoWindow = ({
 
   // Move video element to floating window
   useEffect(() => {
-    if (videoContainerRef.current) {
+    if (videoContainerRef.current && !originalParent) {
       // Store original position
       setOriginalParent({
         parent: videoElement.parentElement!,
@@ -39,47 +43,22 @@ export const FloatingVideoWindow = ({
 
       // Move video to floating window
       videoContainerRef.current.appendChild(videoElement)
+    }
 
-      return () => {
-        // Restore video to original position on cleanup
-        if (originalParent) {
-          if (originalParent.nextSibling) {
-            originalParent.parent.insertBefore(
-              videoElement,
-              originalParent.nextSibling,
-            )
-          } else {
-            originalParent.parent.appendChild(videoElement)
-          }
+    return () => {
+      // Restore video to original position on cleanup
+      if (originalParent) {
+        if (originalParent.nextSibling) {
+          originalParent.parent.insertBefore(
+            videoElement,
+            originalParent.nextSibling,
+          )
+        } else {
+          originalParent.parent.appendChild(videoElement)
         }
       }
     }
-  }, [videoElement, originalParent])
-
-  // Video event listeners
-  useEffect(() => {
-    const handleTimeUpdate = () => setCurrentTime(videoElement.currentTime)
-    const handleDurationChange = () => setDuration(videoElement.duration)
-    const handlePlay = () => setIsPlaying(true)
-    const handlePause = () => setIsPlaying(false)
-    const handleVolumeChange = () => {
-      setVolume(videoElement.volume)
-      setIsMuted(videoElement.muted)
-    }
-
-    videoElement.addEventListener('timeupdate', handleTimeUpdate)
-    videoElement.addEventListener('durationchange', handleDurationChange)
-    videoElement.addEventListener('play', handlePlay)
-    videoElement.addEventListener('pause', handlePause)
-    videoElement.addEventListener('volumechange', handleVolumeChange)
-
-    return () => {
-      videoElement.removeEventListener('timeupdate', handleTimeUpdate)
-      videoElement.removeEventListener('durationchange', handleDurationChange)
-      videoElement.removeEventListener('play', handlePlay)
-      videoElement.removeEventListener('pause', handlePause)
-      videoElement.removeEventListener('volumechange', handleVolumeChange)
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoElement])
 
   // Auto-hide controls
@@ -110,7 +89,7 @@ export const FloatingVideoWindow = ({
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseFloat(e.target.value)
-    videoElement.currentTime = newTime
+    videoElement.currentTime = newTime / 1000
   }
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,13 +117,6 @@ export const FloatingVideoWindow = ({
         originalParent.parent.appendChild(videoElement)
       }
     }
-    onClose()
-  }
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   return (

@@ -512,6 +512,11 @@ class DeviceService {
     // await this.broadcastState()
   }
 
+  public async durationChange(duration: number): Promise<void> {
+    this.duration = duration
+    await this.broadcastState()
+  }
+
   public async setPlaybackRate(playbackRate: number): Promise<void> {
     this.playbackRate = playbackRate
     await this.broadcastState()

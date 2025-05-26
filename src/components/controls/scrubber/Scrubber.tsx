@@ -1,15 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
+import { formatTime } from '@/utils/formatTime'
 import styles from './Scrubber.module.scss'
 
 const SEEK_THROTTLE = 100
-
-// Format time in MM:SS
-const formatTime = (ms: number): string => {
-  const seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-}
 
 type ScrubberProps = {
   duration: number

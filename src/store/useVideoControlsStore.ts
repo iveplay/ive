@@ -27,6 +27,7 @@ interface VideoControlsActions {
 
 type VideoControlsStore = VideoControlsState & VideoControlsActions
 
+// For use outside of content scripts
 export const useVideoControlsStore = create<VideoControlsStore>()(
   (set, get) => ({
     isPlaying: false,

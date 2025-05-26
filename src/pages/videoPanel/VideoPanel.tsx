@@ -10,19 +10,14 @@ import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
   scripts: Scripts
-  onOpenFloatingWindow?: () => void
 }
 
-export const VideoPanel = ({
-  scripts,
-  onOpenFloatingWindow,
-}: VideoPanelProps) => {
+export const VideoPanel = ({ scripts }: VideoPanelProps) => {
   const scriptEntries = Object.entries(scripts)
 
   const [currentScript, setCurrentScript] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [expanded, setExpanded] = useState(false)
 
   const {
@@ -30,16 +25,20 @@ export const VideoPanel = ({
     isSearching,
     error: videoError,
     searchForVideo,
+    isFloating,
+    setIsFloating,
   } = useVideoStore(
     useShallow((state) => ({
       videoElement: state.videoElement,
       isSearching: state.isSearching,
       error: state.error,
       searchForVideo: state.searchForVideo,
+      isFloating: state.isFloating,
+      setIsFloating: state.setIsFloating,
     })),
   )
 
-  useVideoListener(videoElement, currentScript, setIsPlaying)
+  const { isPlaying } = useVideoListener(videoElement, currentScript)
 
   // Handle script selection
   const handleScriptSelect = useCallback(
@@ -148,7 +147,7 @@ export const VideoPanel = ({
           </button>
           <button
             className={styles.floatButton}
-            onClick={onOpenFloatingWindow}
+            onClick={() => setIsFloating(!isFloating)}
             disabled={!videoElement}
             title='Open floating video window'
           >

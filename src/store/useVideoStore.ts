@@ -1,31 +1,23 @@
 import { create } from 'zustand'
+import { findVideoElement } from '@/utils/findVideoElement'
 
-const findVideoElement = (): HTMLVideoElement | null => {
-  const videos = Array.from(document.getElementsByTagName('video'))
-  if (videos.length === 0) return null
-
-  // Filter significant videos
-  const significantVideos = videos.filter(
-    (v) => v.offsetWidth > 100 && v.offsetHeight > 100,
-  )
-
-  if (significantVideos.length === 0) return null
-
-  // First try to find playing video
-  const playingVideo = significantVideos.find((v) => !v.paused)
-  if (playingVideo) {
-    return playingVideo
-  }
-
-  // Otherwise find largest
-  return significantVideos.reduce((largest, current) => {
-    const largestArea = largest.offsetWidth * largest.offsetHeight
-    const currentArea = current.offsetWidth * current.offsetHeight
-    return currentArea > largestArea ? current : largest
-  })
-}
+const MAX_ATTEMPTS = 5
 
 interface VideoStore {
+  isPlaying: boolean
+  setIsPlaying: (isPlaying: boolean) => void
+  currentTime: number
+  setCurrentTime: (time: number) => void
+  duration: number
+  setDuration: (duration: number) => void
+  volume: number
+  setVolume: (volume: number) => void
+  isMuted: boolean
+  setIsMuted: (muted: boolean) => void
+  isFloating: boolean
+  setIsFloating: (isFloating: boolean) => void
+
+  // Video element and search state
   videoElement: HTMLVideoElement | null
   isSearching: boolean
   error: string | null
@@ -33,15 +25,27 @@ interface VideoStore {
 }
 
 export const useVideoStore = create<VideoStore>((set) => ({
+  isPlaying: false,
+  setIsPlaying: (isPlaying) => set({ isPlaying }),
+  currentTime: 0,
+  setCurrentTime: (time) => set({ currentTime: time }),
+  duration: 0,
+  setDuration: (duration) => set({ duration }),
+  volume: 0,
+  setVolume: (volume) => set({ volume }),
+  isMuted: false,
+  setIsMuted: (muted) => set({ isMuted: muted }),
+  isFloating: false,
+  setIsFloating: (isFloating) => set({ isFloating }),
+
+  // Video element
   videoElement: null,
   isSearching: false,
   error: null,
-
   searchForVideo: () => {
     set({ isSearching: true, error: null })
 
     let attempts = 0
-    const maxAttempts = 5
 
     const attemptFind = () => {
       const video = findVideoElement()
@@ -53,7 +57,7 @@ export const useVideoStore = create<VideoStore>((set) => ({
 
       attempts++
 
-      if (attempts < maxAttempts) {
+      if (attempts < MAX_ATTEMPTS) {
         const delay = 500 * Math.pow(2, attempts - 1)
         console.log(
           `Video not found, retrying in ${delay}ms (attempt ${attempts})`,
