@@ -5,12 +5,13 @@
   background: #000;
 
   video {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: calc(100% + 60px) !important;
     object-fit: contain;
     aspect-ratio: 16 / 9;
     display: block;
-    cursor: pointer !important;
+    cursor: auto !important;
+    pointer-events: none;
   }
 }
 
@@ -53,7 +54,7 @@
   border-radius: 2px;
   outline: none;
   cursor: pointer;
-  -webkit-appearance: none;
+  appearance: none;
 
   &::-webkit-slider-thumb {
     -webkit-appearance: none;
