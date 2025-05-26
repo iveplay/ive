@@ -3,10 +3,7 @@ import { useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useVideoStore } from '@/store/useVideoStore'
 
-export const useVideoListener = (
-  videoElement: HTMLVideoElement | null,
-  currentScript: string | null,
-) => {
+export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
   const {
     isPlaying,
     setIsPlaying,
@@ -26,7 +23,7 @@ export const useVideoListener = (
   )
 
   useEffect(() => {
-    if (!videoElement || !currentScript) return
+    if (!videoElement) return
 
     // Handler for play event
     const handlePlay = async () => {
@@ -188,7 +185,6 @@ export const useVideoListener = (
     }
   }, [
     videoElement,
-    currentScript,
     setIsPlaying,
     setCurrentTime,
     setDuration,

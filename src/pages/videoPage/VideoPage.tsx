@@ -8,7 +8,7 @@ import { VideoPanel } from '../videoPanel/VideoPanel'
 import styles from './VideoPage.module.scss'
 
 type VideoPageProps = {
-  scripts: Scripts
+  scripts?: Scripts
 }
 
 export const VideoPage = ({ scripts }: VideoPageProps) => {
@@ -22,7 +22,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   return (
     <div className={styles.videoPage}>
       <VideoPanel scripts={scripts} />
-      {!isFloating && showHeatmap && <Controls />}
+      {scripts && !isFloating && showHeatmap && <Controls />}
       {isFloating && videoElement && (
         <FloatingVideo videoElement={videoElement} />
       )}

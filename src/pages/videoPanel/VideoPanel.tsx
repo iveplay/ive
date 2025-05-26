@@ -9,11 +9,11 @@ import { Scripts } from '@/types/script'
 import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
-  scripts: Scripts
+  scripts?: Scripts
 }
 
 export const VideoPanel = ({ scripts }: VideoPanelProps) => {
-  const scriptEntries = Object.entries(scripts)
+  const scriptEntries = Object.entries(scripts || {})
 
   const [currentScript, setCurrentScript] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -38,7 +38,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
     })),
   )
 
-  const { isPlaying } = useVideoListener(videoElement, currentScript)
+  const { isPlaying } = useVideoListener(videoElement)
 
   // Handle script selection
   const handleScriptSelect = useCallback(
@@ -109,7 +109,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
     }
   }, [])
 
-  const currentScriptInfo = currentScript ? scripts[currentScript] : null
+  const currentScriptInfo = currentScript ? scripts?.[currentScript] : null
   const isError = !!(videoError || errorMessage)
 
   return (

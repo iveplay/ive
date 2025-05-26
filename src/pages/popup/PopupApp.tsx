@@ -12,7 +12,8 @@ import styles from './PopupApp.module.scss'
 type NavItem = {
   id: string
   label: string
-  component: ReactNode
+  component?: ReactNode
+  onClick?: () => void
   visible: boolean
 }
 
@@ -22,6 +23,24 @@ export const PopupApp = () => {
 
   useDeviceSetup()
   useSettingsSetup()
+
+  const activateVideoPanel = async () => {
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      })
+      if (tab.id) {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: 'IVE_ACTIVATE_VIDEO_PANEL',
+        })
+        // Close popup after activation
+        window.close()
+      }
+    } catch (error) {
+      console.error('Error activating video panel:', error)
+    }
+  }
 
   const navItems: NavItem[] = [
     { id: 'handy', label: 'Handy', component: <HandyConnect />, visible: true },
@@ -35,6 +54,12 @@ export const PopupApp = () => {
       id: 'settings',
       label: 'Settings',
       component: <Settings />,
+      visible: true,
+    },
+    {
+      id: 'video',
+      label: 'Show IVE',
+      onClick: activateVideoPanel,
       visible: true,
     },
   ]
@@ -75,6 +100,10 @@ export const PopupApp = () => {
                   key={item.id}
                   className={`${styles.navItem} ${activeItem === item.id ? styles.active : ''}`}
                   onClick={() => {
+                    if (item.onClick) {
+                      item.onClick()
+                      return
+                    }
                     setActiveItem(item.id)
                     setOpened(false)
                   }}

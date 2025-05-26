@@ -10,17 +10,18 @@ type FloatingVideoProps = {
 }
 
 export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
-  const { isPlaying, currentTime, duration, volume, isMuted } = useVideoStore(
-    useShallow((state) => ({
-      isPlaying: state.isPlaying,
-      currentTime: state.currentTime,
-      duration: state.duration,
-      volume: state.volume,
-      isMuted: state.isMuted,
-    })),
-  )
+  const { isPlaying, currentTime, duration, volume, isMuted, setIsFloating } =
+    useVideoStore(
+      useShallow((state) => ({
+        isPlaying: state.isPlaying,
+        currentTime: state.currentTime,
+        duration: state.duration,
+        volume: state.volume,
+        isMuted: state.isMuted,
+        setIsFloating: state.setIsFloating,
+      })),
+    )
 
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(true)
 
   const videoContainerRef = useRef<HTMLDivElement>(null)
@@ -34,32 +35,28 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
 
   // Move video element to floating window
   useEffect(() => {
-    if (videoContainerRef.current && !originalParent) {
+    if (videoContainerRef.current && videoElement.parentElement) {
       // Store original position
-      setOriginalParent({
-        parent: videoElement.parentElement!,
+      const parentInfo = {
+        parent: videoElement.parentElement,
         nextSibling: videoElement.nextSibling,
-      })
+      }
+      setOriginalParent(parentInfo)
 
       // Move video to floating window
       videoContainerRef.current.appendChild(videoElement)
-    }
 
-    return () => {
-      // Restore video to original position on cleanup
-      if (originalParent) {
-        if (originalParent.nextSibling) {
-          originalParent.parent.insertBefore(
-            videoElement,
-            originalParent.nextSibling,
-          )
+      return () => {
+        // Restore video to original position on cleanup
+        if (parentInfo.nextSibling) {
+          parentInfo.parent.insertBefore(videoElement, parentInfo.nextSibling)
         } else {
-          originalParent.parent.appendChild(videoElement)
+          parentInfo.parent.appendChild(videoElement)
         }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoElement])
+  }, [])
 
   // Auto-hide controls
   const resetHideTimer = useCallback(() => {
@@ -101,10 +98,6 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
     videoElement.muted = !isMuted
   }
 
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen)
-  }
-
   const handleClose = () => {
     // Restore video to original position before closing
     if (originalParent) {
@@ -117,15 +110,12 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
         originalParent.parent.appendChild(videoElement)
       }
     }
+
+    setIsFloating(false)
   }
 
   return (
-    <DraggableWrapper
-      className={isFullscreen ? styles.fullscreen : styles.floatingWindow}
-      headerContent='Video Player'
-      onClose={handleClose}
-      storageKey='floating-video-position'
-    >
+    <DraggableWrapper storageKey='floating-video-position'>
       <div
         ref={videoContainerRef}
         className={styles.videoContainer}
@@ -168,12 +158,8 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
             />
           </div>
 
-          <button
-            onClick={toggleFullscreen}
-            className={styles.fullscreenButton}
-          >
-            {isFullscreen ? '📉' : '📈'}
-          </button>
+          <button onClick={handleClose}>X</button>
+          <div className='draggable-handle'>handle</div>
         </div>
       </div>
     </DraggableWrapper>

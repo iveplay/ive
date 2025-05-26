@@ -18,19 +18,15 @@ type DraggableWrapperProps = {
 
 export const DraggableWrapper = ({
   children,
-  className = '',
-  headerContent,
-  onClose,
-  storageKey = 'floating-window-position',
+  storageKey = 'draggablePosition',
   bounds = 'body',
 }: DraggableWrapperProps) => {
   const [controlledPosition, setControlledPosition] = useState<Position>({
     x: 50,
     y: 50,
   })
-  const draggableRef = useRef<HTMLDivElement>()
+  const draggableRef = useRef<HTMLDivElement>(null)
 
-  // Load saved position
   useEffect(() => {
     const loadSavedPosition = async () => {
       try {
@@ -112,7 +108,7 @@ export const DraggableWrapper = ({
 
   return (
     <Draggable
-      nodeRef={draggableRef}
+      nodeRef={draggableRef as React.RefObject<HTMLDivElement>}
       handle='.draggable-handle'
       bounds={bounds}
       position={controlledPosition}
@@ -123,19 +119,8 @@ export const DraggableWrapper = ({
         setControlledPosition({ x: position.x, y: position.y })
       }}
     >
-      <div
-        ref={draggableRef}
-        className={`${styles.draggableWrapper} ${className}`}
-      >
-        <div className={`draggable-handle ${styles.header}`}>
-          {headerContent || <span>Floating Window</span>}
-          {onClose && (
-            <button onClick={onClose} className={styles.closeButton}>
-              ×
-            </button>
-          )}
-        </div>
-        <div className={styles.content}>{children}</div>
+      <div ref={draggableRef} className={styles.draggableWrapper}>
+        {children}
       </div>
     </Draggable>
   )

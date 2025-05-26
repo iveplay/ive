@@ -1,16 +1,23 @@
 import { useState, useRef, useCallback } from 'react'
+import { useShallow } from 'zustand/shallow'
+import { useVideoStore } from '@/store/useVideoStore'
 import { formatTime } from '@/utils/formatTime'
 import styles from './Scrubber.module.scss'
 
 const SEEK_THROTTLE = 100
 
 type ScrubberProps = {
-  duration: number
-  currentTime: number
   onSeek?: (time: number) => void
 }
 
-export const Scrubber = ({ duration, currentTime, onSeek }: ScrubberProps) => {
+export const Scrubber = ({ onSeek }: ScrubberProps) => {
+  const { duration, currentTime } = useVideoStore(
+    useShallow((state) => ({
+      duration: state.duration,
+      currentTime: state.currentTime,
+    })),
+  )
+
   const [isDragging, setIsDragging] = useState(false)
   const [localTime, setLocalTime] = useState(currentTime)
   const lastSeekTime = useRef(0)

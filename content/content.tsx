@@ -18,6 +18,21 @@ let mountedComponent = false
 // Expose extension API to the page
 setupIveEventApi()
 
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+  if (message.type === 'IVE_ACTIVATE_VIDEO_PANEL') {
+    document.getElementById('ive')?.remove()
+    mountedComponent = false
+    mountComponent(document.body, <VideoPage />, 'append', {
+      zIndex: '2147483640',
+      position: 'fixed',
+      inset: '0',
+      pointerEvents: 'none',
+    })
+    sendResponse({ success: true })
+  }
+})
+
 setInterval(() => {
   if (window.location.href !== currentUrl) {
     currentUrl = window.location.href
