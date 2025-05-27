@@ -1,4 +1,4 @@
-import { Switch } from '@mantine/core'
+import { Button, Switch } from '@mantine/core'
 import { useShallow } from 'zustand/shallow'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import styles from './Settings.module.scss'
@@ -11,6 +11,24 @@ export const Settings = () => {
     })),
   )
 
+  const activateVideoPanel = async () => {
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      })
+      if (tab.id) {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: 'IVE_ACTIVATE_VIDEO_PANEL',
+        })
+        // Close popup after activation
+        window.close()
+      }
+    } catch (error) {
+      console.error('Error activating video panel:', error)
+    }
+  }
+
   return (
     <div className={styles.settings}>
       <div className={styles.settingItem}>
@@ -21,6 +39,12 @@ export const Settings = () => {
           size='sm'
           color='#7b024d'
         />
+      </div>
+      <div className={styles.settingItem}>
+        <div className={styles.settingLabel}>Activate Video Panel</div>
+        <Button onClick={activateVideoPanel} size='compact-md' color='#7b024d'>
+          Open
+        </Button>
       </div>
     </div>
   )

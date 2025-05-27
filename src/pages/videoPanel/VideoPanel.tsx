@@ -147,7 +147,10 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
           </button>
           <button
             className={styles.floatButton}
-            onClick={() => setIsFloating(!isFloating)}
+            onClick={() => {
+              setExpanded(false)
+              setIsFloating(!isFloating)
+            }}
             disabled={!videoElement}
             title='Open floating video window'
           >
