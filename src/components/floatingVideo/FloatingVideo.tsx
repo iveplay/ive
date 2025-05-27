@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useShallow } from 'zustand/shallow'
 import { DraggableWrapper } from '@/components/draggableWrapper/DraggableWrapper'
 import { useVideoStore } from '@/store/useVideoStore'
-import { formatTime } from '@/utils/formatTime'
+import { Controls } from '../controls/Controls'
 import styles from './FloatingVideo.module.scss'
 
 type FloatingVideoProps = {
@@ -10,24 +9,13 @@ type FloatingVideoProps = {
 }
 
 export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
-  const { isPlaying, currentTime, duration, volume, isMuted, setIsFloating } =
-    useVideoStore(
-      useShallow((state) => ({
-        isPlaying: state.isPlaying,
-        currentTime: state.currentTime,
-        duration: state.duration,
-        volume: state.volume,
-        isMuted: state.isMuted,
-        setIsFloating: state.setIsFloating,
-      })),
-    )
-
   const [showControls, setShowControls] = useState(true)
 
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout>(null)
 
-  // Store original parent to restore later
+  const setIsFloating = useVideoStore((state) => state.setIsFloating)
+
   const [originalParent, setOriginalParent] = useState<{
     parent: Element
     nextSibling: Node | null
@@ -58,7 +46,6 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Auto-hide controls
   const resetHideTimer = useCallback(() => {
     if (hideControlsTimeoutRef.current) {
       clearTimeout(hideControlsTimeoutRef.current)
@@ -69,34 +56,6 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
       setShowControls(false)
     }, 3000)
   }, [])
-
-  // Mouse movement handler
-  const handleMouseMove = useCallback(() => {
-    resetHideTimer()
-  }, [resetHideTimer])
-
-  // Control handlers
-  const togglePlay = () => {
-    if (isPlaying) {
-      videoElement.pause()
-    } else {
-      videoElement.play()
-    }
-  }
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = parseFloat(e.target.value)
-    videoElement.currentTime = newTime / 1000
-  }
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value)
-    videoElement.volume = newVolume
-  }
-
-  const toggleMute = () => {
-    videoElement.muted = !isMuted
-  }
 
   const handleClose = () => {
     // Restore video to original position before closing
@@ -119,49 +78,13 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
       <div
         ref={videoContainerRef}
         className={styles.videoContainer}
-        onMouseMove={handleMouseMove}
+        onMouseMove={resetHideTimer}
       />
-
-      <div
-        className={`${styles.controls} ${showControls ? styles.visible : ''}`}
-      >
-        <div className={styles.timeline}>
-          <span className={styles.time}>{formatTime(currentTime)}</span>
-          <input
-            type='range'
-            min='0'
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleSeek}
-            className={styles.seekBar}
-          />
-          <span className={styles.time}>{formatTime(duration)}</span>
-        </div>
-
-        <div className={styles.controlButtons}>
-          <button onClick={togglePlay} className={styles.playButton}>
-            {isPlaying ? '⏸️' : '▶️'}
-          </button>
-
-          <div className={styles.volumeControl}>
-            <button onClick={toggleMute} className={styles.muteButton}>
-              {isMuted ? '🔇' : '🔊'}
-            </button>
-            <input
-              type='range'
-              min='0'
-              max='1'
-              step='0.1'
-              value={volume}
-              onChange={handleVolumeChange}
-              className={styles.volumeBar}
-            />
-          </div>
-
-          <button onClick={handleClose}>X</button>
-          <div className='draggable-handle'>handle</div>
-        </div>
-      </div>
+      <Controls
+        show={showControls}
+        onClose={handleClose}
+        onHover={resetHideTimer}
+      />
     </DraggableWrapper>
   )
 }

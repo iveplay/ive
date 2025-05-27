@@ -1,5 +1,5 @@
-import { Controls } from '@/components/controls/Controls'
 import { FloatingVideo } from '@/components/floatingVideo/FloatingVideo'
+import { ScrubberHeatmap } from '@/components/heatmap/ScrubberHeatmap'
 import { useDeviceSetup } from '@/store/useDeviceStore'
 import { useSettingsStore, useSettingsSetup } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
@@ -22,7 +22,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   return (
     <div className={styles.videoPage}>
       <VideoPanel scripts={scripts} />
-      {scripts && !isFloating && showHeatmap && <Controls />}
+      {scripts && !isFloating && showHeatmap && <ScrubberHeatmap />}
       {isFloating && videoElement && (
         <FloatingVideo videoElement={videoElement} />
       )}
