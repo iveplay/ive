@@ -1,12 +1,14 @@
 .videoContainer {
+  --controls-height: 48px;
+
   position: relative;
   width: 100%;
-  height: calc(100% - 60px); // Subtract controls height
+  height: calc(100% - var(--controls-height));
   background: #000;
 
   video {
     width: 100% !important;
-    height: calc(100% + 60px) !important;
+    height: calc(100% + var(--controls-height)) !important;
     object-fit: contain;
     aspect-ratio: 16 / 9;
     display: block;

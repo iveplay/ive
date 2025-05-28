@@ -1,0 +1,189 @@
+// Base variables (customize as needed)
+$accent-color: #a60569 !default; // Generic accent color
+$thumb-height: 13px !default;
+$thumb-background: #ffffff !default;
+$thumb-shadow:
+  0 1px 1px rgba(0, 0, 0, 0.15),
+  0 0 0 1px rgba(0, 0, 0, 0.2) !default;
+$track-height: 5px !default;
+$track-fill-background: $accent-color !default;
+$track-background: rgba(
+  146,
+  146,
+  146,
+  0.4
+) !default; // A more generic track background
+$thumb-active-shadow-color: rgba(
+  123,
+  2,
+  77,
+  0.7
+) !default; // Adjusted for generic accent
+$thumb-active-shadow-width: 3px !default;
+
+// Mixins for track and thumb styling
+@mixin range-track-style {
+  background: transparent;
+  border: 0;
+  border-radius: calc(#{$track-height} / 2);
+  height: $track-height;
+  user-select: none;
+  transition: box-shadow 0.3s ease;
+}
+
+@mixin range-thumb-style {
+  background: $thumb-background;
+  border: 0;
+  border-radius: 100%;
+  box-shadow: $thumb-shadow;
+  height: $thumb-height;
+  width: $thumb-height;
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+@mixin range-thumb-active-style($color) {
+  box-shadow:
+    $thumb-shadow,
+    0 0 0 $thumb-active-shadow-width $color;
+}
+
+.progressContainer {
+  width: 100%;
+  padding: calc(#{$thumb-height} / 2) 0; // Add padding to avoid thumb clipping
+}
+
+.progressArea {
+  position: relative;
+  $progress-offset: $thumb-height;
+
+  input[type='range'] {
+    width: 100%;
+  }
+
+  input[type='range'] {
+    position: relative;
+    z-index: 2; // Ensure input is above buffer progress
+  }
+}
+
+.inputRange {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: calc(
+    #{$thumb-height} * 2
+  ); // Larger radius for focus/active states
+  color: $track-fill-background; // Used for JS fill in WebKit
+  display: block;
+  // Height accommodates thumb and active shadow
+  height: calc((#{$thumb-active-shadow-width} * 2) + #{$thumb-height});
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+  transition: box-shadow 0.3s ease;
+  width: 100%;
+
+  &::-webkit-slider-runnable-track {
+    @include range-track-style;
+    // WebKit uses a CSS variable '--value' (set by JS) to show the filled portion
+    background-image: linear-gradient(
+      to right,
+      currentColor var(--value, 0%),
+      transparent var(--value, 0%)
+    );
+    background-color: $track-background;
+  }
+
+  &::-webkit-slider-thumb {
+    @include range-thumb-style;
+    appearance: none;
+    -webkit-appearance: none;
+    // Vertically center thumb on track
+    margin-top: calc(((#{$thumb-height} - #{$track-height}) / 2) * -1);
+  }
+
+  // Firefox
+  &::-moz-range-track {
+    @include range-track-style;
+    background-color: $track-background;
+  }
+
+  &::-moz-range-thumb {
+    @include range-thumb-style;
+  }
+
+  &::-moz-range-progress {
+    background: currentColor; // Main fill color for Firefox
+    border-radius: calc(#{$track-height} / 2);
+    height: $track-height;
+  }
+
+  // Microsoft Edge (Legacy and Chromium based)
+  &::-ms-track {
+    @include range-track-style;
+    background-color: $track-background;
+    color: transparent; // Hide default track fill
+  }
+
+  &::-ms-fill-lower {
+    @include range-track-style;
+    background: currentColor; // Main fill color for Edge
+  }
+
+  &::-ms-fill-upper {
+    @include range-track-style;
+    background-color: $track-background;
+  }
+
+  &::-ms-thumb {
+    @include range-thumb-style;
+    margin-top: 0; // Edge handles thumb margin differently
+  }
+
+  &::-ms-tooltip {
+    display: none;
+  }
+
+  &:hover:not(:disabled):not(:active) {
+    cursor: grab;
+  }
+
+  &:focus {
+    outline: none; // Or your custom focus style
+    // Example focus style on thumb:
+    // &::-webkit-slider-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
+    // &::-moz-range-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
+    // &::-ms-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
+  }
+
+  // Active (pressed) state for thumb
+  &:active {
+    &::-webkit-slider-thumb {
+      @include range-thumb-active-style($thumb-active-shadow-color);
+    }
+    &::-moz-range-thumb {
+      @include range-thumb-active-style($thumb-active-shadow-color);
+    }
+    &::-ms-thumb {
+      @include range-thumb-active-style($thumb-active-shadow-color);
+    }
+  }
+
+  &:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+    cursor: not-allowed;
+    &::-webkit-slider-thumb,
+    &::-moz-range-thumb,
+    &::-ms-thumb {
+      cursor: not-allowed;
+    }
+  }
+}

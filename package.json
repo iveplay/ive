@@ -16,6 +16,7 @@
   "dependencies": {
     "@mantine/core": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
+    "@tabler/icons-react": "3.17.0",
     "clsx": "^2.1.1",
     "ive-connect": "^0.4.0",
     "react": "^19.1.0",

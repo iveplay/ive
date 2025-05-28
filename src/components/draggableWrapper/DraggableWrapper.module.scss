@@ -3,11 +3,7 @@
   background: #000;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(123, 2, 77, 0.5);
+  border: 2px solid rgba(123, 2, 77, 0.8);
   overflow: hidden;
   z-index: 2147483639;
-
-  &:hover {
-    border-color: rgba(123, 2, 77, 0.8);
-  }
 }

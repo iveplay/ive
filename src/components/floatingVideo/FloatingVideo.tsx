@@ -80,11 +80,7 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
         className={styles.videoContainer}
         onMouseMove={resetHideTimer}
       />
-      <Controls
-        show={showControls}
-        onClose={handleClose}
-        onHover={resetHideTimer}
-      />
+      <Controls show={showControls} onClose={handleClose} />
     </DraggableWrapper>
   )
 }

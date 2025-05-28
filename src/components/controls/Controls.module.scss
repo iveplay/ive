@@ -1,2 +1,130 @@
 .controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--controls-height);
+  background-color: rgba(41, 11, 29, 0.65);
+  display: flex;
+  flex-direction: column;
+
+  .scrubberContainer {
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    align-items: center;
+  }
+
+  .controlsBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 8px;
+
+    .controlButton {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      &:active {
+        background: rgba(255, 255, 255, 0.25);
+      }
+    }
+
+    .leftSection {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+
+      .timeDisplay {
+        font-size: 13px;
+        color: white;
+        font-weight: 500;
+        white-space: nowrap;
+        font-family: 'SF Mono', Monaco, Consolas, monospace;
+
+        .separator {
+          margin: 0 2px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+      }
+
+      .volumeContainer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .volumeSlider {
+        width: 64px;
+      }
+    }
+
+    .rightSection {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+  }
+
+  .progressSlider {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s ease;
+    }
+
+    &::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s ease;
+    }
+
+    &:hover::-webkit-slider-thumb {
+      transform: scale(1.15);
+    }
+
+    &:hover::-moz-range-thumb {
+      transform: scale(1.15);
+    }
+  }
 }
