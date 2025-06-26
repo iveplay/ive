@@ -86,6 +86,8 @@ export function setupMessageHandler(): void {
             // Settings
             case MESSAGES.SHOW_HEATMAP:
               return await deviceService.setSettings(message.settings)
+            case MESSAGES.SET_CUSTOM_URLS:
+              return await deviceService.setCustomUrls(message.urls)
 
             // Add IndexedDB handlers
             case MESSAGES.GET_SCRIPTS:

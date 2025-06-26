@@ -4,11 +4,14 @@ import { create } from 'zustand'
 
 export interface SettingsStore {
   showHeatmap: boolean
+  customUrls: string[]
   setShowHeatmap: (showHeatmap: boolean) => Promise<void>
+  setCustomUrls: (urls: string[]) => Promise<void>
 }
 
 export const useSettingsStore = create<SettingsStore>()((set) => ({
   showHeatmap: false,
+  customUrls: [],
   setShowHeatmap: async (showHeatmap: boolean) => {
     set({ showHeatmap })
     await chrome.runtime.sendMessage({
@@ -16,6 +19,13 @@ export const useSettingsStore = create<SettingsStore>()((set) => ({
       settings: {
         showHeatmap,
       },
+    })
+  },
+  setCustomUrls: async (urls: string[]) => {
+    set({ customUrls: urls })
+    await chrome.runtime.sendMessage({
+      type: MESSAGES.SET_CUSTOM_URLS,
+      urls,
     })
   },
 }))
@@ -36,6 +46,7 @@ export function useSettingsSetup(): void {
 
         useSettingsStore.setState({
           showHeatmap: state.showHeatmap,
+          customUrls: state.customUrls || [],
         })
       } catch (error) {
         console.error('Error fetching initial state:', error)
@@ -49,6 +60,7 @@ export function useSettingsSetup(): void {
         // Update store with new state
         useSettingsStore.setState({
           showHeatmap: message.state.showHeatmap,
+          customUrls: message.state.customUrls || [],
         })
       }
     }

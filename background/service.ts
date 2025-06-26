@@ -35,6 +35,7 @@ class DeviceService {
     buttplugConnected: false,
     scriptUrl: '',
     showHeatmap: false,
+    customUrls: [],
     handySettings: {
       offset: 0,
       stroke: { min: 0, max: 1 },
@@ -93,6 +94,12 @@ class DeviceService {
     showHeatmap: boolean
   }): Promise<void> {
     this.state.showHeatmap = showHeatmap
+    await this.saveState()
+    await this.broadcastState()
+  }
+
+  public async setCustomUrls(urls: string[]): Promise<void> {
+    this.state.customUrls = urls
     await this.saveState()
     await this.broadcastState()
   }

@@ -34,6 +34,7 @@ export interface DeviceServiceState {
 
   // Settings
   showHeatmap: boolean
+  customUrls: string[]
 
   // Error state
   error?: string | null
@@ -99,6 +100,7 @@ export const MESSAGES = {
 
   // Settings
   SHOW_HEATMAP: 'ive:settings:show_heatmap',
+  SET_CUSTOM_URLS: 'ive:settings:set_custom_urls',
 
   // Device state
   DEVICE_STATE_UPDATE: 'ive:device_state_update',
@@ -161,6 +163,10 @@ export type UIMessage =
       settings: {
         showHeatmap: boolean
       }
+    }
+  | {
+      type: typeof MESSAGES.SET_CUSTOM_URLS
+      urls: string[]
     }
   // Device state
   | {

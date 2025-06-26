@@ -59,6 +59,28 @@ const handleUrlChange = async () => {
     currentUrl.includes(url),
   )?.[1]
 
+  // Get custom URLs from settings
+  let customUrls: string[] = []
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'ive:get_state',
+    })
+    customUrls = response.customUrls || []
+  } catch (error) {
+    console.error('Error getting custom URLs:', error)
+  }
+
+  // Check if current URL matches any custom URLs
+  const matchesCustomUrl = customUrls.some((url) => {
+    const normalizedCurrentUrl = currentUrl
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+    const normalizedCustomUrl = url
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+    return normalizedCurrentUrl.includes(normalizedCustomUrl)
+  })
+
   try {
     if (currentUrl.includes(EROSCRIPT_URL)) {
       const container = document.getElementsByClassName(
@@ -87,7 +109,7 @@ const handleUrlChange = async () => {
           position: 'relative',
         })
       }
-    } else if (scripts) {
+    } else if (scripts || matchesCustomUrl) {
       mountComponent(document.body, <VideoPage scripts={scripts} />, 'append', {
         zIndex: '2147483640',
         position: 'fixed',

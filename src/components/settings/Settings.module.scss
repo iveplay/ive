@@ -1,3 +1,4 @@
+// src/components/settings/Settings.module.scss
 .settings {
   padding: 8px;
 }
@@ -22,4 +23,25 @@
 .settingLabel {
   font-weight: 500;
   font-size: 14px;
+}
+
+.urlListContainer {
+  margin-bottom: 16px;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+
+  .settingLabel {
+    margin-bottom: 4px;
+  }
+
+  .urlDescription {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+  }
+
+  .urlTextarea {
+    width: 100%;
+  }
 }

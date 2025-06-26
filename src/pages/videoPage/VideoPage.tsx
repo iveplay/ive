@@ -22,7 +22,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   return (
     <div className={styles.videoPage}>
       <VideoPanel scripts={scripts} />
-      {scripts && !isFloating && showHeatmap && <ScrubberHeatmap />}
+      {scripts && showHeatmap && <ScrubberHeatmap />}
       {isFloating && videoElement && (
         <FloatingVideo videoElement={videoElement} />
       )}
