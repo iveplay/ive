@@ -8,6 +8,8 @@ import {
   IconMaximize,
   IconX,
   IconGripHorizontal,
+  IconRewindBackward10,
+  IconRewindForward30,
 } from '@tabler/icons-react'
 import clsx from 'clsx'
 import { useState, useCallback } from 'react'
@@ -37,6 +39,7 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
   const [localVolume, setLocalVolume] = useState(volume)
   const [isDragging, setIsDragging] = useState(false)
   const [localTime, setLocalTime] = useState(currentTime)
+
   // Update local time when not dragging
   if (!isDragging && localTime !== currentTime) {
     setLocalTime(currentTime)
@@ -53,6 +56,17 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
       setIsPlaying(false)
     }
   }, [videoElement, setIsPlaying])
+
+  const handleSkip = useCallback(
+    (seconds: number) => {
+      if (!videoElement) return
+      videoElement.currentTime = Math.max(
+        0,
+        Math.min(videoElement.duration, videoElement.currentTime + seconds),
+      )
+    },
+    [videoElement],
+  )
 
   const handleVolumeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,6 +157,22 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
             ) : (
               <IconPlayerPlay size={16} />
             )}
+          </button>
+
+          <button
+            className={styles.controlButton}
+            onClick={() => handleSkip(-10)}
+            aria-label='Skip back 10 seconds'
+          >
+            <IconRewindBackward10 size={16} />
+          </button>
+
+          <button
+            className={styles.controlButton}
+            onClick={() => handleSkip(30)}
+            aria-label='Skip forward 30 seconds'
+          >
+            <IconRewindForward30 size={16} />
           </button>
 
           <div className={styles.timeDisplay}>
