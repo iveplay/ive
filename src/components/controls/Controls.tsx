@@ -19,9 +19,10 @@ import styles from './Controls.module.scss'
 type ControlsProps = {
   show: boolean
   onClose: () => void
+  onTheaterMode?: () => void
 }
 
-export const Controls = ({ show, onClose }: ControlsProps) => {
+export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
   const {
     videoElement,
     isPlaying,
@@ -89,11 +90,6 @@ export const Controls = ({ show, onClose }: ControlsProps) => {
 
   const handleSeekEnd = useCallback(() => {
     setIsDragging(false)
-  }, [])
-
-  const handleTheaterMode = useCallback(() => {
-    // Toggle theater mode logic here
-    console.log('Theater mode toggled')
   }, [])
 
   const handleFullscreen = useCallback(() => {
@@ -190,7 +186,7 @@ export const Controls = ({ show, onClose }: ControlsProps) => {
           </button>
           <button
             className={styles.controlButton}
-            onClick={handleTheaterMode}
+            onClick={onTheaterMode}
             aria-label='Theater Mode'
           >
             <IconRectangle size={16} />

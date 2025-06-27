@@ -8,6 +8,7 @@
 
   video {
     width: 100% !important;
+    inset: 0 !important;
     height: calc(100% + var(--controls-height)) !important;
     object-fit: contain;
     aspect-ratio: 16 / 9;

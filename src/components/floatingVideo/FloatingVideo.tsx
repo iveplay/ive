@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { DraggableWrapper } from '@/components/draggableWrapper/DraggableWrapper'
+import {
+  DraggableWrapper,
+  DraggableWrapperRef,
+} from '@/components/draggableWrapper/DraggableWrapper'
 import { useVideoStore } from '@/store/useVideoStore'
 import { Controls } from '../controls/Controls'
 import styles from './FloatingVideo.module.scss'
@@ -12,6 +15,7 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
   const [showControls, setShowControls] = useState(true)
 
   const videoContainerRef = useRef<HTMLDivElement>(null)
+  const draggableRef = useRef<DraggableWrapperRef>(null)
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout>(null)
 
   const setIsFloating = useVideoStore((state) => state.setIsFloating)
@@ -74,13 +78,23 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
   }
 
   return (
-    <DraggableWrapper storageKey='floating-video-position'>
+    <DraggableWrapper
+      ref={draggableRef}
+      storageKey='floating-video-position'
+      showResizeHandle={showControls}
+    >
       <div
         ref={videoContainerRef}
         className={styles.videoContainer}
         onMouseMove={resetHideTimer}
       />
-      <Controls show={showControls} onClose={handleClose} />
+      <Controls
+        show={showControls}
+        onClose={handleClose}
+        onTheaterMode={() =>
+          draggableRef.current?.setSize(window.innerWidth, window.innerHeight)
+        }
+      />
     </DraggableWrapper>
   )
 }

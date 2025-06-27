@@ -70,120 +70,120 @@ $thumb-active-shadow-width: 3px !default;
     position: relative;
     z-index: 2; // Ensure input is above buffer progress
   }
-}
 
-.inputRange {
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: calc(
-    #{$thumb-height} * 2
-  ); // Larger radius for focus/active states
-  color: $track-fill-background; // Used for JS fill in WebKit
-  display: block;
-  // Height accommodates thumb and active shadow
-  height: calc((#{$thumb-active-shadow-width} * 2) + #{$thumb-height});
-  margin: 0;
-  min-width: 0;
-  padding: 0;
-  transition: box-shadow 0.3s ease;
-  width: 100%;
-
-  &::-webkit-slider-runnable-track {
-    @include range-track-style;
-    // WebKit uses a CSS variable '--value' (set by JS) to show the filled portion
-    background-image: linear-gradient(
-      to right,
-      currentColor var(--value, 0%),
-      transparent var(--value, 0%)
-    );
-    background-color: $track-background;
-  }
-
-  &::-webkit-slider-thumb {
-    @include range-thumb-style;
+  .inputRange.inputRange {
     appearance: none;
     -webkit-appearance: none;
-    // Vertically center thumb on track
-    margin-top: calc(((#{$thumb-height} - #{$track-height}) / 2) * -1);
-  }
+    background: transparent;
+    border: 0;
+    border-radius: calc(
+      #{$thumb-height} * 2
+    ); // Larger radius for focus/active states
+    color: $track-fill-background; // Used for JS fill in WebKit
+    display: block;
+    // Height accommodates thumb and active shadow
+    height: calc((#{$thumb-active-shadow-width} * 2) + #{$thumb-height});
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+    transition: box-shadow 0.3s ease;
+    width: 100%;
 
-  // Firefox
-  &::-moz-range-track {
-    @include range-track-style;
-    background-color: $track-background;
-  }
+    &::-webkit-slider-runnable-track {
+      @include range-track-style;
+      // WebKit uses a CSS variable '--value' (set by JS) to show the filled portion
+      background-image: linear-gradient(
+        to right,
+        currentColor var(--value, 0%),
+        transparent var(--value, 0%)
+      );
+      background-color: $track-background;
+    }
 
-  &::-moz-range-thumb {
-    @include range-thumb-style;
-  }
-
-  &::-moz-range-progress {
-    background: currentColor; // Main fill color for Firefox
-    border-radius: calc(#{$track-height} / 2);
-    height: $track-height;
-  }
-
-  // Microsoft Edge (Legacy and Chromium based)
-  &::-ms-track {
-    @include range-track-style;
-    background-color: $track-background;
-    color: transparent; // Hide default track fill
-  }
-
-  &::-ms-fill-lower {
-    @include range-track-style;
-    background: currentColor; // Main fill color for Edge
-  }
-
-  &::-ms-fill-upper {
-    @include range-track-style;
-    background-color: $track-background;
-  }
-
-  &::-ms-thumb {
-    @include range-thumb-style;
-    margin-top: 0; // Edge handles thumb margin differently
-  }
-
-  &::-ms-tooltip {
-    display: none;
-  }
-
-  &:hover:not(:disabled):not(:active) {
-    cursor: grab;
-  }
-
-  &:focus {
-    outline: none; // Or your custom focus style
-    // Example focus style on thumb:
-    // &::-webkit-slider-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
-    // &::-moz-range-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
-    // &::-ms-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
-  }
-
-  // Active (pressed) state for thumb
-  &:active {
     &::-webkit-slider-thumb {
-      @include range-thumb-active-style($thumb-active-shadow-color);
+      @include range-thumb-style;
+      appearance: none;
+      -webkit-appearance: none;
+      // Vertically center thumb on track
+      margin-top: calc(((#{$thumb-height} - #{$track-height}) / 2) * -1);
     }
-    &::-moz-range-thumb {
-      @include range-thumb-active-style($thumb-active-shadow-color);
-    }
-    &::-ms-thumb {
-      @include range-thumb-active-style($thumb-active-shadow-color);
-    }
-  }
 
-  &:disabled {
-    filter: grayscale(1);
-    opacity: 0.5;
-    cursor: not-allowed;
-    &::-webkit-slider-thumb,
-    &::-moz-range-thumb,
+    // Firefox
+    &::-moz-range-track {
+      @include range-track-style;
+      background-color: $track-background;
+    }
+
+    &::-moz-range-thumb {
+      @include range-thumb-style;
+    }
+
+    &::-moz-range-progress {
+      background: currentColor; // Main fill color for Firefox
+      border-radius: calc(#{$track-height} / 2);
+      height: $track-height;
+    }
+
+    // Microsoft Edge (Legacy and Chromium based)
+    &::-ms-track {
+      @include range-track-style;
+      background-color: $track-background;
+      color: transparent; // Hide default track fill
+    }
+
+    &::-ms-fill-lower {
+      @include range-track-style;
+      background: currentColor; // Main fill color for Edge
+    }
+
+    &::-ms-fill-upper {
+      @include range-track-style;
+      background-color: $track-background;
+    }
+
     &::-ms-thumb {
+      @include range-thumb-style;
+      margin-top: 0; // Edge handles thumb margin differently
+    }
+
+    &::-ms-tooltip {
+      display: none;
+    }
+
+    &:hover:not(:disabled):not(:active) {
+      cursor: grab;
+    }
+
+    &:focus {
+      outline: none; // Or your custom focus style
+      // Example focus style on thumb:
+      // &::-webkit-slider-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
+      // &::-moz-range-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
+      // &::-ms-thumb { box-shadow: 0 0 0 3px $thumb-active-shadow-color; }
+    }
+
+    // Active (pressed) state for thumb
+    &:active {
+      &::-webkit-slider-thumb {
+        @include range-thumb-active-style($thumb-active-shadow-color);
+      }
+      &::-moz-range-thumb {
+        @include range-thumb-active-style($thumb-active-shadow-color);
+      }
+      &::-ms-thumb {
+        @include range-thumb-active-style($thumb-active-shadow-color);
+      }
+    }
+
+    &:disabled {
+      filter: grayscale(1);
+      opacity: 0.5;
       cursor: not-allowed;
+      &::-webkit-slider-thumb,
+      &::-moz-range-thumb,
+      &::-ms-thumb {
+        cursor: not-allowed;
+      }
     }
   }
 }
