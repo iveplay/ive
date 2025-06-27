@@ -3,7 +3,6 @@ import {
   IconPlayerPause,
   IconVolume,
   IconVolumeOff,
-  IconSettings,
   IconRectangle,
   IconMaximize,
   IconX,
@@ -17,6 +16,7 @@ import { useVideoStore } from '@/store/useVideoStore'
 import { formatTime } from '@/utils/formatTime'
 import { RangeSlider } from '../rangeSlider/RangeSlider'
 import styles from './Controls.module.scss'
+import { ControlSettings } from './ControlSettings'
 
 type ControlsProps = {
   show: boolean
@@ -56,17 +56,6 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
       setIsPlaying(false)
     }
   }, [videoElement, setIsPlaying])
-
-  const handleSkip = useCallback(
-    (seconds: number) => {
-      if (!videoElement) return
-      videoElement.currentTime = Math.max(
-        0,
-        Math.min(videoElement.duration, videoElement.currentTime + seconds),
-      )
-    },
-    [videoElement],
-  )
 
   const handleVolumeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,10 +105,38 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
     }
   }, [videoElement])
 
-  const handleSettings = useCallback(() => {
-    // Open settings panel
-    console.log('Settings opened')
-  }, [])
+  const handleSkip = useCallback(
+    (seconds: number) => {
+      if (!videoElement) return
+      videoElement.currentTime = Math.max(
+        0,
+        Math.min(videoElement.duration, videoElement.currentTime + seconds),
+      )
+    },
+    [videoElement],
+  )
+
+  const handlePictureInPicture = useCallback(async () => {
+    if (!videoElement) return
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture()
+      } else {
+        await videoElement.requestPictureInPicture()
+      }
+    } catch (error) {
+      console.error('Picture-in-Picture not supported:', error)
+    }
+  }, [videoElement])
+
+  const handleSpeedChange = useCallback(
+    (speed: number) => {
+      if (!videoElement) return
+      videoElement.playbackRate = speed
+    },
+    [videoElement],
+  )
 
   return (
     <div
@@ -207,13 +224,10 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
         <div />
         {/* Right section - Settings, Theater, Fullscreen, Close */}
         <div className={styles.rightSection}>
-          <button
-            className={styles.controlButton}
-            onClick={handleSettings}
-            aria-label='Settings'
-          >
-            <IconSettings size={16} />
-          </button>
+          <ControlSettings
+            handleSpeedChange={handleSpeedChange}
+            handlePictureInPicture={handlePictureInPicture}
+          />
           <button
             className={styles.controlButton}
             onClick={onTheaterMode}
