@@ -30,10 +30,11 @@ type DraggableWrapperProps = {
   defaultWidth?: number
   resizable?: boolean
   showResizeHandle?: boolean
+  isVerticalAspectRatio: boolean
 }
 
 export interface DraggableWrapperRef {
-  setSize: (width: number, height?: number) => void
+  setSize: (width: number, height?: number, isVertical?: boolean) => void
 }
 
 export const DraggableWrapper = forwardRef<
@@ -48,6 +49,7 @@ export const DraggableWrapper = forwardRef<
       defaultWidth = 640,
       resizable = true,
       showResizeHandle = true,
+      isVerticalAspectRatio,
     },
     ref,
   ) => {
@@ -68,22 +70,47 @@ export const DraggableWrapper = forwardRef<
       startHeight: number
     } | null>(null)
 
+    const getAspectRatio = useCallback((isVertical: boolean) => {
+      return isVertical ? 16 / 9 : 9 / 16
+    }, [])
+
+    const calculateHeight = useCallback(
+      (currentWidth: number, isVertical: boolean) => {
+        return currentWidth * getAspectRatio(isVertical)
+      },
+      [getAspectRatio],
+    )
+
+    const calculateWidth = useCallback(
+      (currentHeight: number, isVertical: boolean) => {
+        return currentHeight / getAspectRatio(isVertical)
+      },
+      [getAspectRatio],
+    )
+
     // Expose resize functions
     useImperativeHandle(ref, () => ({
-      setSize: (width: number, height?: number) => {
+      setSize: (
+        width: number,
+        height?: number,
+        isVerticalParam: boolean = isVerticalAspectRatio,
+      ) => {
+        // Renamed parameter
         let newWidth = Math.max(320, width)
-        let newHeight = height ? Math.max(180, height) : newWidth * (9 / 16)
+        let newHeight = height
+          ? Math.max(180, height)
+          : calculateHeight(newWidth, isVerticalParam)
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
 
         if (newWidth > viewportWidth) {
           newWidth = viewportWidth
-          newHeight = newWidth * (9 / 16)
+          newHeight = calculateHeight(newWidth, isVerticalParam)
         }
 
         if (newHeight > viewportHeight) {
           newHeight = viewportHeight
-          newWidth = newHeight * (16 / 9)
+          newWidth = calculateWidth(newHeight, isVerticalParam)
         }
 
         setSize({ width: newWidth, height: newHeight })
@@ -113,7 +140,16 @@ export const DraggableWrapper = forwardRef<
             typeof savedSize.width === 'number' &&
             typeof savedSize.height === 'number'
           ) {
-            setSize(savedSize)
+            const adjustedHeight = calculateHeight(
+              savedSize.width,
+              isVerticalAspectRatio,
+            )
+            setSize({ width: savedSize.width, height: adjustedHeight })
+          } else {
+            setSize({
+              width: defaultWidth,
+              height: calculateHeight(defaultWidth, isVerticalAspectRatio),
+            })
           }
         } catch (error) {
           console.error('Error loading state:', error)
@@ -121,7 +157,7 @@ export const DraggableWrapper = forwardRef<
       }
 
       loadSavedState()
-    }, [storageKey])
+    }, [storageKey, defaultWidth, isVerticalAspectRatio, calculateHeight])
 
     const saveState = useCallback(
       async (position: Position, currentSize: Size) => {
@@ -162,10 +198,11 @@ export const DraggableWrapper = forwardRef<
         const deltaY = e.clientY - resizeRef.current.startY
 
         // Use the larger delta to maintain aspect ratio
-        const delta = Math.max(deltaX, deltaY * (16 / 9))
+        const currentAspectRatio = getAspectRatio(isVerticalAspectRatio)
+        const delta = Math.max(deltaX, deltaY / currentAspectRatio)
 
         let newWidth = Math.max(320, resizeRef.current.startWidth + delta)
-        let newHeight = newWidth * (9 / 16)
+        let newHeight = calculateHeight(newWidth, isVerticalAspectRatio)
 
         // Ensure it doesn't exceed viewport
         const viewportWidth = window.innerWidth
@@ -173,12 +210,12 @@ export const DraggableWrapper = forwardRef<
 
         if (newWidth > viewportWidth) {
           newWidth = viewportWidth
-          newHeight = newWidth * (9 / 16)
+          newHeight = calculateHeight(newWidth, isVerticalAspectRatio)
         }
 
         if (newHeight > viewportHeight) {
           newHeight = viewportHeight
-          newWidth = newHeight * (16 / 9)
+          newWidth = calculateWidth(newHeight, isVerticalAspectRatio)
         }
 
         setSize({ width: newWidth, height: newHeight })
@@ -197,16 +234,38 @@ export const DraggableWrapper = forwardRef<
         document.removeEventListener('mousemove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
       }
-    }, [isResizing, controlledPosition, size, saveState])
+    }, [
+      isResizing,
+      controlledPosition,
+      size,
+      saveState,
+      isVerticalAspectRatio,
+      calculateHeight,
+      calculateWidth,
+      getAspectRatio,
+    ])
 
-    // Keep window in bounds on resize
     useEffect(() => {
-      const handleWindowResize = () => {
+      const handleWindowResizeAndAspectRatioChange = () => {
         if (!draggableRef.current) return
 
         const position = { ...controlledPosition }
         const currentSize = { ...size }
+
         let needsUpdate = false
+        const currentCalculatedHeight = calculateHeight(
+          currentSize.width,
+          isVerticalAspectRatio,
+        )
+
+        // Check if height needs adjustment based on current width and aspect ratio
+        if (
+          Math.abs(currentSize.height - currentCalculatedHeight) > 1 ||
+          currentSize.width === defaultWidth
+        ) {
+          currentSize.height = currentCalculatedHeight
+          needsUpdate = true
+        }
 
         // Get available viewport dimensions (excluding scrollbars)
         const viewportWidth = document.documentElement.clientWidth
@@ -215,13 +274,19 @@ export const DraggableWrapper = forwardRef<
         // Check if size needs to be reduced
         if (currentSize.width > viewportWidth) {
           currentSize.width = viewportWidth
-          currentSize.height = currentSize.width * (9 / 16)
+          currentSize.height = calculateHeight(
+            currentSize.width,
+            isVerticalAspectRatio,
+          )
           needsUpdate = true
         }
 
         if (currentSize.height > viewportHeight) {
           currentSize.height = viewportHeight
-          currentSize.width = currentSize.height * (16 / 9)
+          currentSize.width = calculateWidth(
+            currentSize.height,
+            isVerticalAspectRatio,
+          )
           needsUpdate = true
         }
 
@@ -253,10 +318,22 @@ export const DraggableWrapper = forwardRef<
         }
       }
 
-      handleWindowResize()
-      window.addEventListener('resize', handleWindowResize)
-      return () => window.removeEventListener('resize', handleWindowResize)
-    }, [controlledPosition, size, saveState])
+      handleWindowResizeAndAspectRatioChange()
+      window.addEventListener('resize', handleWindowResizeAndAspectRatioChange)
+      return () =>
+        window.removeEventListener(
+          'resize',
+          handleWindowResizeAndAspectRatioChange,
+        )
+    }, [
+      controlledPosition,
+      size,
+      saveState,
+      isVerticalAspectRatio,
+      calculateHeight,
+      calculateWidth,
+      defaultWidth,
+    ])
 
     return (
       <Draggable

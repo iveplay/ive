@@ -22,9 +22,17 @@ type ControlsProps = {
   show: boolean
   onClose: () => void
   onTheaterMode?: () => void
+  isVertical: boolean
+  onOrientationChange: (isVertical: boolean) => void
 }
 
-export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
+export const Controls = ({
+  show,
+  onClose,
+  onTheaterMode,
+  isVertical,
+  onOrientationChange,
+}: ControlsProps) => {
   const {
     videoElement,
     isPlaying,
@@ -227,6 +235,8 @@ export const Controls = ({ show, onClose, onTheaterMode }: ControlsProps) => {
           <ControlSettings
             handleSpeedChange={handleSpeedChange}
             handlePictureInPicture={handlePictureInPicture}
+            onOrientationChange={onOrientationChange}
+            isVertical={isVertical}
           />
           <button
             className={styles.controlButton}

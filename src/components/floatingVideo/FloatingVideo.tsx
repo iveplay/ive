@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   DraggableWrapper,
@@ -13,6 +14,7 @@ type FloatingVideoProps = {
 
 export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
   const [showControls, setShowControls] = useState(true)
+  const [isVertical, setIsVertical] = useState(false)
 
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const draggableRef = useRef<DraggableWrapperRef>(null)
@@ -82,18 +84,27 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
       ref={draggableRef}
       storageKey='floating-video-position'
       showResizeHandle={showControls}
+      isVerticalAspectRatio={isVertical}
     >
       <div
         ref={videoContainerRef}
-        className={styles.videoContainer}
+        className={clsx(styles.videoContainer, {
+          [styles.verticalVideo]: isVertical,
+        })}
         onMouseMove={resetHideTimer}
       />
       <Controls
         show={showControls}
         onClose={handleClose}
         onTheaterMode={() =>
-          draggableRef.current?.setSize(window.innerWidth, window.innerHeight)
+          draggableRef.current?.setSize(
+            window.innerWidth,
+            window.innerHeight,
+            isVertical,
+          )
         }
+        isVertical={isVertical}
+        onOrientationChange={setIsVertical}
       />
     </DraggableWrapper>
   )

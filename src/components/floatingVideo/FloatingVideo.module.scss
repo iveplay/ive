@@ -16,4 +16,8 @@
     cursor: auto !important;
     pointer-events: none;
   }
+
+  &.verticalVideo video {
+    object-fit: cover;
+  }
 }

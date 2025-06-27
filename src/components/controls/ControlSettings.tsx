@@ -3,6 +3,8 @@ import {
   IconSettings,
   IconPictureInPicture,
   IconChevronRight,
+  IconHourglass,
+  IconRotate3d,
 } from '@tabler/icons-react'
 import clsx from 'clsx'
 import { useCallback, useRef, useState } from 'react'
@@ -11,11 +13,15 @@ import styles from './ControlSettings.module.scss'
 type ControlSettingsProps = {
   handleSpeedChange: (speed: number) => void
   handlePictureInPicture: () => void
+  onOrientationChange: (isVertical: boolean) => void
+  isVertical: boolean
 }
 
 export const ControlSettings = ({
   handleSpeedChange,
   handlePictureInPicture,
+  onOrientationChange,
+  isVertical,
 }: ControlSettingsProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false)
@@ -69,6 +75,7 @@ export const ControlSettings = ({
         <button
           className={clsx(styles.controlButton, styles.menuTrigger)}
           aria-label='Settings'
+          onClick={handleMenuMouseEnter}
           onMouseEnter={handleMenuMouseEnter}
           onMouseLeave={handleTriggerMouseLeave}
         >
@@ -94,6 +101,15 @@ export const ControlSettings = ({
           </DropdownMenu.Item>
 
           <DropdownMenu.Separator className={styles.menuSeparator} />
+          <DropdownMenu.Item
+            className={styles.menuItem}
+            onClick={() => onOrientationChange(!isVertical)}
+          >
+            <IconRotate3d size={14} />
+            {isVertical ? 'Horizontal' : 'Vertical'} orientation
+          </DropdownMenu.Item>
+
+          <DropdownMenu.Separator className={styles.menuSeparator} />
 
           <DropdownMenu.Sub
             open={isSubMenuOpen}
@@ -103,7 +119,10 @@ export const ControlSettings = ({
               className={styles.menuSubTrigger}
               onMouseEnter={handleSubMenuMouseEnter}
             >
-              Playback Speed
+              <div style={{ flex: 1 }}>
+                <IconHourglass size={14} style={{ marginRight: 8 }} />
+                Playback Speed
+              </div>
               <IconChevronRight size={14} className={styles.chevron} />
             </DropdownMenu.SubTrigger>
 
@@ -117,21 +136,9 @@ export const ControlSettings = ({
               >
                 <DropdownMenu.Item
                   className={styles.menuItem}
-                  onClick={() => handleSpeedChange(0.25)}
-                >
-                  0.25x
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
                   onClick={() => handleSpeedChange(0.5)}
                 >
                   0.5x
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(0.75)}
-                >
-                  0.75x
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
                   className={styles.menuItem}
@@ -150,12 +157,6 @@ export const ControlSettings = ({
                   onClick={() => handleSpeedChange(1.5)}
                 >
                   1.5x
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(1.75)}
-                >
-                  1.75x
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
                   className={styles.menuItem}
