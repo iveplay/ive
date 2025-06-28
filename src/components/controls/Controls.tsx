@@ -59,6 +59,9 @@ export const Controls = ({
   const [isDragging, setIsDragging] = useState(false)
   const [localTime, setLocalTime] = useState(currentTime)
 
+  // Check if this is live content (no duration or infinite duration)
+  const isLiveContent = !duration || !isFinite(duration) || duration === 0
+
   // Update local time when not dragging
   if (!isDragging && localTime !== currentTime) {
     setLocalTime(currentTime)
@@ -126,13 +129,13 @@ export const Controls = ({
 
   const handleSkip = useCallback(
     (seconds: number) => {
-      if (!videoElement) return
+      if (!videoElement || isLiveContent) return
       videoElement.currentTime = Math.max(
         0,
         Math.min(videoElement.duration, videoElement.currentTime + seconds),
       )
     },
-    [videoElement],
+    [videoElement, isLiveContent],
   )
 
   const handlePictureInPicture = useCallback(async () => {
@@ -175,12 +178,16 @@ export const Controls = ({
           handlePlayPause()
           break
         case 'ArrowLeft':
-          e.preventDefault()
-          handleSkip(-10)
+          if (!isLiveContent) {
+            e.preventDefault()
+            handleSkip(-10)
+          }
           break
         case 'ArrowRight':
-          e.preventDefault()
-          handleSkip(30)
+          if (!isLiveContent) {
+            e.preventDefault()
+            handleSkip(30)
+          }
           break
         case 'KeyM':
           e.preventDefault()
@@ -200,7 +207,13 @@ export const Controls = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [handlePlayPause, handleSkip, handleMuteToggle, handleFullscreen])
+  }, [
+    isLiveContent,
+    handlePlayPause,
+    handleSkip,
+    handleMuteToggle,
+    handleFullscreen,
+  ])
 
   return (
     <div
@@ -212,19 +225,22 @@ export const Controls = ({
       onMouseEnter={() => setIsControlling(true)}
       onMouseLeave={() => setIsControlling(false)}
     >
-      <div className={styles.scrubberContainer}>
-        <RangeSlider
-          min='0'
-          max={duration}
-          value={localTime}
-          onChange={handleTimeSeek}
-          onMouseDown={handleSeekStart}
-          onMouseUp={handleSeekEnd}
-          onTouchStart={handleSeekStart}
-          onTouchEnd={handleSeekEnd}
-          aria-label='Seek'
-        />
-      </div>
+      {/* Only show scrubber for non-live content */}
+      {!isLiveContent && (
+        <div className={styles.scrubberContainer}>
+          <RangeSlider
+            min='0'
+            max={duration}
+            value={localTime}
+            onChange={handleTimeSeek}
+            onMouseDown={handleSeekStart}
+            onMouseUp={handleSeekEnd}
+            onTouchStart={handleSeekStart}
+            onTouchEnd={handleSeekEnd}
+            aria-label='Seek'
+          />
+        </div>
+      )}
 
       <div className={styles.controlsBar}>
         <div className={styles.leftSection}>
@@ -239,29 +255,37 @@ export const Controls = ({
               <IconPlayerPlay size={16} />
             )}
           </button>
+          {!isLiveContent && (
+            <>
+              <button
+                className={styles.controlButton}
+                onClick={() => handleSkip(-10)}
+                aria-label='Skip back 10 seconds'
+              >
+                <IconRewindBackward10 size={16} />
+              </button>
 
-          <button
-            className={styles.controlButton}
-            onClick={() => handleSkip(-10)}
-            aria-label='Skip back 10 seconds'
-          >
-            <IconRewindBackward10 size={16} />
-          </button>
-
-          <button
-            className={styles.controlButton}
-            onClick={() => handleSkip(30)}
-            aria-label='Skip forward 30 seconds'
-          >
-            <IconRewindForward30 size={16} />
-          </button>
-
-          <div className={styles.timeDisplay}>
-            <span>{formatTime(localTime)}</span>
-            <span className={styles.separator}>/</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-
+              <button
+                className={styles.controlButton}
+                onClick={() => handleSkip(30)}
+                aria-label='Skip forward 30 seconds'
+              >
+                <IconRewindForward30 size={16} />
+              </button>
+            </>
+          )}
+          {!isLiveContent && (
+            <div className={styles.timeDisplay}>
+              <span>{formatTime(localTime)}</span>
+              <span className={styles.separator}>/</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+          )}
+          {isLiveContent && (
+            <div className={styles.timeDisplay}>
+              <span style={{ color: '#ff4444', fontWeight: 'bold' }}>LIVE</span>
+            </div>
+          )}
           <div className={styles.volumeContainer}>
             <button
               className={styles.controlButton}
@@ -293,6 +317,7 @@ export const Controls = ({
             handlePictureInPicture={handlePictureInPicture}
             onOrientationChange={onOrientationChange}
             isVertical={isVertical}
+            isLiveContent={isLiveContent}
           />
           <button
             className={styles.controlButton}

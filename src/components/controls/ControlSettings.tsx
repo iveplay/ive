@@ -15,6 +15,7 @@ type ControlSettingsProps = {
   handlePictureInPicture: () => void
   onOrientationChange: (isVertical: boolean) => void
   isVertical: boolean
+  isLiveContent?: boolean
 }
 
 export const ControlSettings = ({
@@ -22,6 +23,7 @@ export const ControlSettings = ({
   handlePictureInPicture,
   onOrientationChange,
   isVertical,
+  isLiveContent,
 }: ControlSettingsProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false)
@@ -108,64 +110,67 @@ export const ControlSettings = ({
             {isVertical ? 'Horizontal' : 'Vertical'} orientation
           </DropdownMenu.Item>
 
-          <DropdownMenu.Separator className={styles.menuSeparator} />
-
-          <DropdownMenu.Sub
-            open={isSubMenuOpen}
-            onOpenChange={setIsSubMenuOpen}
-          >
-            <DropdownMenu.SubTrigger
-              className={styles.menuSubTrigger}
-              onMouseEnter={handleSubMenuMouseEnter}
-            >
-              <div style={{ flex: 1 }}>
-                <IconHourglass size={14} style={{ marginRight: 8 }} />
-                Playback Speed
-              </div>
-              <IconChevronRight size={14} className={styles.chevron} />
-            </DropdownMenu.SubTrigger>
-
-            <DropdownMenu.Portal>
-              <DropdownMenu.SubContent
-                className={styles.menuContent}
-                sideOffset={2}
-                alignOffset={-5}
-                onClick={handleSubMenuMouseEnter}
-                onMouseLeave={handleSubMenuMouseLeave}
+          {!isLiveContent && (
+            <>
+              <DropdownMenu.Separator className={styles.menuSeparator} />
+              <DropdownMenu.Sub
+                open={isSubMenuOpen}
+                onOpenChange={setIsSubMenuOpen}
               >
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(0.5)}
+                <DropdownMenu.SubTrigger
+                  className={styles.menuSubTrigger}
+                  onMouseEnter={handleSubMenuMouseEnter}
                 >
-                  0.5x
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(1)}
-                >
-                  1x (Normal)
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(1.25)}
-                >
-                  1.25x
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(1.5)}
-                >
-                  1.5x
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className={styles.menuItem}
-                  onClick={() => handleSpeedChange(2)}
-                >
-                  2x
-                </DropdownMenu.Item>
-              </DropdownMenu.SubContent>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Sub>
+                  <div style={{ flex: 1 }}>
+                    <IconHourglass size={14} style={{ marginRight: 8 }} />
+                    Playback Speed
+                  </div>
+                  <IconChevronRight size={14} className={styles.chevron} />
+                </DropdownMenu.SubTrigger>
+
+                <DropdownMenu.Portal>
+                  <DropdownMenu.SubContent
+                    className={styles.menuContent}
+                    sideOffset={2}
+                    alignOffset={-5}
+                    onClick={handleSubMenuMouseEnter}
+                    onMouseLeave={handleSubMenuMouseLeave}
+                  >
+                    <DropdownMenu.Item
+                      className={styles.menuItem}
+                      onClick={() => handleSpeedChange(0.5)}
+                    >
+                      0.5x
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                      className={styles.menuItem}
+                      onClick={() => handleSpeedChange(1)}
+                    >
+                      1x (Normal)
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                      className={styles.menuItem}
+                      onClick={() => handleSpeedChange(1.25)}
+                    >
+                      1.25x
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                      className={styles.menuItem}
+                      onClick={() => handleSpeedChange(1.5)}
+                    >
+                      1.5x
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                      className={styles.menuItem}
+                      onClick={() => handleSpeedChange(2)}
+                    >
+                      2x
+                    </DropdownMenu.Item>
+                  </DropdownMenu.SubContent>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Sub>
+            </>
+          )}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
