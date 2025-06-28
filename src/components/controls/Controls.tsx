@@ -11,7 +11,7 @@ import {
   IconRewindForward30,
 } from '@tabler/icons-react'
 import clsx from 'clsx'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useVideoStore } from '@/store/useVideoStore'
 import { formatTime } from '@/utils/formatTime'
@@ -156,6 +156,51 @@ export const Controls = ({
     },
     [videoElement],
   )
+
+  // Keyboard event handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle keys if user is typing in an input field
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return
+      }
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault()
+          handlePlayPause()
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          handleSkip(-10)
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          handleSkip(30)
+          break
+        case 'KeyM':
+          e.preventDefault()
+          handleMuteToggle()
+          break
+        case 'KeyF':
+          e.preventDefault()
+          handleFullscreen()
+          break
+      }
+    }
+
+    // Add event listener to document
+    document.addEventListener('keydown', handleKeyDown)
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [handlePlayPause, handleSkip, handleMuteToggle, handleFullscreen])
 
   return (
     <div
