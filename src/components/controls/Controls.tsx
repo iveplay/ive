@@ -12,6 +12,7 @@ import {
 } from '@tabler/icons-react'
 import clsx from 'clsx'
 import { useState, useCallback } from 'react'
+import { useShallow } from 'zustand/shallow'
 import { useVideoStore } from '@/store/useVideoStore'
 import { formatTime } from '@/utils/formatTime'
 import { RangeSlider } from '../rangeSlider/RangeSlider'
@@ -41,7 +42,17 @@ export const Controls = ({
     duration,
     volume,
     isMuted,
-  } = useVideoStore()
+  } = useVideoStore(
+    useShallow((state) => ({
+      videoElement: state.videoElement,
+      isPlaying: state.isPlaying,
+      setIsPlaying: state.setIsPlaying,
+      currentTime: state.currentTime,
+      duration: state.duration,
+      volume: state.volume,
+      isMuted: state.isMuted,
+    })),
+  )
 
   const [isControlling, setIsControlling] = useState(false)
   const [localVolume, setLocalVolume] = useState(volume)

@@ -20,6 +20,7 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
   const draggableRef = useRef<DraggableWrapperRef>(null)
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout>(null)
 
+  const isBuffering = useVideoStore((state) => state.isBuffering)
   const setIsFloating = useVideoStore((state) => state.setIsFloating)
 
   const [originalParent, setOriginalParent] = useState<{
@@ -92,7 +93,13 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
           [styles.verticalVideo]: isVertical,
         })}
         onMouseMove={resetHideTimer}
-      />
+      >
+        {isBuffering && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.spinner}></div>
+          </div>
+        )}
+      </div>
       <Controls
         show={showControls}
         onClose={handleClose}

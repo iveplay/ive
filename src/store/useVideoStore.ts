@@ -16,6 +16,8 @@ interface VideoStore {
   setIsMuted: (muted: boolean) => void
   isFloating: boolean
   setIsFloating: (isFloating: boolean) => void
+  isBuffering: boolean
+  setIsBuffering: (isBuffering: boolean) => void
 
   // Video element and search state
   videoElement: HTMLVideoElement | null
@@ -37,7 +39,8 @@ export const useVideoStore = create<VideoStore>((set) => ({
   setIsMuted: (muted) => set({ isMuted: muted }),
   isFloating: false,
   setIsFloating: (isFloating) => set({ isFloating }),
-
+  isBuffering: false,
+  setIsBuffering: (isBuffering) => set({ isBuffering }),
   // Video element
   videoElement: null,
   isSearching: false,

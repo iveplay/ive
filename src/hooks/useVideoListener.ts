@@ -11,6 +11,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
     setDuration,
     setVolume,
     setIsMuted,
+    setIsBuffering,
   } = useVideoStore(
     useShallow((state) => ({
       isPlaying: state.isPlaying,
@@ -19,6 +20,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       setDuration: state.setDuration,
       setVolume: state.setVolume,
       setIsMuted: state.setIsMuted,
+      setIsBuffering: state.setIsBuffering,
     })),
   )
 
@@ -32,6 +34,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       setDuration(videoElement.duration * 1000)
       setVolume(videoElement.volume)
       setIsMuted(videoElement.muted)
+      setIsBuffering(false)
 
       try {
         await chrome.runtime.sendMessage({
@@ -51,6 +54,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       setIsPlaying(false)
       setCurrentTime(videoElement.currentTime * 1000)
       setDuration(videoElement.duration * 1000)
+      setIsBuffering(false)
 
       try {
         await chrome.runtime.sendMessage({
@@ -137,6 +141,15 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       }
     }
 
+    // New handlers for buffering state
+    const handleWaiting = () => {
+      setIsBuffering(true)
+    }
+
+    const handlePlaying = () => {
+      setIsBuffering(false)
+    }
+
     // Add event listeners
     videoElement.addEventListener('play', handlePlay)
     videoElement.addEventListener('pause', handlePause)
@@ -145,6 +158,8 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
     videoElement.addEventListener('timeupdate', handleTimeUpdate)
     videoElement.addEventListener('durationchange', handleDurationChange)
     videoElement.addEventListener('volumechange', handleVolumeChange)
+    videoElement.addEventListener('waiting', handleWaiting)
+    videoElement.addEventListener('playing', handlePlaying)
 
     // Check initial state - if video is already playing when script is loaded
     if (!videoElement.paused) {
@@ -160,6 +175,8 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       videoElement.removeEventListener('timeupdate', handleTimeUpdate)
       videoElement.removeEventListener('durationchange', handleDurationChange)
       videoElement.removeEventListener('volumechange', handleVolumeChange)
+      videoElement.removeEventListener('waiting', handleWaiting)
+      videoElement.removeEventListener('playing', handlePlaying)
 
       // Stop playback when component unmounts
       chrome.runtime
@@ -177,6 +194,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
     setDuration,
     setVolume,
     setIsMuted,
+    setIsBuffering,
   ])
 
   return { isPlaying }

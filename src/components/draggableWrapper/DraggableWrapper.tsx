@@ -88,38 +88,72 @@ export const DraggableWrapper = forwardRef<
       [getAspectRatio],
     )
 
-    // Expose resize functions
+    const saveState = useCallback(
+      async (position: Position, currentSize: Size) => {
+        try {
+          if (typeof chrome !== 'undefined' && chrome.storage) {
+            await chrome.storage.local.set({
+              [storageKey]: position,
+              [`${storageKey}_size`]: currentSize,
+            })
+          }
+        } catch (error) {
+          console.error('Error saving state:', error)
+        }
+      },
+      [storageKey],
+    )
+
     useImperativeHandle(ref, () => ({
       setSize: (
         width: number,
         height?: number,
         isVerticalParam: boolean = isVerticalAspectRatio,
       ) => {
-        // Renamed parameter
-        let newWidth = Math.max(320, width)
-        let newHeight = height
-          ? Math.max(180, height)
-          : calculateHeight(newWidth, isVerticalParam)
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
+        setSize((prevSize) => {
+          let newWidth = Math.max(320, width)
+          let newHeight = height
+            ? Math.max(180, height)
+            : calculateHeight(newWidth, isVerticalParam)
 
-        if (newWidth > viewportWidth) {
-          newWidth = viewportWidth
-          newHeight = calculateHeight(newWidth, isVerticalParam)
-        }
+          const viewportWidth = window.innerWidth
+          const viewportHeight = window.innerHeight
 
-        if (newHeight > viewportHeight) {
-          newHeight = viewportHeight
-          newWidth = calculateWidth(newHeight, isVerticalParam)
-        }
+          if (newWidth > viewportWidth) {
+            newWidth = viewportWidth
+            newHeight = calculateHeight(newWidth, isVerticalParam)
+          }
 
-        setSize({ width: newWidth, height: newHeight })
+          if (newHeight > viewportHeight) {
+            newHeight = viewportHeight
+            newWidth = calculateWidth(newHeight, isVerticalParam)
+          }
+
+          if (prevSize.width !== newWidth || prevSize.height !== newHeight) {
+            const updatedSize = { width: newWidth, height: newHeight }
+            saveState(controlledPosition, updatedSize)
+            return updatedSize
+          }
+          return prevSize
+        })
       },
     }))
 
     useEffect(() => {
       const loadSavedState = async () => {
         try {
+          if (typeof chrome === 'undefined' || !chrome.storage) {
+            console.warn(
+              'chrome.storage is not available. Skipping state loading.',
+            )
+            // Initialize with default values if storage is not available
+            setSize({
+              width: defaultWidth,
+              height: calculateHeight(defaultWidth, isVerticalAspectRatio),
+            })
+            return
+          }
+
           const storage = await chrome.storage.local.get([
             storageKey,
             `${storageKey}_size`,
@@ -159,20 +193,6 @@ export const DraggableWrapper = forwardRef<
       loadSavedState()
     }, [storageKey, defaultWidth, isVerticalAspectRatio, calculateHeight])
 
-    const saveState = useCallback(
-      async (position: Position, currentSize: Size) => {
-        try {
-          await chrome.storage.local.set({
-            [storageKey]: position,
-            [`${storageKey}_size`]: currentSize,
-          })
-        } catch (error) {
-          console.error('Error saving state:', error)
-        }
-      },
-      [storageKey],
-    )
-
     const handleMouseDownResize = useCallback(
       (e: React.MouseEvent) => {
         e.preventDefault()
@@ -204,7 +224,6 @@ export const DraggableWrapper = forwardRef<
         let newWidth = Math.max(320, resizeRef.current.startWidth + delta)
         let newHeight = calculateHeight(newWidth, isVerticalAspectRatio)
 
-        // Ensure it doesn't exceed viewport
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
 
@@ -218,7 +237,12 @@ export const DraggableWrapper = forwardRef<
           newWidth = calculateWidth(newHeight, isVerticalAspectRatio)
         }
 
-        setSize({ width: newWidth, height: newHeight })
+        setSize((prevSize) => {
+          if (prevSize.width !== newWidth || prevSize.height !== newHeight) {
+            return { width: newWidth, height: newHeight }
+          }
+          return prevSize
+        })
       }
 
       const handleMouseUp = () => {
@@ -246,85 +270,91 @@ export const DraggableWrapper = forwardRef<
     ])
 
     useEffect(() => {
+      let timeoutId: NodeJS.Timeout
+
       const handleWindowResizeAndAspectRatioChange = () => {
-        if (!draggableRef.current) return
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+          if (!draggableRef.current) return
 
-        const position = { ...controlledPosition }
-        const currentSize = { ...size }
+          const currentPosition = { ...controlledPosition }
+          const currentSize = { ...size }
+          let needsUpdate = false
 
-        let needsUpdate = false
-        const currentCalculatedHeight = calculateHeight(
-          currentSize.width,
-          isVerticalAspectRatio,
-        )
-
-        // Check if height needs adjustment based on current width and aspect ratio
-        if (
-          Math.abs(currentSize.height - currentCalculatedHeight) > 1 ||
-          currentSize.width === defaultWidth
-        ) {
-          currentSize.height = currentCalculatedHeight
-          needsUpdate = true
-        }
-
-        // Get available viewport dimensions (excluding scrollbars)
-        const viewportWidth = document.documentElement.clientWidth
-        const viewportHeight = document.documentElement.clientHeight
-
-        // Check if size needs to be reduced
-        if (currentSize.width > viewportWidth) {
-          currentSize.width = viewportWidth
-          currentSize.height = calculateHeight(
+          const currentCalculatedHeight = calculateHeight(
             currentSize.width,
             isVerticalAspectRatio,
           )
-          needsUpdate = true
-        }
 
-        if (currentSize.height > viewportHeight) {
-          currentSize.height = viewportHeight
-          currentSize.width = calculateWidth(
-            currentSize.height,
-            isVerticalAspectRatio,
-          )
-          needsUpdate = true
-        }
+          // Check if height needs adjustment based on current width and aspect ratio
+          if (
+            Math.abs(currentSize.height - currentCalculatedHeight) > 1 ||
+            currentSize.width === defaultWidth
+          ) {
+            currentSize.height = currentCalculatedHeight
+            needsUpdate = true
+          }
 
-        // Check if position needs adjustment
-        if (position.x + currentSize.width > viewportWidth) {
-          position.x = Math.max(0, viewportWidth - currentSize.width)
-          needsUpdate = true
-        }
+          // Get available viewport dimensions (excluding scrollbars)
+          const viewportWidth = document.documentElement.clientWidth
+          const viewportHeight = document.documentElement.clientHeight
 
-        if (position.x < 0) {
-          position.x = 0
-          needsUpdate = true
-        }
+          // Check if size needs to be reduced
+          if (currentSize.width > viewportWidth) {
+            currentSize.width = viewportWidth
+            currentSize.height = calculateHeight(
+              currentSize.width,
+              isVerticalAspectRatio,
+            )
+            needsUpdate = true
+          }
 
-        if (position.y + currentSize.height > viewportHeight) {
-          position.y = Math.max(0, viewportHeight - currentSize.height)
-          needsUpdate = true
-        }
+          if (currentSize.height > viewportHeight) {
+            currentSize.height = viewportHeight
+            currentSize.width = calculateWidth(
+              currentSize.height,
+              isVerticalAspectRatio,
+            )
+            needsUpdate = true
+          }
 
-        if (position.y < 0) {
-          position.y = 0
-          needsUpdate = true
-        }
+          // Check if position needs adjustment to stay within viewport
+          if (currentPosition.x + currentSize.width > viewportWidth) {
+            currentPosition.x = Math.max(0, viewportWidth - currentSize.width)
+            needsUpdate = true
+          }
+          if (currentPosition.x < 0) {
+            currentPosition.x = 0
+            needsUpdate = true
+          }
 
-        if (needsUpdate) {
-          setControlledPosition(position)
-          setSize(currentSize)
-          saveState(position, currentSize)
-        }
+          if (currentPosition.y + currentSize.height > viewportHeight) {
+            currentPosition.y = Math.max(0, viewportHeight - currentSize.height)
+            needsUpdate = true
+          }
+          if (currentPosition.y < 0) {
+            currentPosition.y = 0
+            needsUpdate = true
+          }
+
+          if (needsUpdate) {
+            setControlledPosition(currentPosition)
+            setSize(currentSize)
+            saveState(currentPosition, currentSize)
+          }
+        }, 100)
       }
 
       handleWindowResizeAndAspectRatioChange()
       window.addEventListener('resize', handleWindowResizeAndAspectRatioChange)
-      return () =>
+
+      return () => {
+        clearTimeout(timeoutId)
         window.removeEventListener(
           'resize',
           handleWindowResizeAndAspectRatioChange,
         )
+      }
     }, [
       controlledPosition,
       size,
@@ -343,6 +373,7 @@ export const DraggableWrapper = forwardRef<
         position={controlledPosition}
         disabled={isResizing}
         onStop={(_, position) => {
+          setControlledPosition({ x: position.x, y: position.y })
           saveState(position, size)
         }}
         onDrag={(_, position) => {
