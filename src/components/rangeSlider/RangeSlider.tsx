@@ -1,5 +1,5 @@
 import { InputHTMLAttributes, useEffect, useRef } from 'react'
-import styles from './RangeSlider.module.scss' // Renamed SCSS module
+import styles from './RangeSlider.module.scss'
 
 interface RangeSliderProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
