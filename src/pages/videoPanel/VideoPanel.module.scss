@@ -21,8 +21,9 @@
   box-sizing: border-box;
   z-index: 1;
   position: relative;
-  width: 64px;
-  height: 48px;
+  width: 55px;
+  height: 38px;
+  right: -1px;
   padding-inline: 8px;
   background-color: rgba(41, 11, 29, 0.95);
   border-radius: 8px 0 0 8px;
@@ -41,7 +42,7 @@
   }
 
   .logo {
-    width: 48px;
+    width: 40px;
     object-fit: contain;
   }
 }

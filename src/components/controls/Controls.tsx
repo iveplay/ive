@@ -266,6 +266,7 @@ export const Controls = ({
           <button
             className={clsx(styles.controlButton, 'draggable-handle')}
             aria-label='Drag'
+            style={{ cursor: 'move' }}
           >
             <IconGripHorizontal size={16} />
           </button>

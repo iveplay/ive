@@ -396,7 +396,7 @@ export const DraggableWrapper = forwardRef<
               className={styles.resizeHandle}
               onMouseDown={handleMouseDownResize}
               style={{
-                zIndex: 1,
+                zIndex: 3,
                 position: 'absolute',
                 right: 0,
                 bottom: 0,

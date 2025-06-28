@@ -76,7 +76,6 @@ export const ControlSettings = ({
           className={clsx(styles.controlButton, styles.menuTrigger)}
           aria-label='Settings'
           onClick={handleMenuMouseEnter}
-          onMouseEnter={handleMenuMouseEnter}
           onMouseLeave={handleTriggerMouseLeave}
         >
           <IconSettings size={16} />
@@ -131,7 +130,7 @@ export const ControlSettings = ({
                 className={styles.menuContent}
                 sideOffset={2}
                 alignOffset={-5}
-                onMouseEnter={handleSubMenuMouseEnter}
+                onClick={handleSubMenuMouseEnter}
                 onMouseLeave={handleSubMenuMouseLeave}
               >
                 <DropdownMenu.Item
