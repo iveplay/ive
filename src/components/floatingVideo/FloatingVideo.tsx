@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useShallow } from 'zustand/shallow'
 import {
   DraggableWrapper,
   DraggableWrapperRef,
@@ -20,8 +21,13 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
   const draggableRef = useRef<DraggableWrapperRef>(null)
   const hideControlsTimeoutRef = useRef<NodeJS.Timeout>(null)
 
-  const isBuffering = useVideoStore((state) => state.isBuffering)
-  const setIsFloating = useVideoStore((state) => state.setIsFloating)
+  const { isBuffering, isPlaying, setIsFloating } = useVideoStore(
+    useShallow((state) => ({
+      isBuffering: state.isBuffering,
+      isPlaying: state.isPlaying,
+      setIsFloating: state.setIsFloating,
+    })),
+  )
 
   const [originalParent, setOriginalParent] = useState<{
     parent: Element
@@ -59,10 +65,37 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
     }
 
     setShowControls(true)
-    hideControlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false)
-    }, 3000)
-  }, [])
+
+    // Only hide controls if video is playing
+    if (isPlaying) {
+      hideControlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false)
+      }, 3000)
+    }
+  }, [isPlaying])
+
+  // Always show controls when paused
+  useEffect(() => {
+    if (!isPlaying) {
+      if (hideControlsTimeoutRef.current) {
+        clearTimeout(hideControlsTimeoutRef.current)
+      }
+      setShowControls(true)
+    } else {
+      // Reset the timer when video starts playing
+      resetHideTimer()
+    }
+  }, [isPlaying, resetHideTimer])
+
+  const handleVideoClick = useCallback(() => {
+    if (!videoElement) return
+
+    if (videoElement.paused) {
+      videoElement.play()
+    } else {
+      videoElement.pause()
+    }
+  }, [videoElement])
 
   const handleClose = () => {
     // Restore video to original position before closing
@@ -93,6 +126,8 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
           [styles.verticalVideo]: isVertical,
         })}
         onMouseMove={resetHideTimer}
+        onClick={handleVideoClick}
+        style={{ cursor: 'pointer' }}
       >
         {isBuffering && (
           <div className={styles.loadingOverlay}>
