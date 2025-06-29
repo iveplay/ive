@@ -138,13 +138,15 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
           </div>
         )}
         <div className={styles.actions}>
-          <button
-            className={styles.syncButton}
-            onClick={() => handleScriptSelect(currentScript || '')}
-            disabled={isLoading}
-          >
-            Sync
-          </button>
+          {scripts && (
+            <button
+              className={styles.syncButton}
+              onClick={() => handleScriptSelect(currentScript || '')}
+              disabled={isLoading}
+            >
+              Sync
+            </button>
+          )}
           <button
             className={styles.floatButton}
             onClick={() => {
