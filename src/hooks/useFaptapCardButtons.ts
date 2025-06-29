@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import logo from '@/assets/logo.png'
 import { loadFaptapScript } from '@/utils/faptapUtils'
 
 export const useFaptapCardButtons = (className: string) => {
@@ -61,7 +62,7 @@ export const useFaptapCardButtons = (className: string) => {
 
         // Create and add logo image
         const logoImg = document.createElement('img')
-        logoImg.src = chrome.runtime.getURL('src/assets/logo.png')
+        logoImg.src = chrome.runtime.getURL(logo)
         logoImg.style.cssText = `
           width: 28px;
           height: 28px;
