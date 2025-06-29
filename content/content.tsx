@@ -1,6 +1,7 @@
 import { CSSProperties, ReactNode, StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
+import { FaptapCardHandler } from '@/pages/faptapPanel/FaptapCardHandler'
 import { FaptapPanel } from '@/pages/faptapPanel/FaptapPanel'
 import { IvdbPanel } from '@/pages/ivdbPanel/IvdbPanel'
 import { VideoPage } from '@/pages/videoPage/VideoPage'
@@ -10,6 +11,7 @@ import { getScripts } from '@/utils/saveScripts'
 
 const EROSCRIPT_URL = 'discuss.eroscripts.com/t/'
 const FAPTAP_URL = 'faptap.net/v'
+const FAPTAP_DOMAIN = 'faptap.net'
 const IVDB_URL = 'ivdb.io/#/videos/'
 
 let currentUrl = window.location.href
@@ -101,6 +103,10 @@ const handleUrlChange = async () => {
           position: 'relative',
         })
       }
+    } else if (currentUrl.includes(FAPTAP_DOMAIN)) {
+      mountComponent(document.body, <FaptapCardHandler />, 'append', {
+        display: 'none',
+      })
     } else if (currentUrl.includes(IVDB_URL)) {
       const container = await findHtmlElement('#handy-ui')
 
