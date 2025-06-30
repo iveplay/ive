@@ -4,8 +4,13 @@ import { MESSAGES, UIMessage } from './types'
 
 export function setupMessageHandler(): void {
   chrome.runtime.onMessage.addListener(
-    (message: UIMessage, _, sendResponse) => {
-      console.log('Background received message:', message.type)
+    (message: UIMessage, sender, sendResponse) => {
+      console.log(
+        'Background received message:',
+        message.type,
+        'from tab:',
+        sender.tab?.id,
+      )
 
       const handleAsyncOperation = async () => {
         try {
@@ -45,43 +50,54 @@ export function setupMessageHandler(): void {
               return await deviceService.scanForButtplugDevices()
 
             case MESSAGES.LOAD_SCRIPT_URL:
-              return await deviceService.loadScriptFromUrl(message.url)
+              return await deviceService.loadScriptFromUrl(message.url, sender)
 
             case MESSAGES.LOAD_SCRIPT_CONTENT:
-              return await deviceService.loadScriptFromContent(message.content)
+              return await deviceService.loadScriptFromContent(
+                message.content,
+                sender,
+              )
 
-            // Video playback controls
+            // Video playback controls - now with sender info
             case MESSAGES.PLAY:
               return await deviceService.play(
                 message.timeMs,
                 message.playbackRate,
                 message.duration,
                 message.loop,
+                sender,
               )
 
             case MESSAGES.STOP:
-              return await deviceService.stop()
+              return await deviceService.stop(sender)
 
             case MESSAGES.SEEK:
-              return await deviceService.seek(message.timeMs)
+              return await deviceService.seek(message.timeMs, sender)
 
             case MESSAGES.RATE_CHANGE:
-              return await deviceService.setPlaybackRate(message.playbackRate)
+              return await deviceService.setPlaybackRate(
+                message.playbackRate,
+                sender,
+              )
 
             case MESSAGES.TIME_CHANGE:
-              return await deviceService.timeUpdate(message.timeMs)
+              return await deviceService.timeUpdate(message.timeMs, sender)
 
             case MESSAGES.DURATION_CHANGE:
-              return await deviceService.durationChange(message.duration)
+              return await deviceService.durationChange(
+                message.duration,
+                sender,
+              )
 
             case MESSAGES.VOLUME_CHANGE:
               return await deviceService.setVolume(
                 message.volume,
                 message.muted,
+                sender,
               )
 
             case MESSAGES.SYNC_TIME:
-              return await deviceService.syncTime(message.timeMs)
+              return await deviceService.syncTime(message.timeMs, sender)
 
             // Settings
             case MESSAGES.SHOW_HEATMAP:
@@ -119,4 +135,9 @@ export function setupMessageHandler(): void {
       return true
     },
   )
+
+  // Listen for tab removal to clear active script tab
+  chrome.tabs.onRemoved.addListener((tabId) => {
+    deviceService.clearActiveScriptTab(tabId)
+  })
 }

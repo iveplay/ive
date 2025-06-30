@@ -38,7 +38,6 @@ if (!fs.existsSync(tempProfilePath)) {
 // Launch Chrome with the extension
 const chromePath = getChromePath()
 const chromeFlags = [
-  `--disable-extensions-except=${extensionPath}`,
   `--load-extension=${extensionPath}`,
   `--user-data-dir=${tempProfilePath}`,
   '--no-first-run',
