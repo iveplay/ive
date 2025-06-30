@@ -3,44 +3,49 @@ import { useEffect, useRef, useState } from 'react'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import styles from './Heatmap.module.scss'
 
-// OKLCH to RGB conversion
-function oklchToRGB(l: number, c: number, h: number): [number, number, number] {
-  const hRad = (h * Math.PI) / 180
-  const r = l + c * Math.cos(hRad)
-  const g = l + c * Math.cos(hRad + (2 * Math.PI) / 3)
-  const b = l + c * Math.cos(hRad + (4 * Math.PI) / 3)
+type ColorGroup = [number, number, number]
 
+const heatmapColors: ColorGroup[] = [
+  [0, 0, 0], // Black for 0 speed
+  [30, 144, 255], // Blue
+  [34, 139, 34], // Green
+  [255, 215, 0], // Gold
+  [220, 20, 60], // Crimson
+  [147, 112, 219], // Medium Slate Blue
+  [37, 22, 122], // Dark Purple
+]
+
+function getLerpedColor(
+  colorA: ColorGroup,
+  colorB: ColorGroup,
+  t: number,
+): ColorGroup {
   return [
-    Math.max(0, Math.min(1, r)),
-    Math.max(0, Math.min(1, g)),
-    Math.max(0, Math.min(1, b)),
+    colorA[0] + (colorB[0] - colorA[0]) * t,
+    colorA[1] + (colorB[1] - colorA[1]) * t,
+    colorA[2] + (colorB[2] - colorA[2]) * t,
   ]
 }
 
-// Speed to OKLCH conversion
-function speedToOklch(speed: number): [number, number, number] {
-  const clampLerp = (
-    outMin: number,
-    outMax: number,
-    inMin: number,
-    inMax: number,
-    t: number,
-  ) => {
-    const lerp = (min: number, max: number, t: number) => min + t * (max - min)
-    const unlerp = (min: number, max: number, t: number) =>
-      (t - min) / (max - min)
-    const clamp = (min: number, want: number, max: number) =>
-      Math.max(min, Math.min(want, max))
-    return lerp(outMin, outMax, clamp(0, unlerp(inMin, inMax, t), 1))
+function getColor(intensity: number): ColorGroup {
+  const stepSize = 120
+  if (intensity <= 0) return heatmapColors[0]
+  if (intensity > 5 * stepSize) return heatmapColors[6]
+
+  intensity += stepSize / 2.0
+
+  try {
+    const stepIndex = Math.floor(intensity / stepSize)
+    const nextIndex = Math.min(stepIndex + 1, heatmapColors.length - 1)
+    const t = Math.min(
+      1.0,
+      Math.max(0.0, (intensity - stepIndex * stepSize) / stepSize),
+    )
+
+    return getLerpedColor(heatmapColors[stepIndex], heatmapColors[nextIndex], t)
+  } catch (error) {
+    return [0, 0, 0]
   }
-
-  const roll = (value: number, cap: number) => ((value % cap) + cap) % cap
-
-  return [
-    clampLerp(0.8, 0.4, 500, 700, speed),
-    clampLerp(0.4, 0.1, 500, 800, speed),
-    roll(210 - speed / 2.4, 360),
-  ]
 }
 
 const renderFunscript = (
@@ -116,9 +121,9 @@ const renderFunscript = (
   const resolutionLocation = gl.getUniformLocation(program, 'u_resolution')
   gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
 
-  // Setup viewport
+  // Setup viewport with transparent background
   gl.viewport(0, 0, canvas.width, canvas.height)
-  gl.clearColor(0.1, 0.1, 0.1, 1.0)
+  gl.clearColor(0, 0, 0, 0) // Transparent background
   gl.clear(gl.COLOR_BUFFER_BIT)
 
   // Get actions
@@ -147,10 +152,10 @@ const renderFunscript = (
     const speed = Math.abs(
       (next.pos - current.pos) / ((next.at - current.at) / 1000),
     )
-    const [l, c, h] = speedToOklch(speed)
-    const [r, g, b] = oklchToRGB(l, c, h)
+    const [r, g, b] = getColor(speed)
 
-    colors.push(r, g, b, r, g, b)
+    // Normalize to 0-1 range for WebGL
+    colors.push(r / 255, g / 255, b / 255, r / 255, g / 255, b / 255)
   }
 
   // Create buffers
