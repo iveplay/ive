@@ -1,4 +1,5 @@
 import { MESSAGES } from '@background/types'
+import { useThrottledCallback } from '@mantine/hooks'
 import { useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useVideoStore } from '@/store/useVideoStore'
@@ -23,6 +24,20 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       setIsBuffering: state.setIsBuffering,
     })),
   )
+
+  const throttledSeek = useThrottledCallback(async (timeMs) => {
+    try {
+      // Throttled seek, throttle not really needed
+      // But changed SEEK to PLAY!
+      // TODO: Handy sync time is not working, check with them
+      await chrome.runtime.sendMessage({
+        type: MESSAGES.PLAY,
+        timeMs,
+      })
+    } catch (error) {
+      console.error('Error syncing time:', error)
+    }
+  }, 1000)
 
   useEffect(() => {
     if (!videoElement) return
@@ -70,14 +85,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       setCurrentTime(videoElement.currentTime * 1000)
       setDuration(videoElement.duration * 1000)
 
-      try {
-        await chrome.runtime.sendMessage({
-          type: MESSAGES.SEEK,
-          timeMs: videoElement.currentTime * 1000,
-        })
-      } catch (error) {
-        console.error('Error syncing time:', error)
-      }
+      throttledSeek(videoElement.currentTime * 1000)
     }
 
     // Handler for rate change
@@ -195,6 +203,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
     setVolume,
     setIsMuted,
     setIsBuffering,
+    throttledSeek,
   ])
 
   return { isPlaying }
