@@ -7,7 +7,7 @@ import styles from './Heatmap.module.scss'
 type ColorGroup = [number, number, number]
 
 const heatmapColors: ColorGroup[] = [
-  [0, 0, 0], // Black for 0 speed
+  [123, 2, 77], // Black for 0 speed
   [30, 144, 255], // Blue
   [34, 139, 34], // Green
   [255, 215, 0], // Gold
@@ -45,7 +45,7 @@ function getColor(intensity: number): ColorGroup {
 
     return getLerpedColor(heatmapColors[stepIndex], heatmapColors[nextIndex], t)
   } catch {
-    return [0, 0, 0]
+    return [123, 2, 77]
   }
 }
 
