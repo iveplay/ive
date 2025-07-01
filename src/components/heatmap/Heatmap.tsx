@@ -44,7 +44,7 @@ function getColor(intensity: number): ColorGroup {
     )
 
     return getLerpedColor(heatmapColors[stepIndex], heatmapColors[nextIndex], t)
-  } catch (error) {
+  } catch {
     return [0, 0, 0]
   }
 }
@@ -147,9 +147,9 @@ const renderFunscript = (
 
     // Scale based on video duration, not script duration
     const x1 = (current.at / scaleDuration) * canvas.width
-    const y1 = ((100 - current.pos) / 100) * canvas.height
+    const y1 = ((100 - current.pos) / 100) * (canvas.height - 2) + 2
     const x2 = (next.at / scaleDuration) * canvas.width
-    const y2 = ((100 - next.pos) / 100) * canvas.height
+    const y2 = ((100 - next.pos) / 100) * (canvas.height - 2) + 2
 
     positions.push(x1, y1, x2, y2)
 
