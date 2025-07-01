@@ -80,7 +80,8 @@ const renderFunscript = (
   videoDuration: number,
 ) => {
   // Update canvas size
-  const containerWidth = canvas.parentElement?.clientWidth || 800
+  const containerWidth = canvas.parentElement?.clientWidth || 1200
+
   canvas.width = containerWidth
   canvas.height = 64
 
@@ -195,19 +196,27 @@ export const Heatmap = () => {
     if (!funscript || !canvasRef.current || videoDuration <= 0) return
 
     const canvas = canvasRef.current
-    const gl = canvas.getContext('webgl')
+    const parent = canvas.parentElement
 
-    if (!gl) {
-      setError('WebGL not supported')
-      return
-    }
+    if (!parent) return
 
-    try {
-      renderFunscript(gl, canvas, funscript, videoDuration)
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Rendering failed')
-    }
+    const resizeObserver = new ResizeObserver(() => {
+      if (parent.clientWidth > 0) {
+        const gl = canvas.getContext('webgl')
+        if (gl) {
+          try {
+            renderFunscript(gl, canvas, funscript, videoDuration)
+            setError(null)
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Rendering failed')
+          }
+        }
+      }
+    })
+
+    resizeObserver.observe(parent)
+
+    return () => resizeObserver.disconnect()
   }, [funscript, videoDuration])
 
   useEffect(() => {

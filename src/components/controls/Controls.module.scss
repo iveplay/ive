@@ -9,6 +9,16 @@
   display: flex;
   flex-direction: column;
 
+  .heatmapContainer {
+    position: absolute;
+    top: -64px;
+    left: 0;
+    right: 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+  }
+
   .scrubberContainer {
     position: absolute;
     top: -6px;

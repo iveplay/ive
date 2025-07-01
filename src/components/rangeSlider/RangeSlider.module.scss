@@ -141,7 +141,7 @@ $thumb-line-height: 8px !default;
     }
 
     &:hover:not(:disabled):not(:active) {
-      cursor: grab;
+      cursor: pointer;
 
       &::-webkit-slider-thumb {
         width: $thumb-height;

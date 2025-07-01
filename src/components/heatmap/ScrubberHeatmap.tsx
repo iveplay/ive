@@ -5,8 +5,9 @@ import styles from './ScrubberHeatmap.module.scss'
 
 export const ScrubberHeatmap = () => {
   const videoElement = useVideoStore((state) => state.videoElement)
+  const isFloating = useVideoStore((state) => state.isFloating)
 
-  if (!videoElement) {
+  if (!videoElement || isFloating) {
     return null
   }
 

@@ -13,8 +13,10 @@ import {
 import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
+import { useSettingsStore } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
 import { formatTime } from '@/utils/formatTime'
+import { Heatmap } from '../heatmap/Heatmap'
 import { RangeSlider } from '../rangeSlider/RangeSlider'
 import styles from './Controls.module.scss'
 import { ControlSettings } from './ControlSettings'
@@ -53,6 +55,7 @@ export const Controls = ({
       isMuted: state.isMuted,
     })),
   )
+  const showHeatmap = useSettingsStore((state) => state.showHeatmap)
 
   const [isControlling, setIsControlling] = useState(false)
   const [localVolume, setLocalVolume] = useState(volume)
@@ -227,19 +230,26 @@ export const Controls = ({
     >
       {/* Only show scrubber for non-live content */}
       {!isLiveContent && (
-        <div className={styles.scrubberContainer}>
-          <RangeSlider
-            min='0'
-            max={duration}
-            value={localTime}
-            onChange={handleTimeSeek}
-            onMouseDown={handleSeekStart}
-            onMouseUp={handleSeekEnd}
-            onTouchStart={handleSeekStart}
-            onTouchEnd={handleSeekEnd}
-            aria-label='Seek'
-          />
-        </div>
+        <>
+          {showHeatmap && (
+            <div className={styles.heatmapContainer}>
+              <Heatmap />
+            </div>
+          )}
+          <div className={styles.scrubberContainer}>
+            <RangeSlider
+              min='0'
+              max={duration}
+              value={localTime}
+              onChange={handleTimeSeek}
+              onMouseDown={handleSeekStart}
+              onMouseUp={handleSeekEnd}
+              onTouchStart={handleSeekStart}
+              onTouchEnd={handleSeekEnd}
+              aria-label='Seek'
+            />
+          </div>
+        </>
       )}
 
       <div className={styles.controlsBar}>
