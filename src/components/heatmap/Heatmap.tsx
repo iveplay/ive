@@ -1,6 +1,7 @@
 import { Funscript } from '@background/types'
 import { useEffect, useRef, useState } from 'react'
 import { useDeviceStore } from '@/store/useDeviceStore'
+import { useVideoStore } from '@/store/useVideoStore'
 import styles from './Heatmap.module.scss'
 
 type ColorGroup = [number, number, number]
@@ -48,18 +49,8 @@ function getColor(intensity: number): ColorGroup {
   }
 }
 
-const renderFunscript = (
-  gl: WebGLRenderingContext,
-  canvas: HTMLCanvasElement,
-  funscript: Funscript | null,
-) => {
-  // Update canvas size
-  const containerWidth = canvas.parentElement?.clientWidth || 800
-  canvas.width = containerWidth
-  canvas.height = 64
-
-  // Vertex shader
-  const vertexShaderSource = `
+// Vertex shader
+const vertexShaderSource = `
       attribute vec2 a_position;
       attribute vec3 a_color;
       uniform vec2 u_resolution;
@@ -72,8 +63,8 @@ const renderFunscript = (
       }
     `
 
-  // Fragment shader
-  const fragmentShaderSource = `
+// Fragment shader
+const fragmentShaderSource = `
       precision mediump float;
       varying vec3 v_color;
       
@@ -81,6 +72,17 @@ const renderFunscript = (
         gl_FragColor = vec4(v_color, 1.0);
       }
     `
+
+const renderFunscript = (
+  gl: WebGLRenderingContext,
+  canvas: HTMLCanvasElement,
+  funscript: Funscript | null,
+  videoDuration: number,
+) => {
+  // Update canvas size
+  const containerWidth = canvas.parentElement?.clientWidth || 800
+  canvas.width = containerWidth
+  canvas.height = 64
 
   // Create shaders
   const createShader = (type: number, source: string) => {
@@ -132,7 +134,9 @@ const renderFunscript = (
     throw new Error('Invalid funscript data')
   }
 
-  const duration = actions[actions.length - 1].at
+  // Use video duration (in ms) instead of script duration for scaling
+  const scaleDuration =
+    videoDuration > 0 ? videoDuration : actions[actions.length - 1].at
   const positions: number[] = []
   const colors: number[] = []
 
@@ -141,9 +145,10 @@ const renderFunscript = (
     const current = actions[i]
     const next = actions[i + 1]
 
-    const x1 = (current.at / duration) * canvas.width
+    // Scale based on video duration, not script duration
+    const x1 = (current.at / scaleDuration) * canvas.width
     const y1 = ((100 - current.pos) / 100) * canvas.height
-    const x2 = (next.at / duration) * canvas.width
+    const x2 = (next.at / scaleDuration) * canvas.width
     const y2 = ((100 - next.pos) / 100) * canvas.height
 
     positions.push(x1, y1, x2, y2)
@@ -184,9 +189,10 @@ export const Heatmap = () => {
   const [error, setError] = useState<string | null>(null)
 
   const funscript = useDeviceStore((state) => state.funscript)
+  const videoDuration = useVideoStore((state) => state.duration)
 
   useEffect(() => {
-    if (!funscript || !canvasRef.current) return
+    if (!funscript || !canvasRef.current || videoDuration <= 0) return
 
     const canvas = canvasRef.current
     const gl = canvas.getContext('webgl')
@@ -197,26 +203,27 @@ export const Heatmap = () => {
     }
 
     try {
-      renderFunscript(gl, canvas, funscript)
+      renderFunscript(gl, canvas, funscript, videoDuration)
+      setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rendering failed')
     }
-  }, [funscript])
+  }, [funscript, videoDuration])
 
   useEffect(() => {
     const handleResize = () => {
-      if (funscript && canvasRef.current) {
+      if (funscript && canvasRef.current && videoDuration > 0) {
         const canvas = canvasRef.current
         const gl = canvas.getContext('webgl')
         if (gl) {
-          renderFunscript(gl, canvas, funscript)
+          renderFunscript(gl, canvas, funscript, videoDuration)
         }
       }
     }
 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [funscript])
+  }, [funscript, videoDuration])
 
   return (
     <div className={styles.heatmapContainer}>
