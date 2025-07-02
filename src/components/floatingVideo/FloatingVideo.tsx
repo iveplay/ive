@@ -11,9 +11,13 @@ import styles from './FloatingVideo.module.scss'
 
 type FloatingVideoProps = {
   videoElement: HTMLVideoElement
+  hasScript: boolean
 }
 
-export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
+export const FloatingVideo = ({
+  videoElement,
+  hasScript,
+}: FloatingVideoProps) => {
   const [showControls, setShowControls] = useState(true)
   const [isVertical, setIsVertical] = useState(false)
 
@@ -147,6 +151,7 @@ export const FloatingVideo = ({ videoElement }: FloatingVideoProps) => {
         }
         isVertical={isVertical}
         onOrientationChange={setIsVertical}
+        hasScript={hasScript}
       />
     </DraggableWrapper>
   )
