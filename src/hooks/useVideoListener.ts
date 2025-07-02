@@ -25,12 +25,14 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
     })),
   )
 
-  const throttledSeek = useThrottledCallback(async (timeMs) => {
+  const throttledSeek = useThrottledCallback(async () => {
+    if (!videoElement) return
+
     try {
       // A new play command is needed for seeking
       await chrome.runtime.sendMessage({
         type: MESSAGES.PLAY,
-        timeMs,
+        timeMs: videoElement.currentTime * 1000,
       })
     } catch (error) {
       console.error('Error syncing time:', error)
@@ -83,7 +85,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
       setCurrentTime(videoElement.currentTime * 1000)
       setDuration(videoElement.duration * 1000)
 
-      throttledSeek(videoElement.currentTime * 1000)
+      throttledSeek()
     }
 
     // Handler for rate change

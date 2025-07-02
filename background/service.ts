@@ -17,6 +17,7 @@ class DeviceService {
   private scriptLoaded = false
   private funscript: Funscript | null = null
   private lastLoadedScript: ScriptData | null = null
+  private syncTimeouts: NodeJS.Timeout[] = []
 
   // Track which tab has the active script
   private activeScriptTabId: number | null = null
@@ -505,6 +506,32 @@ class DeviceService {
 
       if (successCount > 0) {
         this.isPlaying = true
+
+        // Clear old timeouts
+        this.syncTimeouts.forEach((t) => clearTimeout(t))
+        this.syncTimeouts = []
+
+        // Sync with filter 0.9 after 2 seconds
+        this.syncTimeouts.push(
+          setTimeout(() => {
+            if (this.isPlaying) this.syncTime(this.currentTimeMs, 0.9)
+          }, 2000),
+        )
+
+        // Sync with filter 0.5 every 15 seconds starting at 17 seconds
+        this.syncTimeouts.push(
+          setTimeout(() => {
+            if (this.isPlaying) {
+              this.syncTime(this.currentTimeMs, 0.5)
+              this.syncTimeouts.push(
+                setInterval(() => {
+                  if (this.isPlaying) this.syncTime(this.currentTimeMs, 0.5)
+                }, 15000),
+              )
+            }
+          }, 17000),
+        )
+
         await this.broadcastState()
         return true
       }
@@ -533,6 +560,9 @@ class DeviceService {
     }
 
     try {
+      this.syncTimeouts.forEach((t) => clearTimeout(t))
+      this.syncTimeouts = []
+
       // Stop all devices
       await this.deviceManager.stopAll()
       this.isPlaying = false
@@ -549,23 +579,12 @@ class DeviceService {
     }
   }
 
-  public async syncTime(
-    timeMs: number,
-    sender?: chrome.runtime.MessageSender,
-  ): Promise<boolean> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
-      return false
-    }
-
+  private async syncTime(timeMs: number, filter: number): Promise<boolean> {
     try {
       this.currentTimeMs = timeMs
-
       // Only sync if playing
       if (this.isPlaying) {
-        await this.deviceManager.syncTimeAll(timeMs)
+        await this.deviceManager.syncTimeAll(timeMs, filter)
       }
 
       return true
