@@ -18,6 +18,8 @@ interface VideoStore {
   setIsFloating: (isFloating: boolean) => void
   isBuffering: boolean
   setIsBuffering: (isBuffering: boolean) => void
+  activeScript: string | null
+  setActiveScript: (scriptUrl: string | null) => void
 
   // Video element and search state
   videoElement: HTMLVideoElement | null
@@ -41,6 +43,9 @@ export const useVideoStore = create<VideoStore>((set) => ({
   setIsFloating: (isFloating) => set({ isFloating }),
   isBuffering: false,
   setIsBuffering: (isBuffering) => set({ isBuffering }),
+  activeScript: null,
+  setActiveScript: (scriptUrl) => set({ activeScript: scriptUrl }),
+
   // Video element
   videoElement: null,
   isSearching: false,

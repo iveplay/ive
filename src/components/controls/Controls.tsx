@@ -27,7 +27,7 @@ type ControlsProps = {
   onTheaterMode?: () => void
   isVertical: boolean
   onOrientationChange: (isVertical: boolean) => void
-  hasScript?: boolean
+  shouldShowHeatmap?: boolean
 }
 
 export const Controls = ({
@@ -36,7 +36,7 @@ export const Controls = ({
   onTheaterMode,
   isVertical,
   onOrientationChange,
-  hasScript = false,
+  shouldShowHeatmap = false,
 }: ControlsProps) => {
   const {
     videoElement,
@@ -233,7 +233,7 @@ export const Controls = ({
       {/* Only show scrubber for non-live content */}
       {!isLiveContent && (
         <>
-          {hasScript && showHeatmap && (
+          {shouldShowHeatmap && showHeatmap && (
             <div className={styles.heatmapContainer}>
               <Heatmap />
             </div>

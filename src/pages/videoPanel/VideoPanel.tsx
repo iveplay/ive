@@ -27,6 +27,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
     searchForVideo,
     isFloating,
     setIsFloating,
+    setActiveScript,
   } = useVideoStore(
     useShallow((state) => ({
       videoElement: state.videoElement,
@@ -35,6 +36,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       searchForVideo: state.searchForVideo,
       isFloating: state.isFloating,
       setIsFloating: state.setIsFloating,
+      setActiveScript: state.setActiveScript,
     })),
   )
 
@@ -46,6 +48,7 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       if (!videoElement) return
 
       setCurrentScript(scriptUrl)
+      setActiveScript(scriptUrl)
       setErrorMessage(null)
       setIsLoading(true)
 
@@ -72,13 +75,14 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
         setIsLoading(false)
       } catch (e) {
         setCurrentScript(null)
+        setActiveScript(null)
         setErrorMessage(
           `Error loading script: ${e instanceof Error ? e.message : String(e)}`,
         )
         setIsLoading(false)
       }
     },
-    [videoElement],
+    [videoElement, setActiveScript],
   )
 
   // Select script on load
@@ -100,14 +104,16 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       chrome.runtime.sendMessage({
         type: MESSAGES.STOP,
       })
+      setActiveScript(null)
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload)
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
+      setActiveScript(null)
     }
-  }, [])
+  }, [setActiveScript])
 
   const currentScriptInfo = currentScript ? scripts?.[currentScript] : null
   const isError = !!(videoError || errorMessage)

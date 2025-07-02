@@ -1,6 +1,6 @@
 import { FloatingVideo } from '@/components/floatingVideo/FloatingVideo'
 import { ScrubberHeatmap } from '@/components/heatmap/ScrubberHeatmap'
-import { useDeviceSetup } from '@/store/useDeviceStore'
+import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
 import { useSettingsStore, useSettingsSetup } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
 import { Scripts } from '@/types/script'
@@ -18,13 +18,20 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   const showHeatmap = useSettingsStore((state) => state.showHeatmap)
   const videoElement = useVideoStore((state) => state.videoElement)
   const isFloating = useVideoStore((state) => state.isFloating)
+  const activeScript = useVideoStore((state) => state.activeScript)
+  const scriptUrl = useDeviceStore((state) => state.scriptUrl)
+
+  const shouldShowHeatmap = showHeatmap && scripts && scriptUrl === activeScript
 
   return (
     <div className={styles.videoPage}>
       <VideoPanel scripts={scripts} />
-      {scripts && showHeatmap && <ScrubberHeatmap />}
+      {shouldShowHeatmap && <ScrubberHeatmap />}
       {isFloating && videoElement && (
-        <FloatingVideo videoElement={videoElement} hasScript={!!scripts} />
+        <FloatingVideo
+          videoElement={videoElement}
+          shouldShowHeatmap={!!shouldShowHeatmap}
+        />
       )}
     </div>
   )
