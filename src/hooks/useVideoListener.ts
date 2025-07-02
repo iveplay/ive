@@ -27,9 +27,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
 
   const throttledSeek = useThrottledCallback(async (timeMs) => {
     try {
-      // Throttled seek, throttle not really needed
-      // But changed SEEK to PLAY!
-      // TODO: Handy sync time is not working, check with them
+      // A new play command is needed for seeking
       await chrome.runtime.sendMessage({
         type: MESSAGES.PLAY,
         timeMs,

@@ -577,20 +577,6 @@ class DeviceService {
     }
   }
 
-  public async seek(
-    timeMs: number,
-    sender?: chrome.runtime.MessageSender,
-  ): Promise<boolean> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
-      return false
-    }
-
-    return this.syncTime(timeMs, sender)
-  }
-
   public async timeUpdate(
     timeMs: number,
     sender?: chrome.runtime.MessageSender,

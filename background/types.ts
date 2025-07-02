@@ -76,23 +76,15 @@ export const MESSAGES = {
   BUTTPLUG_SCAN: 'ive:buttplug_scan',
   LOAD_SCRIPT_URL: 'ive:load_script_url',
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
-  SYNC_TIME: 'ive:sync_time',
 
   // Video playback controls
   PLAY: 'ive:video:play',
   PAUSE: 'ive:video:pause',
   STOP: 'ive:video:stop',
-  SEEK: 'ive:video:seek',
   RATE_CHANGE: 'ive:video:rate_change',
   TIME_CHANGE: 'ive:video:time_change',
   DURATION_CHANGE: 'ive:video:duration_change',
   VOLUME_CHANGE: 'ive:video:volume_change',
-
-  // Video state updates (for sending to content scripts)
-  PLAY_UPDATE: 'ive:video:play_update',
-  PAUSE_UPDATE: 'ive:video:pause_update',
-  SEEK_UPDATE: 'ive:video:seek_update',
-  VOLUME_UPDATE: 'ive:video:volume_update',
 
   // IDB changes
   SAVE_SCRIPT: 'ive:save_script',
@@ -128,7 +120,6 @@ export type UIMessage =
       type: typeof MESSAGES.LOAD_SCRIPT_CONTENT
       content: Record<string, unknown>
     }
-  | { type: typeof MESSAGES.SYNC_TIME; timeMs: number }
   // Video playback controls
   | {
       type: typeof MESSAGES.PLAY
@@ -139,16 +130,10 @@ export type UIMessage =
     }
   | { type: typeof MESSAGES.PAUSE }
   | { type: typeof MESSAGES.STOP }
-  | { type: typeof MESSAGES.SEEK; timeMs: number }
   | { type: typeof MESSAGES.RATE_CHANGE; playbackRate: number }
   | { type: typeof MESSAGES.TIME_CHANGE; timeMs: number }
   | { type: typeof MESSAGES.DURATION_CHANGE; duration: number }
   | { type: typeof MESSAGES.VOLUME_CHANGE; volume: number; muted: boolean }
-  // Video state updates
-  | { type: typeof MESSAGES.PLAY_UPDATE }
-  | { type: typeof MESSAGES.PAUSE_UPDATE }
-  | { type: typeof MESSAGES.SEEK_UPDATE; timeMs: number }
-  | { type: typeof MESSAGES.VOLUME_UPDATE; volume: number; muted: boolean }
   // IDB changes
   | {
       type: typeof MESSAGES.SAVE_SCRIPT

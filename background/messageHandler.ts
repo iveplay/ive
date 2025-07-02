@@ -71,9 +71,6 @@ export function setupMessageHandler(): void {
             case MESSAGES.STOP:
               return await deviceService.stop(sender)
 
-            case MESSAGES.SEEK:
-              return await deviceService.seek(message.timeMs, sender)
-
             case MESSAGES.RATE_CHANGE:
               return await deviceService.setPlaybackRate(
                 message.playbackRate,
@@ -95,9 +92,6 @@ export function setupMessageHandler(): void {
                 message.muted,
                 sender,
               )
-
-            case MESSAGES.SYNC_TIME:
-              return await deviceService.syncTime(message.timeMs, sender)
 
             // Settings
             case MESSAGES.SHOW_HEATMAP:

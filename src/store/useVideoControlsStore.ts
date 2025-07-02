@@ -19,8 +19,6 @@ interface VideoControlsActions {
     loop?: boolean,
   ) => Promise<void>
   stop: () => Promise<void>
-  seek: (timeMs: number) => Promise<void>
-  syncTime: (timeMs: number) => Promise<void>
   setPlaybackRate: (rate: number) => Promise<void>
   setVolume: (volume: number, muted?: boolean) => Promise<void>
 }
@@ -62,28 +60,6 @@ export const useVideoControlsStore = create<VideoControlsStore>()(
       } catch (error) {
         console.error('Stop error:', error)
         throw error
-      }
-    },
-    seek: async (timeMs: number) => {
-      try {
-        await chrome.runtime.sendMessage({
-          type: MESSAGES.SEEK,
-          timeMs,
-        })
-        set({ currentTime: timeMs })
-      } catch (error) {
-        console.error('Seek error:', error)
-      }
-    },
-    syncTime: async (timeMs: number) => {
-      try {
-        await chrome.runtime.sendMessage({
-          type: MESSAGES.SYNC_TIME,
-          timeMs,
-        })
-        set({ currentTime: timeMs })
-      } catch (error) {
-        console.error('Sync time error:', error)
       }
     },
     setPlaybackRate: async (rate: number) => {
