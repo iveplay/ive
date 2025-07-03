@@ -21,7 +21,9 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   const activeScript = useVideoStore((state) => state.activeScript)
   const scriptUrl = useDeviceStore((state) => state.scriptUrl)
 
-  const shouldShowHeatmap = showHeatmap && scripts && scriptUrl === activeScript
+  const isIvdbScript = scriptUrl?.startsWith('ivdb://')
+  const shouldShowHeatmap =
+    showHeatmap && scripts && scriptUrl === activeScript && !isIvdbScript
 
   return (
     <div className={styles.videoPage}>

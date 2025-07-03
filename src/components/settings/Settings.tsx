@@ -55,7 +55,12 @@ export const Settings = () => {
   return (
     <div className={styles.settings}>
       <div className={styles.settingItem}>
-        <div className={styles.settingLabel}>Enable Heatmap</div>
+        <div>
+          <div className={styles.settingLabel}>Enable Heatmap</div>
+          <div className={styles.settingDescription}>
+            Doesn't work with IVDB scripts
+          </div>
+        </div>
         <Switch
           checked={showHeatmap}
           onChange={(event) => setShowHeatmap(event.currentTarget.checked)}
@@ -73,7 +78,7 @@ export const Settings = () => {
 
       <div className={styles.urlListContainer}>
         <div className={styles.settingLabel}>Custom URLs</div>
-        <div className={styles.urlDescription}>
+        <div className={styles.settingDescription}>
           Always show IVE on these sites (one per line)
         </div>
         <Textarea
