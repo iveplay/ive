@@ -96,7 +96,7 @@
 
   .actions {
     display: flex;
-    gap: 8px;
+    gap: 16px;
     margin-top: 16px;
     margin-inline: 16px;
 
@@ -128,7 +128,6 @@
       display: block;
       width: fit-content;
       padding: 4px 8px;
-      margin-left: 8px;
       text-align: center;
       text-decoration: none;
       border: 2px solid rgba(255, 255, 255, 0.1);

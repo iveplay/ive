@@ -5,6 +5,7 @@ import {
   ButtplugConnectionType,
   ScriptData,
 } from 'ive-connect'
+import { contextMenuService } from './contextMenuService'
 import { DeviceServiceState, DevicesInfo, Funscript, MESSAGES } from './types'
 
 /**
@@ -122,6 +123,7 @@ class DeviceService {
     showHeatmap: boolean
   }): Promise<void> {
     this.state.showHeatmap = showHeatmap
+    contextMenuService.updateHeatmapState(showHeatmap)
     await this.saveState()
     await this.broadcastState()
   }

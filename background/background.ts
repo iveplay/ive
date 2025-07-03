@@ -1,3 +1,4 @@
+import { contextMenuService } from './contextMenuService'
 import { setupMessageHandler } from './messageHandler'
 import { deviceService } from './service'
 
@@ -7,6 +8,9 @@ async function init(): Promise<void> {
   setupMessageHandler()
 
   await deviceService.autoConnect()
+
+  // Initialize context menus
+  await contextMenuService.init()
 
   console.log('IVE background service initialized successfully')
 }

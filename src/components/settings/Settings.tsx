@@ -1,4 +1,3 @@
-// src/components/settings/Settings.tsx
 import { Button, Switch, Textarea } from '@mantine/core'
 import { useState } from 'react'
 import { useShallow } from 'zustand/shallow'
