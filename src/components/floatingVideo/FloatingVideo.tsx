@@ -20,6 +20,7 @@ export const FloatingVideo = ({
 }: FloatingVideoProps) => {
   const [showControls, setShowControls] = useState(true)
   const [isVertical, setIsVertical] = useState(false)
+  const [containerWidth, setContainerWidth] = useState<number | undefined>()
 
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const draggableRef = useRef<DraggableWrapperRef>(null)
@@ -37,6 +38,23 @@ export const FloatingVideo = ({
     parent: Element
     nextSibling: Node | null
   } | null>(null)
+
+  useEffect(() => {
+    if (!videoContainerRef.current) return
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width
+        setContainerWidth(width)
+      }
+    })
+
+    resizeObserver.observe(videoContainerRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [])
 
   // Move video element to floating window
   useEffect(() => {
@@ -152,6 +170,7 @@ export const FloatingVideo = ({
         isVertical={isVertical}
         onOrientationChange={setIsVertical}
         shouldShowHeatmap={shouldShowHeatmap}
+        containerWidth={containerWidth}
       />
     </DraggableWrapper>
   )

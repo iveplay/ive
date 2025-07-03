@@ -28,6 +28,7 @@ type ControlsProps = {
   isVertical: boolean
   onOrientationChange: (isVertical: boolean) => void
   shouldShowHeatmap?: boolean
+  containerWidth?: number
 }
 
 export const Controls = ({
@@ -37,6 +38,7 @@ export const Controls = ({
   isVertical,
   onOrientationChange,
   shouldShowHeatmap = false,
+  containerWidth,
 }: ControlsProps) => {
   const {
     videoElement,
@@ -66,6 +68,9 @@ export const Controls = ({
 
   // Check if this is live content (no duration or infinite duration)
   const isLiveContent = !duration || !isFinite(duration) || duration === 0
+
+  // Determine if we should use compact layout
+  const isCompact = containerWidth ? containerWidth < 550 : false
 
   // Update local time when not dragging
   if (!isDragging && localTime !== currentTime) {
@@ -267,7 +272,8 @@ export const Controls = ({
               <IconPlayerPlay size={16} />
             )}
           </button>
-          {!isLiveContent && (
+
+          {!isLiveContent && !isCompact && (
             <>
               <button
                 className={styles.controlButton}
@@ -286,6 +292,7 @@ export const Controls = ({
               </button>
             </>
           )}
+
           {!isLiveContent && (
             <div className={styles.timeDisplay}>
               <span>{formatTime(localTime)}</span>
@@ -330,21 +337,30 @@ export const Controls = ({
             onOrientationChange={onOrientationChange}
             isVertical={isVertical}
             isLiveContent={isLiveContent}
+            onTheaterMode={onTheaterMode}
+            onFullscreen={handleFullscreen}
+            isCompact={isCompact}
           />
-          <button
-            className={styles.controlButton}
-            onClick={onTheaterMode}
-            aria-label='Theater Mode'
-          >
-            <IconRectangle size={16} />
-          </button>
-          <button
-            className={styles.controlButton}
-            onClick={handleFullscreen}
-            aria-label='Fullscreen'
-          >
-            <IconMaximize size={16} />
-          </button>
+
+          {!isCompact && (
+            <>
+              <button
+                className={styles.controlButton}
+                onClick={onTheaterMode}
+                aria-label='Theater Mode'
+              >
+                <IconRectangle size={16} />
+              </button>
+              <button
+                className={styles.controlButton}
+                onClick={handleFullscreen}
+                aria-label='Fullscreen'
+              >
+                <IconMaximize size={16} />
+              </button>
+            </>
+          )}
+
           <button
             className={clsx(styles.controlButton, 'draggable-handle')}
             aria-label='Drag'

@@ -5,6 +5,8 @@ import {
   IconChevronRight,
   IconHourglass,
   IconRotate3d,
+  IconRectangle,
+  IconMaximize,
 } from '@tabler/icons-react'
 import clsx from 'clsx'
 import { useCallback, useRef, useState } from 'react'
@@ -16,6 +18,11 @@ type ControlSettingsProps = {
   onOrientationChange: (isVertical: boolean) => void
   isVertical: boolean
   isLiveContent?: boolean
+  onTheaterMode?: () => void
+  onFullscreen?: () => void
+  isCompact?: boolean
+  showSkipButtons?: boolean
+  onSkip?: (seconds: number) => void
 }
 
 export const ControlSettings = ({
@@ -24,6 +31,9 @@ export const ControlSettings = ({
   onOrientationChange,
   isVertical,
   isLiveContent,
+  onTheaterMode,
+  onFullscreen,
+  isCompact = false,
 }: ControlSettingsProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false)
@@ -110,6 +120,25 @@ export const ControlSettings = ({
             {isVertical ? 'Horizontal' : 'Vertical'} orientation
           </DropdownMenu.Item>
 
+          {isCompact && (
+            <>
+              <DropdownMenu.Separator className={styles.menuSeparator} />
+              <DropdownMenu.Item
+                className={styles.menuItem}
+                onClick={onTheaterMode}
+              >
+                <IconRectangle size={14} />
+                Theater Mode
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                className={styles.menuItem}
+                onClick={onFullscreen}
+              >
+                <IconMaximize size={14} />
+                Fullscreen
+              </DropdownMenu.Item>
+            </>
+          )}
           {!isLiveContent && (
             <>
               <DropdownMenu.Separator className={styles.menuSeparator} />

@@ -194,13 +194,17 @@ export const DraggableWrapper = forwardRef<
     }, [storageKey, defaultWidth, isVerticalAspectRatio, calculateHeight])
 
     const handleMouseDownResize = useCallback(
-      (e: React.MouseEvent) => {
+      (e: React.MouseEvent | React.TouchEvent) => {
         e.preventDefault()
         e.stopPropagation()
         setIsResizing(true)
         resizeRef.current = {
-          startX: e.clientX,
-          startY: e.clientY,
+          startX:
+            (e as React.MouseEvent).clientX ||
+            (e as React.TouchEvent).touches[0].clientX,
+          startY:
+            (e as React.MouseEvent).clientY ||
+            (e as React.TouchEvent).touches[0].clientY,
           startWidth: size.width,
           startHeight: size.height,
         }
@@ -211,11 +215,15 @@ export const DraggableWrapper = forwardRef<
     useEffect(() => {
       if (!isResizing) return
 
-      const handleMouseMove = (e: MouseEvent) => {
+      const handleMouseMove = (e: MouseEvent | TouchEvent) => {
         if (!resizeRef.current) return
 
-        const deltaX = e.clientX - resizeRef.current.startX
-        const deltaY = e.clientY - resizeRef.current.startY
+        const x =
+          (e as MouseEvent).clientX || (e as TouchEvent).touches[0].clientX
+        const y =
+          (e as MouseEvent).clientY || (e as TouchEvent).touches[0].clientY
+        const deltaX = x - resizeRef.current.startX
+        const deltaY = y - resizeRef.current.startY
 
         // Use the larger delta to maintain aspect ratio
         const currentAspectRatio = getAspectRatio(isVerticalAspectRatio)
@@ -252,11 +260,15 @@ export const DraggableWrapper = forwardRef<
       }
 
       document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('touchmove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('touchend', handleMouseUp)
 
       return () => {
         document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('touchmove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('touchend', handleMouseUp)
       }
     }, [
       isResizing,
@@ -395,6 +407,7 @@ export const DraggableWrapper = forwardRef<
             <div
               className={styles.resizeHandle}
               onMouseDown={handleMouseDownResize}
+              onTouchStart={handleMouseDownResize}
               style={{
                 zIndex: 3,
                 position: 'absolute',
