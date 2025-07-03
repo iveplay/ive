@@ -71,31 +71,13 @@ export const IvdbPanel = () => {
       }
 
       const bestScript = scripts[0]
-
-      // Get the token URL for this script
-      const tokenResponse = await fetch(
-        `https://scripts01.handyfeeling.com/api/script/index/v0/videos/${videoId}/scripts/${bestScript.scriptId}/token`,
-        {
-          headers: {
-            Authorization: `Bearer ${handyConnectionKey}`,
-          },
-        },
-      )
-
-      if (!tokenResponse.ok) {
-        throw new Error(`Failed to get script token: ${tokenResponse.status}`)
-      }
-
-      const tokenData = await tokenResponse.json()
-
-      if (!tokenData.url) {
-        throw new Error('Invalid script token response')
-      }
-
       const creator =
         bestScript.scripter?.name || videoData.partnerName || 'IVDB'
 
-      const result = await saveScript(videoData.videoUrl, tokenData.url, {
+      // Save the IVDB script reference instead of the token URL
+      const ivdbScriptUrl = `ivdb://${videoId}/${bestScript.scriptId}`
+
+      const result = await saveScript(videoData.videoUrl, ivdbScriptUrl, {
         name: videoData.title,
         creator,
         supportUrl: `https://ivdb.io/#/videos/${videoId}`,

@@ -352,17 +352,69 @@ class DeviceService {
     }
   }
 
+  /**
+   * Resolve IVDB script URL to actual token URL
+   */
+  private async resolveIvdbScript(ivdbUrl: string): Promise<string> {
+    // Parse ivdb://videoId/scriptId
+    const match = ivdbUrl.match(/^ivdb:\/\/([^/]+)\/(.+)$/)
+    if (!match) {
+      throw new Error('Invalid IVDB script URL format')
+    }
+
+    const [, videoId, scriptId] = match
+
+    if (!this.state.handyConnectionKey) {
+      throw new Error('Handy connection key required for IVDB scripts')
+    }
+
+    try {
+      const tokenResponse = await fetch(
+        `https://scripts01.handyfeeling.com/api/script/index/v0/videos/${videoId}/scripts/${scriptId}/token`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.state.handyConnectionKey}`,
+          },
+        },
+      )
+
+      if (!tokenResponse.ok) {
+        throw new Error(`Failed to get script token: ${tokenResponse.status}`)
+      }
+
+      const tokenData = await tokenResponse.json()
+
+      if (!tokenData.url) {
+        throw new Error('Invalid script token response')
+      }
+
+      return tokenData.url
+    } catch (error) {
+      throw new Error(
+        `IVDB script resolution failed: ${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+  }
+
+  // Update loadScriptFromUrl method
   public async loadScriptFromUrl(
     url: string,
     sender?: chrome.runtime.MessageSender,
   ): Promise<boolean> {
     try {
-      this.state.scriptUrl = url
+      let actualUrl = url
+
+      // Resolve IVDB URLs to actual token URLs
+      if (url.startsWith('ivdb://')) {
+        actualUrl = await this.resolveIvdbScript(url)
+      }
+
+      this.state.scriptUrl = url // Keep original URL for reference
       await this.saveState()
 
       const scriptData: ScriptData = {
         type: 'funscript',
-        url: url,
+        url: actualUrl,
       }
 
       // Store the script data in memory only
