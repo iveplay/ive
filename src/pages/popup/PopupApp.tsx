@@ -1,5 +1,6 @@
 import { Burger, Drawer, ScrollArea, Text } from '@mantine/core'
 import { ReactNode, useState } from 'react'
+import DiscordIcon from '@/assets/discord.svg'
 import logoImg from '@/assets/logo.png'
 import PatreonIcon from '@/assets/patreon.svg'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
@@ -91,6 +92,15 @@ export const PopupApp = () => {
           </div>
         </ScrollArea>
         <div className={styles.drawerFooter}>
+          <a
+            href='https://discord.gg/KsYCE4jRHE'
+            target='_blank'
+            rel='noopener noreferrer'
+            className={styles.discordLink}
+          >
+            <DiscordIcon />
+            Help & Support
+          </a>
           <a
             href='https://patreon.com/iveplay'
             target='_blank'

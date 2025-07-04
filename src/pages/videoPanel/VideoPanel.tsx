@@ -184,7 +184,7 @@ export const VideoPanel = ({ scripts, isIvdbScript }: VideoPanelProps) => {
               {isPlaying ? 'Playing' : 'Stopped'}
             </span>
           </div>
-          {!isIvdbScript && (
+          {scripts && !isIvdbScript && (
             <div className={styles.invertContainer}>
               <span className={styles.label}>Invert:</span>
               <label className={styles.switch}>
