@@ -12,6 +12,7 @@ export interface DeviceServiceState {
   scriptUrl: string
   scriptLoaded?: boolean
   funscript?: Funscript | null
+  scriptInverted?: boolean
 
   // Player state
   isPlaying?: boolean
@@ -76,6 +77,7 @@ export const MESSAGES = {
   BUTTPLUG_SCAN: 'ive:buttplug_scan',
   LOAD_SCRIPT_URL: 'ive:load_script_url',
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
+  TOGGLE_SCRIPT_INVERSION: 'ive:toggle_script_inversion',
 
   // Video playback controls
   PLAY: 'ive:video:play',
@@ -120,6 +122,7 @@ export type UIMessage =
       type: typeof MESSAGES.LOAD_SCRIPT_CONTENT
       content: Record<string, unknown>
     }
+  | { type: typeof MESSAGES.TOGGLE_SCRIPT_INVERSION }
   // Video playback controls
   | {
       type: typeof MESSAGES.PLAY

@@ -57,6 +57,8 @@ export function setupMessageHandler(): void {
                 message.content,
                 sender,
               )
+            case MESSAGES.TOGGLE_SCRIPT_INVERSION:
+              return await deviceService.toggleScriptInversion(sender)
 
             // Video playback controls - now with sender info
             case MESSAGES.PLAY:

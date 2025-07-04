@@ -15,6 +15,7 @@ export interface DeviceState {
   scriptUrl: string
   scriptLoaded: boolean
   funscript: Funscript | null
+  scriptInverted: boolean
 
   // Settings
   handyOffset: number
@@ -42,6 +43,7 @@ interface DeviceActions {
   // Script actions
   loadScriptFromUrl: (url: string) => Promise<boolean>
   loadScriptFile: (file: File) => Promise<boolean>
+  setScriptInverted: (invert: boolean) => Promise<boolean>
 
   // Handle local state updates
   setHandyConnectionKey: (key: string) => void
@@ -61,6 +63,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   scriptLoaded: false,
   scriptUrl: '',
   funscript: null,
+  scriptInverted: false,
   handyOffset: 0,
   handyStrokeMin: 0,
   handyStrokeMax: 1,
@@ -237,6 +240,24 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
+  setScriptInverted: async (invert: boolean) => {
+    try {
+      set({ error: null })
+      const success = await chrome.runtime.sendMessage({
+        type: MESSAGES.TOGGLE_SCRIPT_INVERSION,
+      })
+      if (success) {
+        set({ scriptInverted: invert })
+      }
+      return success
+    } catch (error) {
+      set({
+        error: `Set script inverted error: ${error instanceof Error ? error.message : String(error)}`,
+      })
+      return false
+    }
+  },
+
   // Local state updates
   setHandyConnectionKey: (key: string) => {
     set({ handyConnectionKey: key })
@@ -271,6 +292,7 @@ export function useDeviceSetup(): void {
         useDeviceStore.setState({
           ...state,
           isLoaded: true,
+          scriptInverted: state.scriptInverted || false,
           handyOffset: state.handySettings?.offset || 0,
           handyStrokeMin: state.handySettings?.stroke?.min || 0,
           handyStrokeMax: state.handySettings?.stroke?.max || 1,
@@ -304,6 +326,7 @@ export function useDeviceSetup(): void {
           scriptUrl: message.state.scriptUrl,
           scriptLoaded: message.state.scriptLoaded,
           funscript: message.state.funscript || null,
+          scriptInverted: message.state.scriptInverted || false,
           handyOffset: message.state.handySettings?.offset || 0,
           handyStrokeMin: message.state.handySettings?.stroke?.min || 0,
           handyStrokeMax: message.state.handySettings?.stroke?.max || 1,

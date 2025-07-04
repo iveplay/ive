@@ -16,6 +16,7 @@ class DeviceService {
   private handyDevice: HandyDevice | null = null
   private buttplugDevice: ButtplugDevice | null = null
   private scriptLoaded = false
+  private scriptInverted = false
   private funscript: Funscript | null = null
   private lastLoadedScript: ScriptData | null = null
   private syncTimeouts: NodeJS.Timeout[] = []
@@ -106,6 +107,7 @@ class DeviceService {
       ...this.state,
       scriptLoaded: this.scriptLoaded,
       funscript: this.funscript,
+      scriptInverted: this.scriptInverted,
       isPlaying: this.isPlaying,
       currentTimeMs: this.currentTimeMs,
       playbackRate: this.playbackRate,
@@ -346,12 +348,73 @@ class DeviceService {
     scriptData: ScriptData,
   ): Promise<boolean> {
     try {
-      const result = await device.loadScript(scriptData)
+      const result = await device.loadScript(scriptData, {
+        invertScript: this.scriptInverted,
+      })
       return result.success
     } catch (error) {
       console.error('Error loading script to device:', error)
       return false
     }
+  }
+
+  public async toggleScriptInversion(
+    sender?: chrome.runtime.MessageSender,
+  ): Promise<boolean> {
+    const tabId = this.getSenderTabId(sender)
+
+    if (!this.shouldControlScript(tabId)) {
+      return false
+    }
+
+    this.scriptInverted = !this.scriptInverted
+
+    // Reload script with new inversion state if we have one loaded
+    if (this.lastLoadedScript) {
+      try {
+        const results: Record<string, boolean> = {}
+
+        if (this.handyDevice && this.state.handyConnected) {
+          const result = await this.handyDevice.loadScript(
+            this.lastLoadedScript,
+            { invertScript: this.scriptInverted },
+          )
+          results['handy'] = result.success
+        }
+
+        if (this.buttplugDevice && this.state.buttplugConnected) {
+          const result = await this.buttplugDevice.loadScript(
+            this.lastLoadedScript,
+            { invertScript: this.scriptInverted },
+          )
+          results['buttplug'] = result.success
+        }
+
+        const successCount = Object.values(results).filter(Boolean).length
+
+        if (successCount > 0) {
+          await this.broadcastState()
+
+          // If currently playing, restart playback with new inversion
+          if (this.isPlaying) {
+            await this.play(
+              this.currentTimeMs,
+              this.playbackRate,
+              this.duration,
+              this.loop,
+              sender,
+            )
+          }
+
+          return true
+        }
+      } catch (error) {
+        console.error('Error reloading script with inversion:', error)
+      }
+    }
+
+    await this.broadcastState()
+    return true
   }
 
   /**
@@ -415,7 +478,7 @@ class DeviceService {
       await this.saveState()
 
       const scriptData: ScriptData = {
-        type: 'funscript',
+        type: actualUrl.toLowerCase().split('.').pop() || 'funscript',
         url: actualUrl,
       }
 
@@ -430,7 +493,9 @@ class DeviceService {
       }
 
       // Load script to all connected devices
-      const results = await this.deviceManager.loadScriptAll(scriptData)
+      const results = await this.deviceManager.loadScriptAll(scriptData, {
+        invertScript: this.scriptInverted,
+      })
       const successCount = Object.values(results).filter(Boolean).length
 
       if (successCount > 0) {
@@ -475,7 +540,9 @@ class DeviceService {
       }
 
       // Load script to all connected devices
-      const results = await this.deviceManager.loadScriptAll(scriptData)
+      const results = await this.deviceManager.loadScriptAll(scriptData, {
+        invertScript: this.scriptInverted,
+      })
       const successCount = Object.values(results).filter(Boolean).length
 
       if (successCount > 0) {
