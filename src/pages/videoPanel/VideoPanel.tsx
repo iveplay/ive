@@ -11,15 +11,21 @@ import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
   scripts?: Scripts
+  isIvdbScript?: boolean
 }
 
-export const VideoPanel = ({ scripts }: VideoPanelProps) => {
+export const VideoPanel = ({ scripts, isIvdbScript }: VideoPanelProps) => {
   const scriptEntries = Object.entries(scripts || {})
 
   const [currentScript, setCurrentScript] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
+
+  const scriptInverted = useDeviceStore(
+    (state) => state.scriptInverted || false,
+  )
+  const setScriptInverted = useDeviceStore((state) => state.setScriptInverted)
 
   const {
     videoElement,
@@ -40,11 +46,6 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
       setActiveScript: state.setActiveScript,
     })),
   )
-
-  const scriptInverted = useDeviceStore(
-    (state) => state.scriptInverted || false,
-  )
-  const setScriptInverted = useDeviceStore((state) => state.setScriptInverted)
 
   const { isPlaying } = useVideoListener(videoElement)
 
@@ -183,18 +184,20 @@ export const VideoPanel = ({ scripts }: VideoPanelProps) => {
               {isPlaying ? 'Playing' : 'Stopped'}
             </span>
           </div>
-          <div className={styles.invertContainer}>
-            <span className={styles.label}>Invert:</span>
-            <label className={styles.switch}>
-              <input
-                type='checkbox'
-                checked={scriptInverted}
-                onChange={() => setScriptInverted(!scriptInverted)}
-                disabled={isLoading || !currentScript}
-              />
-              <span className={styles.slider}></span>
-            </label>
-          </div>
+          {!isIvdbScript && (
+            <div className={styles.invertContainer}>
+              <span className={styles.label}>Invert:</span>
+              <label className={styles.switch}>
+                <input
+                  type='checkbox'
+                  checked={scriptInverted}
+                  onChange={() => setScriptInverted(!scriptInverted)}
+                  disabled={isLoading || !currentScript}
+                />
+                <span className={styles.slider}></span>
+              </label>
+            </div>
+          )}
         </div>
         {scriptEntries.length > 1 && (
           <div className={styles.scriptDropdownContainer}>
