@@ -27,7 +27,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
 
   return (
     <div className={styles.videoPage}>
-      <VideoPanel scripts={scripts} />
+      <VideoPanel scripts={scripts} isIvdbScript={isIvdbScript} />
       {shouldShowHeatmap && <ScrubberHeatmap />}
       {isFloating && videoElement && (
         <FloatingVideo
