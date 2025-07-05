@@ -8,6 +8,20 @@ import {
 import { contextMenuService } from './contextMenuService'
 import { DeviceServiceState, DevicesInfo, Funscript, MESSAGES } from './types'
 
+const defaultState: DeviceServiceState = {
+  handyConnectionKey: '',
+  buttplugServerUrl: 'ws://localhost:12345',
+  handyConnected: false,
+  buttplugConnected: false,
+  scriptUrl: '',
+  showHeatmap: false,
+  customUrls: [],
+  handySettings: {
+    offset: 0,
+    stroke: { min: 0, max: 1 },
+  },
+}
+
 /**
  * Core service that manages devices and state
  */
@@ -34,19 +48,7 @@ class DeviceService {
   private loop = false
 
   // Last known states for persistence
-  private state: DeviceServiceState = {
-    handyConnectionKey: '',
-    buttplugServerUrl: 'ws://localhost:12345',
-    handyConnected: false,
-    buttplugConnected: false,
-    scriptUrl: '',
-    showHeatmap: false,
-    customUrls: [],
-    handySettings: {
-      offset: 0,
-      stroke: { min: 0, max: 1 },
-    },
-  }
+  private state: DeviceServiceState = defaultState
 
   constructor() {
     this.deviceManager = new DeviceManager()
@@ -84,7 +86,18 @@ class DeviceService {
       const savedState = storedState['ive-state']
 
       if (savedState) {
-        this.state = JSON.parse(savedState) as DeviceServiceState
+        const parsed = JSON.parse(savedState) as DeviceServiceState
+
+        // Don't override connected states
+        this.state.handyConnectionKey = parsed.handyConnectionKey || ''
+        this.state.buttplugServerUrl =
+          parsed.buttplugServerUrl || 'ws://localhost:12345'
+        this.state.showHeatmap = parsed.showHeatmap || false
+        this.state.customUrls = parsed.customUrls || []
+        this.state.handySettings = parsed.handySettings || {
+          offset: 0,
+          stroke: { min: 0, max: 1 },
+        }
       }
     } catch (error) {
       console.error('Error loading state:', error)
@@ -702,7 +715,6 @@ class DeviceService {
 
   private async syncTime(timeMs: number, filter: number): Promise<boolean> {
     try {
-      this.currentTimeMs = timeMs
       // Only sync if playing
       if (this.isPlaying) {
         await this.deviceManager.syncTimeAll(timeMs, filter)

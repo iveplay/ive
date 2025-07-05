@@ -23,7 +23,12 @@ setupIveEventApi()
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
   if (message.type === 'IVE_ACTIVATE_VIDEO_PANEL') {
-    document.getElementById('ive')?.remove()
+    if (document.getElementById('ive')) {
+      // Prevent duplicate components
+      sendResponse({ success: true })
+      return
+    }
+
     mountedComponent = false
     mountComponent(document.body, <VideoPage />, 'append', {
       zIndex: '2147483640',

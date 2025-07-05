@@ -5,4 +5,8 @@
   right: 0;
   height: 64px;
   z-index: 2147483640;
+
+  @media (hover: none) and (pointer: coarse) {
+    height: 32px;
+  }
 }

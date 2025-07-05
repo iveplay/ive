@@ -1,5 +1,5 @@
 import { MESSAGES } from '@background/types'
-import { useThrottledCallback } from '@mantine/hooks'
+import { useDebouncedCallback } from '@mantine/hooks'
 import { useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import { useVideoStore } from '@/store/useVideoStore'
@@ -25,7 +25,7 @@ export const useVideoListener = (videoElement: HTMLVideoElement | null) => {
     })),
   )
 
-  const throttledSeek = useThrottledCallback(async () => {
+  const throttledSeek = useDebouncedCallback(async () => {
     if (!videoElement) return
 
     try {

@@ -4,9 +4,10 @@ Interactive Video Extension - Control your haptics directly from your browser an
 
 ## Firefox Android Addon
 
-- ADB connect your device
+- ADB connect your device `adb pair <device_ip>:<port> <code>`
 - Install the Firefox Nightly build on your device
 - Run `npm run build:firefox` to build the addon
+- `cd dist-firefox`
 - Install and debug on your device: `web-ext run -t firefox-android --adb-device XXX --firefox-apk org.mozilla.fenix`
 
 ## License

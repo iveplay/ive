@@ -20,6 +20,11 @@
     pointer-events: none;
     z-index: 2;
 
+    @media (hover: none) and (pointer: coarse) {
+      top: 0px;
+      padding: 0px 2px;
+    }
+
     .currentTime {
       font-weight: 600;
     }
@@ -65,6 +70,10 @@
       width: 2px;
       height: 64px;
       background: #fff;
+
+      @media (hover: none) and (pointer: coarse) {
+        height: 32px;
+      }
     }
 
     &::-moz-range-thumb {
@@ -73,6 +82,10 @@
       background: #fff;
       border: none;
       border-radius: 0;
+
+      @media (hover: none) and (pointer: coarse) {
+        height: 32px;
+      }
     }
   }
 }

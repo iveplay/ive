@@ -238,7 +238,7 @@ export const Controls = ({
       {/* Only show scrubber for non-live content */}
       {!isLiveContent && (
         <>
-          {shouldShowHeatmap && showHeatmap && (
+          {shouldShowHeatmap && showHeatmap && !isCompact && (
             <div className={styles.heatmapContainer}>
               <Heatmap />
             </div>
