@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.4.7",
+  "version": "1.0.0",
   "name": "IVE - Interactive Video Extension",
   "short_name": "IVE",
   "description": "Interactive Video Extension - Control your haptics directly from your browser and sync with your favorite videos on any site!",
