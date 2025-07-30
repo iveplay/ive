@@ -21,6 +21,8 @@ export interface DeviceState {
   handyOffset: number
   handyStrokeMin: number
   handyStrokeMax: number
+  buttplugStrokeMin: number
+  buttplugStrokeMax: number
 
   // UI state
   error: string | null
@@ -39,6 +41,7 @@ interface DeviceActions {
   connectButtplug: (serverUrl: string) => Promise<boolean>
   disconnectButtplug: () => Promise<boolean>
   scanForButtplugDevices: () => Promise<boolean>
+  setButtplugStrokeSettings: (min: number, max: number) => Promise<boolean>
 
   // Script actions
   loadScriptFromUrl: (url: string) => Promise<boolean>
@@ -67,6 +70,8 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   handyOffset: 0,
   handyStrokeMin: 0,
   handyStrokeMax: 1,
+  buttplugStrokeMin: 0,
+  buttplugStrokeMax: 1,
   error: null,
   isLoaded: false,
 
@@ -186,6 +191,26 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
+  setButtplugStrokeSettings: async (min: number, max: number) => {
+    try {
+      set({ error: null })
+      const success = await chrome.runtime.sendMessage({
+        type: MESSAGES.BUTTPLUG_SET_STROKE_SETTINGS,
+        min,
+        max,
+      })
+      if (success) {
+        set({ buttplugStrokeMin: min, buttplugStrokeMax: max })
+      }
+      return success
+    } catch (error) {
+      set({
+        error: `Set buttplug stroke error: ${error instanceof Error ? error.message : String(error)}`,
+      })
+      return false
+    }
+  },
+
   loadScriptFromUrl: async (url: string) => {
     try {
       set({ error: null })
@@ -296,6 +321,8 @@ export function useDeviceSetup(): void {
           handyOffset: state.handySettings?.offset || 0,
           handyStrokeMin: state.handySettings?.stroke?.min || 0,
           handyStrokeMax: state.handySettings?.stroke?.max || 1,
+          buttplugStrokeMin: state.buttplugSettings?.stroke?.min || 0,
+          buttplugStrokeMax: state.buttplugSettings?.stroke?.max || 1,
         })
 
         // Also fetch device info
@@ -330,6 +357,8 @@ export function useDeviceSetup(): void {
           handyOffset: message.state.handySettings?.offset || 0,
           handyStrokeMin: message.state.handySettings?.stroke?.min || 0,
           handyStrokeMax: message.state.handySettings?.stroke?.max || 1,
+          buttplugStrokeMin: message.state.buttplugSettings?.stroke?.min || 0,
+          buttplugStrokeMax: message.state.buttplugSettings?.stroke?.max || 1,
           error: message.state.error || null,
           handyDeviceInfo: message.state.deviceInfo?.handy || null,
           buttplugDeviceInfo: message.state.deviceInfo?.buttplug || null,

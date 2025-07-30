@@ -49,6 +49,11 @@ export function setupMessageHandler(): void {
             case MESSAGES.BUTTPLUG_SCAN:
               return await deviceService.scanForButtplugDevices()
 
+            case MESSAGES.BUTTPLUG_SET_STROKE_SETTINGS:
+              return await deviceService.updateButtplugSettings({
+                stroke: { min: message.min, max: message.max },
+              })
+
             case MESSAGES.LOAD_SCRIPT_URL:
               return await deviceService.loadScriptFromUrl(message.url, sender)
 

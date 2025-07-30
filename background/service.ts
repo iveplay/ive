@@ -20,6 +20,9 @@ const defaultState: DeviceServiceState = {
     offset: 0,
     stroke: { min: 0, max: 1 },
   },
+  buttplugSettings: {
+    stroke: { min: 0, max: 1 },
+  },
 }
 
 /**
@@ -96,6 +99,9 @@ class DeviceService {
         this.state.customUrls = parsed.customUrls || []
         this.state.handySettings = parsed.handySettings || {
           offset: 0,
+          stroke: { min: 0, max: 1 },
+        }
+        this.state.buttplugSettings = parsed.buttplugSettings || {
           stroke: { min: 0, max: 1 },
         }
       }
@@ -324,6 +330,32 @@ class DeviceService {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
       console.error('Error disconnecting from Intiface server:', errorMessage)
+      throw error
+    }
+  }
+
+  public async updateButtplugSettings(settings: {
+    stroke?: { min: number; max: number }
+  }): Promise<boolean> {
+    if (!this.buttplugDevice) return false
+
+    try {
+      if (settings.stroke) {
+        this.state.buttplugSettings.stroke = settings.stroke
+      }
+
+      // Update the device configuration
+      await this.buttplugDevice.updateConfig({
+        strokeRange: settings.stroke,
+      })
+
+      await this.saveState()
+      await this.broadcastState()
+      return true
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error)
+      console.error('Error updating Buttplug settings:', errorMessage)
       throw error
     }
   }

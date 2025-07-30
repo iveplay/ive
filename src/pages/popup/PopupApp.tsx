@@ -111,7 +111,10 @@ export const PopupApp = () => {
             Support us
           </a>
           <Text size='xs' c='dimmed' ta='center' className={styles.versionText}>
-            Version {chrome.runtime.getManifest().version}
+            Version{' '}
+            {process.env.NODE_ENV === 'development'
+              ? 'DEV'
+              : chrome.runtime.getManifest().version}
           </Text>
         </div>
       </Drawer>

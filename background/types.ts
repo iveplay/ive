@@ -32,6 +32,12 @@ export interface DeviceServiceState {
       max: number
     }
   }
+  buttplugSettings: {
+    stroke: {
+      min: number
+      max: number
+    }
+  }
 
   // Settings
   showHeatmap: boolean
@@ -75,6 +81,7 @@ export const MESSAGES = {
   BUTTPLUG_CONNECT: 'ive:buttplug_connect',
   BUTTPLUG_DISCONNECT: 'ive:buttplug_disconnect',
   BUTTPLUG_SCAN: 'ive:buttplug_scan',
+  BUTTPLUG_SET_STROKE_SETTINGS: 'ive:buttplug_set_stroke_settings',
   LOAD_SCRIPT_URL: 'ive:load_script_url',
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
   TOGGLE_SCRIPT_INVERSION: 'ive:toggle_script_inversion',
@@ -117,6 +124,11 @@ export type UIMessage =
   | { type: typeof MESSAGES.BUTTPLUG_CONNECT; serverUrl: string }
   | { type: typeof MESSAGES.BUTTPLUG_DISCONNECT }
   | { type: typeof MESSAGES.BUTTPLUG_SCAN }
+  | {
+      type: typeof MESSAGES.BUTTPLUG_SET_STROKE_SETTINGS
+      min: number
+      max: number
+    }
   | { type: typeof MESSAGES.LOAD_SCRIPT_URL; url: string }
   | {
       type: typeof MESSAGES.LOAD_SCRIPT_CONTENT
