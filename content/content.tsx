@@ -5,6 +5,7 @@ import { FaptapCardHandler } from '@/pages/faptapPanel/FaptapCardHandler'
 import { FaptapPanel } from '@/pages/faptapPanel/FaptapPanel'
 import { IvdbPanel } from '@/pages/ivdbPanel/IvdbPanel'
 import { VideoPage } from '@/pages/videoPage/VideoPage'
+import { useVideoStore } from '@/store/useVideoStore'
 import { Scripts } from '@/types/script'
 import { findHtmlElement } from '@/utils/findHtmlElement'
 import { setupIveEventApi } from '@/utils/iveEventApi'
@@ -39,20 +40,23 @@ setupIveEventApi()
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-  if (message.type === 'IVE_ACTIVATE_VIDEO_PANEL') {
-    if (document.getElementById('ive')) {
-      // Prevent duplicate components
-      sendResponse({ success: true })
-      return
+  if (message.type === 'IVE_FLOAT_VIDEO') {
+    // First check if we need to mount the video page component
+    if (!document.getElementById('ive')) {
+      mountedComponent = false
+      mountComponent(document.body, <VideoPage />, 'append', {
+        zIndex: '2147483640',
+        position: 'fixed',
+        inset: '0',
+        pointerEvents: 'none',
+      })
     }
 
-    mountedComponent = false
-    mountComponent(document.body, <VideoPage />, 'append', {
-      zIndex: '2147483640',
-      position: 'fixed',
-      inset: '0',
-      pointerEvents: 'none',
-    })
+    // Then trigger floating mode
+    setTimeout(() => {
+      useVideoStore.getState().setIsFloating(true)
+    }, 100)
+
     sendResponse({ success: true })
   }
 })

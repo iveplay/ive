@@ -25,8 +25,8 @@ class ContextMenuService {
     })
 
     chrome.contextMenus.create({
-      id: 'open-video-panel',
-      title: 'Open Video Panel',
+      id: 'float-video',
+      title: 'Float Video',
       contexts: ['action'],
     })
   }
@@ -38,9 +38,9 @@ class ContextMenuService {
           case 'toggle-heatmap':
             await this.toggleHeatmap()
             break
-          case 'open-video-panel':
+          case 'float-video':
             if (tab?.id) {
-              await this.openVideoPanel(tab.id)
+              await this.floatVideo(tab.id)
             }
             break
         }
@@ -62,13 +62,13 @@ class ContextMenuService {
     })
   }
 
-  private async openVideoPanel(tabId: number): Promise<void> {
+  private async floatVideo(tabId: number): Promise<void> {
     try {
       await chrome.tabs.sendMessage(tabId, {
-        type: 'IVE_ACTIVATE_VIDEO_PANEL',
+        type: 'IVE_FLOAT_VIDEO',
       })
     } catch (error) {
-      console.error('Error opening video panel:', error)
+      console.error('Error floating video:', error)
     }
   }
 
