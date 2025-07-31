@@ -402,7 +402,14 @@ export const DraggableWrapper = forwardRef<
             cursor: isResizing ? 'se-resize' : 'auto',
           }}
         >
-          {children}
+          <div
+            style={{
+              display: 'contents',
+              pointerEvents: isResizing ? 'none' : 'auto',
+            }}
+          >
+            {children}
+          </div>
           {resizable && (
             <div
               className={styles.resizeHandle}

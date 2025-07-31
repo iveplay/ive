@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { FloatingIframe } from '@/components/floatingIframe/FloatingIframe'
 import { FloatingVideo } from '@/components/floatingVideo/FloatingVideo'
 import { ScrubberHeatmap } from '@/components/heatmap/ScrubberHeatmap'
 import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
@@ -34,19 +35,44 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
     }
   }, [videoElement, searchForVideo])
 
+  // Find iframe only if no video element exists
+  const iframeElement =
+    !videoElement &&
+    document.querySelectorAll('iframe').length > 0 &&
+    Array.from(document.querySelectorAll('iframe')).find((iframe) => {
+      const src = iframe.src.toLowerCase()
+      return (
+        src.includes('player') ||
+        src.includes('embed') ||
+        src.includes('video') ||
+        src.includes('mediadelivery') ||
+        iframe.allowFullscreen
+      )
+    })
+
+  const hasVideoIframes = !!iframeElement
+
   return (
     <div className={styles.videoPage}>
       <VideoPanel
         scripts={scripts}
         isIvdbScript={isIvdbScript}
         disableFloat={isInIframe}
+        hasVideoIframes={hasVideoIframes}
       />
-      {shouldShowHeatmap && <ScrubberHeatmap />}
-      {isFloating && videoElement && !isInIframe && (
-        <FloatingVideo
-          videoElement={videoElement}
-          shouldShowHeatmap={!!shouldShowHeatmap}
-        />
+      {shouldShowHeatmap && !hasVideoIframes && <ScrubberHeatmap />}
+      {isFloating && (
+        <>
+          {videoElement ? (
+            <FloatingVideo
+              videoElement={videoElement}
+              shouldShowHeatmap={!!shouldShowHeatmap}
+            />
+          ) : (
+            hasVideoIframes &&
+            !isInIframe && <FloatingIframe iframeElement={iframeElement} />
+          )}
+        </>
       )}
     </div>
   )

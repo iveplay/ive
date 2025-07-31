@@ -40,7 +40,7 @@ setupIveEventApi()
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-  if (message.type === 'IVE_FLOAT_VIDEO') {
+  if (message.type === 'IVE_FLOAT_VIDEO' && !isInIframe) {
     // First check if we need to mount the video page component
     if (!document.getElementById('ive')) {
       mountedComponent = false

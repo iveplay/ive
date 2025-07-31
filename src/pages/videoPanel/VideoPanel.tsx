@@ -13,12 +13,14 @@ type VideoPanelProps = {
   scripts?: Scripts
   isIvdbScript?: boolean
   disableFloat?: boolean
+  hasVideoIframes?: boolean
 }
 
 export const VideoPanel = ({
   scripts,
   isIvdbScript,
   disableFloat,
+  hasVideoIframes,
 }: VideoPanelProps) => {
   const scriptEntries = Object.entries(scripts || {})
 
@@ -172,7 +174,7 @@ export const VideoPanel = ({
                 setExpanded(false)
                 setIsFloating(!isFloating)
               }}
-              disabled={!videoElement}
+              disabled={!videoElement && !hasVideoIframes}
               title='Open floating video window'
             >
               Float
