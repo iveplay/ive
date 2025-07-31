@@ -83,5 +83,3 @@ export const useVideoStore = create<VideoStore>((set) => ({
     attemptFind()
   },
 }))
-
-useVideoStore.getState().searchForVideo()

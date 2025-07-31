@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { FloatingVideo } from '@/components/floatingVideo/FloatingVideo'
 import { ScrubberHeatmap } from '@/components/heatmap/ScrubberHeatmap'
 import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
@@ -17,6 +18,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
 
   const showHeatmap = useSettingsStore((state) => state.showHeatmap)
   const videoElement = useVideoStore((state) => state.videoElement)
+  const searchForVideo = useVideoStore((state) => state.searchForVideo)
   const isFloating = useVideoStore((state) => state.isFloating)
   const activeScript = useVideoStore((state) => state.activeScript)
   const scriptUrl = useDeviceStore((state) => state.scriptUrl)
@@ -25,6 +27,12 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   const shouldShowHeatmap =
     showHeatmap && scripts && scriptUrl === activeScript && !isIvdbScript
   const isInIframe = window !== window.top
+
+  useEffect(() => {
+    if (!videoElement) {
+      searchForVideo()
+    }
+  }, [videoElement, searchForVideo])
 
   return (
     <div className={styles.videoPage}>
