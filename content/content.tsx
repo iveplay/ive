@@ -5,6 +5,7 @@ import { FaptapCardHandler } from '@/pages/faptapPanel/FaptapCardHandler'
 import { FaptapPanel } from '@/pages/faptapPanel/FaptapPanel'
 import { IvdbPanel } from '@/pages/ivdbPanel/IvdbPanel'
 import { VideoPage } from '@/pages/videoPage/VideoPage'
+import { Scripts } from '@/types/script'
 import { findHtmlElement } from '@/utils/findHtmlElement'
 import { setupIveEventApi } from '@/utils/iveEventApi'
 import { getScripts } from '@/utils/saveScripts'
@@ -76,9 +77,11 @@ const handleUrlChange = async () => {
     // Prevent duplicate components
     return
   }
-
   const scriptMappings = await getScripts()
-  const scripts = Object.entries(scriptMappings).find(([url]) =>
+
+  let scripts: Scripts | undefined
+
+  scripts = Object.entries(scriptMappings).find(([url]) =>
     currentUrl.includes(url),
   )?.[1]
 
@@ -94,7 +97,7 @@ const handleUrlChange = async () => {
   }
 
   // Check if current URL matches any custom URLs
-  const matchesCustomUrl = customUrls.some((url) => {
+  let matchesCustomUrl = customUrls.some((url) => {
     const normalizedCurrentUrl = currentUrl
       .replace(/^https?:\/\//, '')
       .replace(/^www\./, '')
@@ -103,6 +106,45 @@ const handleUrlChange = async () => {
       .replace(/^www\./, '')
     return normalizedCurrentUrl.includes(normalizedCustomUrl)
   })
+
+  if (isInIframe && !scripts && !matchesCustomUrl) {
+    try {
+      // Get parent window URL if accessible
+      const parentUrl = window.parent.location.href
+
+      // Check if parent URL has scripts
+      scripts = Object.entries(scriptMappings).find(([url]) =>
+        parentUrl.includes(url),
+      )?.[1]
+
+      // Check if parent URL matches custom URLs
+      if (!scripts && !matchesCustomUrl) {
+        matchesCustomUrl = customUrls.some((url) => {
+          const normalizedParentUrl = parentUrl
+            .replace(/^https?:\/\//, '')
+            .replace(/^www\./, '')
+          const normalizedCustomUrl = url
+            .replace(/^https?:\/\//, '')
+            .replace(/^www\./, '')
+          return normalizedParentUrl.includes(normalizedCustomUrl)
+        })
+      }
+    } catch {
+      // Parent URL not accessible due to CORS, try alternative approach
+
+      // Extract domain from iframe URL and check against script domains
+      const currentDomain = new URL(currentUrl).hostname.replace(/^www\./, '')
+
+      scripts = Object.entries(scriptMappings).find(([url]) => {
+        const scriptDomain = new URL(url).hostname.replace(/^www\./, '')
+        return (
+          currentDomain === scriptDomain ||
+          currentDomain.endsWith(`.${scriptDomain}`) ||
+          scriptDomain.endsWith(`.${currentDomain}`)
+        )
+      })?.[1]
+    }
+  }
 
   try {
     if (currentUrl.includes(EROSCRIPT_URL)) {
@@ -137,10 +179,9 @@ const handleUrlChange = async () => {
         })
       }
     } else if (scripts || matchesCustomUrl) {
-      // Only mount VideoPage if:
-      // 1. We're in an iframe, OR
-      // 2. We're on main page AND no video iframes detected
-      const shouldMount = isInIframe || !hasVideoIframes()
+      // Only mount on iframe OR main page without video iframes
+      // Don't mount if we're on main page with iframes (let iframe handle it)
+      const shouldMount = isInIframe || (!hasVideoIframes() && scripts)
 
       if (shouldMount) {
         mountComponent(

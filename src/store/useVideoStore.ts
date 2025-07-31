@@ -28,7 +28,7 @@ interface VideoStore {
   searchForVideo: () => void
 }
 
-export const useVideoStore = create<VideoStore>((set) => ({
+export const useVideoStore = create<VideoStore>((set, get) => ({
   isPlaying: false,
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   currentTime: 0,
@@ -51,6 +51,8 @@ export const useVideoStore = create<VideoStore>((set) => ({
   isSearching: false,
   error: null,
   searchForVideo: () => {
+    if (get().isSearching) return
+
     set({ isSearching: true, error: null })
 
     let attempts = 0
