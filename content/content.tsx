@@ -16,6 +16,22 @@ const IVDB_URL = 'ivdb.io/#/videos/'
 
 let currentUrl = window.location.href
 let mountedComponent = false
+const isInIframe = window !== window.top
+
+const hasVideoIframes = (): boolean => {
+  const iframes = document.querySelectorAll('iframe')
+  return Array.from(iframes).some((iframe) => {
+    const src = iframe.src.toLowerCase()
+    return (
+      src.includes('player') ||
+      src.includes('embed') ||
+      src.includes('video') ||
+      src.includes('mediadelivery') ||
+      src.includes('iframe.') ||
+      iframe.allowFullscreen
+    )
+  })
+}
 
 // Expose extension API to the page
 setupIveEventApi()
@@ -121,12 +137,24 @@ const handleUrlChange = async () => {
         })
       }
     } else if (scripts || matchesCustomUrl) {
-      mountComponent(document.body, <VideoPage scripts={scripts} />, 'append', {
-        zIndex: '2147483640',
-        position: 'fixed',
-        inset: '0',
-        pointerEvents: 'none',
-      })
+      // Only mount VideoPage if:
+      // 1. We're in an iframe, OR
+      // 2. We're on main page AND no video iframes detected
+      const shouldMount = isInIframe || !hasVideoIframes()
+
+      if (shouldMount) {
+        mountComponent(
+          document.body,
+          <VideoPage scripts={scripts} />,
+          'append',
+          {
+            zIndex: '2147483640',
+            position: 'fixed',
+            inset: '0',
+            pointerEvents: 'none',
+          },
+        )
+      }
     }
   } catch (error) {
     console.error('Error mounting IVE component:', error)

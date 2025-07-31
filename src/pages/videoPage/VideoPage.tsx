@@ -24,12 +24,17 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   const isIvdbScript = scriptUrl?.startsWith('ivdb://')
   const shouldShowHeatmap =
     showHeatmap && scripts && scriptUrl === activeScript && !isIvdbScript
+  const isInIframe = window !== window.top
 
   return (
     <div className={styles.videoPage}>
-      <VideoPanel scripts={scripts} isIvdbScript={isIvdbScript} />
+      <VideoPanel
+        scripts={scripts}
+        isIvdbScript={isIvdbScript}
+        disableFloat={isInIframe}
+      />
       {shouldShowHeatmap && <ScrubberHeatmap />}
-      {isFloating && videoElement && (
+      {isFloating && videoElement && !isInIframe && (
         <FloatingVideo
           videoElement={videoElement}
           shouldShowHeatmap={!!shouldShowHeatmap}

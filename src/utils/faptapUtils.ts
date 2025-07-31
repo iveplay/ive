@@ -32,19 +32,11 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
   }
 
   const scriptUrl = `https://faptap.net/api/assets/${data.script.url}`
-  let videoUrl =
+  const videoUrl =
     data.stream_url ||
     (data.stream_url_selfhosted?.includes('faptap')
       ? ''
       : data.stream_url_selfhosted)
-
-  // Replace mediadelivery.net/play with /embed
-  if (videoUrl && videoUrl.includes('https://iframe.mediadelivery.net/play')) {
-    videoUrl = videoUrl.replace(
-      'https://iframe.mediadelivery.net/play',
-      'https://iframe.mediadelivery.net/embed',
-    )
-  }
 
   const creator = data.user.username
   const supportUrl =

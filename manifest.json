@@ -25,6 +25,7 @@
   "content_scripts": [
     {
       "js": ["content/content.tsx"],
+      "all_frames": true,
       "matches": ["<all_urls>"]
     }
   ],

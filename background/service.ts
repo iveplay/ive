@@ -40,6 +40,7 @@ class DeviceService {
 
   // Track which tab has the active script
   private activeScriptTabId: number | null = null
+  private activeScriptFrameId: number | null = null
 
   // Playback state
   private isPlaying = false
@@ -59,20 +60,39 @@ class DeviceService {
   }
 
   // Helper method to check if a tab should control scripts
-  private shouldControlScript(tabId?: number): boolean {
-    // If no script is loaded, no control allowed
+  private shouldControlScript(sender?: chrome.runtime.MessageSender): boolean {
     if (!this.scriptLoaded || !this.lastLoadedScript) {
       return false
     }
 
-    // If no active tab is set, allow the first tab to take control
+    const tabId = sender?.tab?.id
+    const frameId = sender?.frameId
+
+    // If no active script tab, allow first requester to take control
     if (this.activeScriptTabId === null && tabId) {
       this.activeScriptTabId = tabId
+      this.activeScriptFrameId = frameId || 0
+      console.log(`Script control taken by tab ${tabId}, frame ${frameId}`)
       return true
     }
 
-    // Only allow control from the active script tab
-    return tabId === this.activeScriptTabId
+    // Allow control from:
+    // 1. Same tab, same frame (exact match)
+    // 2. Same tab, different frame (iframe in same page)
+    if (tabId === this.activeScriptTabId) {
+      // Update frame ID if it's more specific (iframe taking over from main frame)
+      if (
+        frameId !== undefined &&
+        frameId !== 0 &&
+        this.activeScriptFrameId === 0
+      ) {
+        this.activeScriptFrameId = frameId
+        console.log(`Frame control updated to frame ${frameId} in tab ${tabId}`)
+      }
+      return true
+    }
+
+    return false
   }
 
   // Helper method to get sender tab ID from Chrome API
@@ -406,9 +426,7 @@ class DeviceService {
   public async toggleScriptInversion(
     sender?: chrome.runtime.MessageSender,
   ): Promise<boolean> {
-    const tabId = this.getSenderTabId(sender)
-
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       return false
     }
 
@@ -531,10 +549,14 @@ class DeviceService {
       this.lastLoadedScript = scriptData
 
       // Set the active script tab
-      const tabId = this.getSenderTabId(sender)
+      const tabId = sender?.tab?.id
+      const frameId = sender?.frameId
       if (tabId) {
         this.activeScriptTabId = tabId
-        console.log(`Script loaded in tab ${tabId}, now controlling devices`)
+        this.activeScriptFrameId = frameId || 0
+        console.log(
+          `Script loaded in tab ${tabId}, frame ${frameId}, now controlling devices`,
+        )
       }
 
       // Load script to all connected devices
@@ -619,12 +641,9 @@ class DeviceService {
     loop: boolean = false,
     sender?: chrome.runtime.MessageSender,
   ): Promise<boolean> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       console.log(
-        `Tab ${tabId} attempted to play but is not the active script tab (${this.activeScriptTabId})`,
+        `Tab ${sender?.tab?.id} frame ${sender?.frameId} attempted to play but is not the active script context (tab: ${this.activeScriptTabId}, frame: ${this.activeScriptFrameId})`,
       )
       return false
     }
@@ -715,12 +734,9 @@ class DeviceService {
   }
 
   public async stop(sender?: chrome.runtime.MessageSender): Promise<boolean> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       console.log(
-        `Tab ${tabId} attempted to stop but is not the active script tab (${this.activeScriptTabId})`,
+        `Tab ${sender?.tab?.id} frame ${sender?.frameId} attempted to stop but is not the active script context`,
       )
       return false
     }
@@ -765,10 +781,7 @@ class DeviceService {
     timeMs: number,
     sender?: chrome.runtime.MessageSender,
   ): Promise<void> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       return
     }
 
@@ -781,10 +794,7 @@ class DeviceService {
     duration: number,
     sender?: chrome.runtime.MessageSender,
   ): Promise<void> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       return
     }
 
@@ -796,10 +806,7 @@ class DeviceService {
     playbackRate: number,
     sender?: chrome.runtime.MessageSender,
   ): Promise<void> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       return
     }
 
@@ -812,10 +819,7 @@ class DeviceService {
     muted: boolean,
     sender?: chrome.runtime.MessageSender,
   ): Promise<void> {
-    const tabId = this.getSenderTabId(sender)
-
-    // Check if this tab should control the script
-    if (!this.shouldControlScript(tabId)) {
+    if (!this.shouldControlScript(sender)) {
       return
     }
 
@@ -834,6 +838,7 @@ class DeviceService {
     if (this.activeScriptTabId === tabId) {
       console.log(`Active script tab ${tabId} closed, clearing script control`)
       this.activeScriptTabId = null
+      this.activeScriptFrameId = null
       this.scriptLoaded = false
       this.lastLoadedScript = null
       this.funscript = null

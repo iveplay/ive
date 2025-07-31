@@ -12,9 +12,14 @@ import styles from './VideoPanel.module.scss'
 type VideoPanelProps = {
   scripts?: Scripts
   isIvdbScript?: boolean
+  disableFloat?: boolean
 }
 
-export const VideoPanel = ({ scripts, isIvdbScript }: VideoPanelProps) => {
+export const VideoPanel = ({
+  scripts,
+  isIvdbScript,
+  disableFloat,
+}: VideoPanelProps) => {
   const scriptEntries = Object.entries(scripts || {})
 
   const [currentScript, setCurrentScript] = useState<string | null>(null)
@@ -160,17 +165,19 @@ export const VideoPanel = ({ scripts, isIvdbScript }: VideoPanelProps) => {
               Sync
             </button>
           )}
-          <button
-            className={styles.floatButton}
-            onClick={() => {
-              setExpanded(false)
-              setIsFloating(!isFloating)
-            }}
-            disabled={!videoElement}
-            title='Open floating video window'
-          >
-            Float
-          </button>
+          {!disableFloat && (
+            <button
+              className={styles.floatButton}
+              onClick={() => {
+                setExpanded(false)
+                setIsFloating(!isFloating)
+              }}
+              disabled={!videoElement}
+              title='Open floating video window'
+            >
+              Float
+            </button>
+          )}
         </div>
         <div className={styles.scriptContainer}>
           <div className={styles.status}>
