@@ -1000,6 +1000,43 @@ class DeviceService {
       console.error('Error during auto-connect:', error)
     }
   }
+
+  // Extract real script URL from Cloudflare on background worker because of CORS
+  extractRealScriptUrlFromCloudflare = async (
+    scriptUrl: string,
+  ): Promise<string | null> => {
+    try {
+      const response = await fetch(scriptUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch funscript: ${response.status}`)
+      }
+      const responseText = await response.text()
+
+      // Look for any path containing .funscript in the HTML
+      const funscriptPathMatch = responseText.match(
+        /["']([^"']*\.funscript[^"']*?)["']/,
+      )
+      const cZoneMatch = responseText.match(/cZone:\s*"([^"]+)"/)
+
+      if (funscriptPathMatch && cZoneMatch) {
+        let path = funscriptPathMatch[1]
+        const cZone = cZoneMatch[1]
+
+        // Remove URL parameters (everything after ?)
+        const questionMarkIndex = path.indexOf('?')
+        if (questionMarkIndex !== -1) {
+          path = path.substring(0, questionMarkIndex)
+        }
+
+        return `https://${cZone}${path}`
+      }
+
+      return null
+    } catch (error) {
+      console.error('Error extracting URL from HTML:', error)
+      return null
+    }
+  }
 }
 
 // Export singleton instance

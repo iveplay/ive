@@ -116,6 +116,11 @@ export function setupMessageHandler(): void {
                 message.scriptId,
                 message.scriptInfo,
               )
+            // Utils
+            case MESSAGES.EXTRACT_SCRIPT_URL:
+              return await deviceService.extractRealScriptUrlFromCloudflare(
+                message.url,
+              )
 
             default:
               return {

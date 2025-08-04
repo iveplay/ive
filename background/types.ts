@@ -105,6 +105,9 @@ export const MESSAGES = {
 
   // Device state
   DEVICE_STATE_UPDATE: 'ive:device_state_update',
+
+  // Utils
+  EXTRACT_SCRIPT_URL: 'ive:extract_script_url',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -173,3 +176,5 @@ export type UIMessage =
       type: typeof MESSAGES.DEVICE_STATE_UPDATE
       state: DeviceServiceState
     }
+  // Utils
+  | { type: typeof MESSAGES.EXTRACT_SCRIPT_URL; url: string }

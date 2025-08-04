@@ -63,6 +63,18 @@ export const FunscripthubPanel = () => {
 
     setIsLoading(true)
     try {
+      // Extract the real script URL using background process
+      const realScriptUrl = await chrome.runtime.sendMessage({
+        type: 'ive:extract_script_url',
+        url: selectedScript,
+      })
+
+      if (!realScriptUrl) {
+        throw new Error(
+          'Failed to extract script URL from Cloudflare protection',
+        )
+      }
+
       // Extract page info for script metadata
       const title =
         document
@@ -78,7 +90,7 @@ export const FunscripthubPanel = () => {
       const selectedScriptName =
         scriptLinks.find((s) => s.url === selectedScript)?.name || title
 
-      const result = await saveScript(selectedVideo, selectedScript, {
+      const result = await saveScript(selectedVideo, realScriptUrl, {
         name: selectedScriptName,
         creator,
         supportUrl: authorLink?.href || '',
