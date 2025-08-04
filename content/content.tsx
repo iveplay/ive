@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
 import { FaptapCardHandler } from '@/pages/faptapPanel/FaptapCardHandler'
 import { FaptapPanel } from '@/pages/faptapPanel/FaptapPanel'
+import { FunscripthubPanel } from '@/pages/funscripthubPanel/FunscripthubPanel'
 import { IvdbPanel } from '@/pages/ivdbPanel/IvdbPanel'
 import { VideoPage } from '@/pages/videoPage/VideoPage'
 import { useVideoStore } from '@/store/useVideoStore'
@@ -15,6 +16,7 @@ const EROSCRIPT_URL = 'discuss.eroscripts.com/t/'
 const FAPTAP_URL = 'faptap.net/v'
 const FAPTAP_DOMAIN = 'faptap.net'
 const IVDB_URL = 'ivdb.io/#/videos/'
+const FUNSCRIPTHUB_URL = 'funscripthub.com/detail'
 
 let currentUrl = window.location.href
 let mountedComponent = false
@@ -180,6 +182,18 @@ const handleUrlChange = async () => {
       if (container) {
         mountComponent(container, <IvdbPanel />, 'prepend', {
           position: 'relative',
+        })
+      }
+    } else if (currentUrl.includes(FUNSCRIPTHUB_URL)) {
+      // Find the section with video links and inject above it
+      const videoLinksSection = document.querySelector(
+        '#app > div > div:nth-child(2) > div > div > div.lg\\:col-start-3.lg\\:row-end-1',
+      )
+
+      if (videoLinksSection) {
+        mountComponent(videoLinksSection, <FunscripthubPanel />, 'prepend', {
+          position: 'relative',
+          marginBottom: '16px',
         })
       }
     } else if (scripts || matchesCustomUrl) {

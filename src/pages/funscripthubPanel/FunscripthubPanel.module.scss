@@ -1,0 +1,96 @@
+.container {
+  width: 100%;
+  padding: 16px;
+  background-color: rgba(41, 11, 29, 0.95);
+  border-radius: 8px;
+  border: 1px solid rgba(123, 2, 77, 0.5);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  margin-bottom: 16px;
+}
+
+.logo {
+  width: 48px;
+  margin: 0 auto 12px;
+  object-fit: contain;
+}
+
+.select {
+  width: 100%;
+  height: 36px;
+  padding: 0 32px 0 12px;
+  margin-bottom: 12px;
+  background-color: rgba(123, 2, 77, 0.2);
+  border: 1px solid rgba(123, 2, 77, 0.5);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBzdHJva2U9Im5vbmUiLz48cGF0aCBkPSJtNiA5IDYgNiA2LTYiLz48L3N2Zz4=');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(166, 5, 105, 0.3);
+    border-color: rgba(166, 5, 105, 0.7);
+  }
+
+  &:focus {
+    outline: none;
+    background-color: rgba(166, 5, 105, 0.3);
+    border-color: rgba(166, 5, 105, 0.7);
+    box-shadow: 0 0 0 2px rgba(166, 5, 105, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: rgba(60, 60, 60, 0.2);
+    border-color: rgba(80, 80, 80, 0.5);
+  }
+
+  option {
+    background-color: #290b1d;
+    color: white;
+    padding: 8px;
+
+    &:hover {
+      background-color: rgba(166, 5, 105, 0.7);
+    }
+  }
+}
+
+.loadButton {
+  width: 100%;
+  padding: 8px 16px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background-color: #7b024d;
+
+  &:hover:not(:disabled) {
+    background-color: #a60569;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(123, 2, 77, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

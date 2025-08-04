@@ -1,0 +1,143 @@
+import clsx from 'clsx'
+import { useState } from 'react'
+import logoImg from '@/assets/logo.png'
+import { saveScript } from '@/utils/saveScripts'
+import styles from './FunscripthubPanel.module.scss'
+
+type VideoLink = {
+  url: string
+  label: string
+}
+
+type ScriptLink = {
+  url: string
+  name: string
+}
+
+const getAllLinks = () => {
+  const videoLinks: VideoLink[] = []
+  const scriptLinks: ScriptLink[] = []
+  const container = document.querySelector(
+    '#app > div > div:nth-child(2) > div > div > div.lg\\:col-start-3.lg\\:row-end-1 > div.rounded-lg.bg-gray-50.shadow-sm.ring-1.ring-gray-900\\/5 > dl',
+  )
+
+  if (container) {
+    const links = container.querySelectorAll('a[href]')
+    links.forEach((link) => {
+      const href = link.getAttribute('href')
+      const text = link.textContent?.trim()
+
+      if (href && text) {
+        if (href.endsWith('.funscript')) {
+          scriptLinks.push({
+            url: href,
+            name: text.replace('.funscript', ''),
+          })
+        } else {
+          try {
+            const hostname = new URL(href).hostname
+            videoLinks.push({
+              url: href,
+              label: hostname,
+            })
+          } catch {
+            // Skip invalid URLs
+          }
+        }
+      }
+    })
+  }
+
+  return { videoLinks, scriptLinks }
+}
+
+export const FunscripthubPanel = () => {
+  const [selectedVideo, setSelectedVideo] = useState('')
+  const [selectedScript, setSelectedScript] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const { videoLinks, scriptLinks } = getAllLinks()
+
+  const handleLoad = async () => {
+    if (!selectedVideo || !selectedScript) return
+
+    setIsLoading(true)
+    try {
+      // Extract page info for script metadata
+      const title =
+        document
+          .querySelector(
+            '#app > div > div:nth-child(2) > div > div > div.-mx-4.px-4.py-4.shadow-sm.ring-1.ring-gray-900\\/5.sm\\:mx-0.sm\\:rounded-lg.lg\\:col-span-2.lg\\:row-span-2.lg\\:row-end-2.lg\\:px-8.lg\\:py-8 > h2',
+          )
+          ?.textContent?.trim() || 'FunScriptHub'
+      const authorLink: HTMLAnchorElement | null = document.querySelector(
+        '#app > div > div:nth-child(2) > div > div > div.-mx-4.px-4.py-4.shadow-sm.ring-1.ring-gray-900\\/5.sm\\:mx-0.sm\\:rounded-lg.lg\\:col-span-2.lg\\:row-span-2.lg\\:row-end-2.lg\\:px-8.lg\\:py-8 > dl > div.mt-6.border-t.border-gray-900\\/5.pt-6.sm\\:pr-4 > dd > span > a',
+      )
+      const creator = authorLink?.textContent?.trim() || 'Unknown'
+
+      const selectedScriptName =
+        scriptLinks.find((s) => s.url === selectedScript)?.name || title
+
+      const result = await saveScript(selectedVideo, selectedScript, {
+        name: selectedScriptName,
+        creator,
+        supportUrl: authorLink?.href || '',
+        isDefault: true,
+      })
+
+      if (!result) {
+        throw new Error('Failed to save script')
+      }
+
+      // Open the video
+      window.open(selectedVideo, '_blank')
+    } catch (error) {
+      console.error('Error loading script:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className={styles.container}>
+      <img
+        src={chrome.runtime.getURL(logoImg)}
+        alt='IVE'
+        className={styles.logo}
+      />
+      <select
+        className={styles.select}
+        value={selectedVideo}
+        onChange={(e) => setSelectedVideo(e.target.value)}
+        disabled={isLoading}
+      >
+        <option value=''>Choose video...</option>
+        {videoLinks.map((video, index) => (
+          <option key={index} value={video.url}>
+            {video.label}
+          </option>
+        ))}
+      </select>
+      <select
+        className={styles.select}
+        value={selectedScript}
+        onChange={(e) => setSelectedScript(e.target.value)}
+        disabled={isLoading}
+      >
+        <option value=''>Choose script...</option>
+        {scriptLinks.map((script, index) => (
+          <option key={index} value={script.url}>
+            {script.name}
+          </option>
+        ))}
+      </select>
+      <button
+        className={clsx(styles.loadButton, { [styles.loading]: isLoading })}
+        onClick={handleLoad}
+        disabled={!selectedVideo || !selectedScript || isLoading}
+      >
+        {isLoading ? 'Loading...' : 'Load & Play'}
+      </button>
+    </div>
+  )
+}
