@@ -696,26 +696,30 @@ class DeviceService {
         this.syncTimeouts.forEach((t) => clearTimeout(t))
         this.syncTimeouts = []
 
-        // Sync with filter 0.9 after 2 seconds
-        this.syncTimeouts.push(
-          setTimeout(() => {
-            if (this.isPlaying) this.syncTime(this.currentTimeMs, 0.9)
-          }, 2000),
-        )
+        // Only set up sync timeouts for Handy devices
+        if (this.handyDevice && this.state.handyConnected) {
+          // Sync with filter 0.9 after 2 seconds
+          this.syncTimeouts.push(
+            setTimeout(() => {
+              if (this.isPlaying) this.syncHandyTime(this.currentTimeMs, 0.9)
+            }, 2000),
+          )
 
-        // Sync with filter 0.5 every 15 seconds starting at 17 seconds
-        this.syncTimeouts.push(
-          setTimeout(() => {
-            if (this.isPlaying) {
-              this.syncTime(this.currentTimeMs, 0.5)
-              this.syncTimeouts.push(
-                setInterval(() => {
-                  if (this.isPlaying) this.syncTime(this.currentTimeMs, 0.5)
-                }, 15000),
-              )
-            }
-          }, 17000),
-        )
+          // Sync with filter 0.5 every 15 seconds starting at 17 seconds
+          this.syncTimeouts.push(
+            setTimeout(() => {
+              if (this.isPlaying) {
+                this.syncHandyTime(this.currentTimeMs, 0.5)
+                this.syncTimeouts.push(
+                  setInterval(() => {
+                    if (this.isPlaying)
+                      this.syncHandyTime(this.currentTimeMs, 0.5)
+                  }, 15000),
+                )
+              }
+            }, 17000),
+          )
+        }
 
         await this.broadcastState()
         return true
@@ -761,18 +765,20 @@ class DeviceService {
     }
   }
 
-  private async syncTime(timeMs: number, filter: number): Promise<boolean> {
+  private async syncHandyTime(
+    timeMs: number,
+    filter: number,
+  ): Promise<boolean> {
     try {
-      // Only sync if playing
-      if (this.isPlaying) {
-        await this.deviceManager.syncTimeAll(timeMs, filter)
+      // Only sync if playing and Handy is connected
+      if (this.isPlaying && this.handyDevice && this.state.handyConnected) {
+        await this.handyDevice.syncTime(timeMs, filter)
       }
-
       return true
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      console.error('Error syncing time:', errorMessage)
+      console.error('Error syncing Handy time:', errorMessage)
       throw error
     }
   }
