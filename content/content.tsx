@@ -154,9 +154,8 @@ const handleUrlChange = async () => {
 
   try {
     if (currentUrl.includes(EROSCRIPT_URL)) {
-      const container = document.getElementsByClassName(
-        'icons d-header-icons',
-      )[0]
+      const container = document.querySelector('[class*="with-timeline"]')
+
       if (container) {
         mountComponent(container, <EroLoadPanel />, 'prepend', {
           position: 'relative',

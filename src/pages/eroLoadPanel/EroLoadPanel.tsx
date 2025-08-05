@@ -1,142 +1,152 @@
-import { useState, useRef, useCallback, DragEvent } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import logoImg from '@/assets/logo.png'
-import { useMobileEroLoadButtons } from '@/hooks/useMobileEroLoadButtons'
+import {
+  EroscriptContent,
+  eroscriptDetectContent,
+} from '@/utils/eroscriptDetectContent'
 import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
 import { saveScript } from '@/utils/saveScripts'
 import styles from './EroLoadPanel.module.scss'
 
 export const EroLoadPanel = () => {
-  const [isPopupOpen, setIsPopupOpen] = useState(false)
-  const dropAreaRef = useRef<HTMLDivElement>(null)
-  const [dragActive, setDragActive] = useState(false)
-  const [script, setScript] = useState<{ url: string; script: string | null }>({
-    url: '',
-    script: null,
-  })
+  const mountedRef = useRef(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [autoDetected, setAutoDetected] = useState<EroscriptContent>({
+    scripts: [],
+    videos: [],
+  })
+  const [selectedScript, setSelectedScript] = useState<string>('')
+  const [selectedVideo, setSelectedVideo] = useState<string>('')
 
-  const processDroppedUrl = useCallback(
-    (url: string) => {
-      if (url.endsWith('.funscript') || url.endsWith('.csv')) {
-        setScript((prevState) => ({ url: prevState.url, script: url }))
-      } else {
-        setScript((prevState) => ({ url, script: prevState.script }))
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [script],
-  )
+  const detectContent = useCallback(() => {
+    const detected = eroscriptDetectContent()
+    setAutoDetected(detected)
 
-  useMobileEroLoadButtons(processDroppedUrl, styles.linkLoaderButton)
-
-  const handleDragOver = (e: DragEvent) => {
-    e.preventDefault()
-    setDragActive(true)
-  }
-
-  const handleDragLeave = () => {
-    setDragActive(false)
-  }
-
-  const handleDrop = (e: DragEvent) => {
-    e.preventDefault()
-    setDragActive(false)
-
-    // Check for URLs
-    const url =
-      e.dataTransfer?.getData('text/uri-list') ||
-      e.dataTransfer?.getData('text') ||
-      e.dataTransfer?.getData('text/plain')
-
-    if (url) {
-      processDroppedUrl(url)
+    if (detected.scripts.length > 0 && !selectedScript) {
+      setSelectedScript(detected.scripts[0].url)
     }
-  }
+    if (detected.videos.length > 0 && !selectedVideo) {
+      setSelectedVideo(detected.videos[0].url)
+    }
+  }, [selectedScript, selectedVideo])
+
+  // Set up mutation observer to detect new posts
+  useEffect(() => {
+    const postStream = document.querySelector('.post-stream')
+    if (!postStream) return
+
+    const observer = new MutationObserver((mutations) => {
+      let shouldRedetect = false
+
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          // Check if new posts were added
+          mutation.addedNodes.forEach((node) => {
+            if (
+              node instanceof Element &&
+              (node.classList.contains('topic-post') ||
+                node.querySelector('.topic-post'))
+            ) {
+              shouldRedetect = true
+            }
+          })
+        }
+      })
+
+      if (shouldRedetect) {
+        setTimeout(() => detectContent(), 500)
+      }
+    })
+
+    observer.observe(postStream, {
+      childList: true,
+      subtree: true,
+    })
+
+    return () => observer.disconnect()
+  }, [detectContent])
+
+  useEffect(() => {
+    if (mountedRef.current === false) {
+      mountedRef.current = true
+
+      detectContent()
+    }
+  }, [detectContent])
 
   const saveAndLoadScript = async () => {
-    if (!script.url || !script.script) {
-      return
-    }
+    if (!selectedScript || !selectedVideo) return
 
     setIsLoading(true)
 
     try {
-      const currentUrl = script.url
-      const scriptUrl = script.script
-
       const ownerInfo = extractTopicOwnerInfo()
-      const scriptName = getScriptLinkName(scriptUrl)
+      const scriptName = selectedScript
+        ? autoDetected.scripts.find((s) => s.url === selectedScript)?.name
+        : getScriptLinkName(selectedScript)
 
-      const result = await saveScript(currentUrl, scriptUrl, {
-        name: scriptName ?? '',
-        creator: ownerInfo.username ?? '',
+      const result = await saveScript(selectedVideo, selectedScript, {
+        name: scriptName || 'EroScript',
+        creator: ownerInfo.username || 'Unknown',
         supportUrl: window.location.href,
         isDefault: false,
       })
 
       if (!result) {
-        console.error('Failed to save script', {
-          currentUrl,
-          scriptUrl,
-          ownerInfo: {
-            name:
-              scriptName ?? `Script by ${ownerInfo.username ?? 'not found'}`,
-            creator: ownerInfo.username ?? '',
-            supportUrl: window.location.href,
-            isDefault: false,
-          },
-        })
         throw new Error('Failed to save script')
       }
 
-      window.open(currentUrl, '_blank')
+      window.open(selectedVideo, '_blank')
     } finally {
       setIsLoading(false)
     }
   }
 
+  const canLoad = selectedScript && selectedVideo
+
   return (
     <div className={styles.container}>
-      <button
-        className={styles.openPanel}
-        onClick={() => setIsPopupOpen(!isPopupOpen)}
-      >
+      <div className={styles.loadPanel}>
         <img
           src={chrome.runtime.getURL(logoImg)}
-          alt='Logo'
+          alt='IVE'
           className={styles.logo}
         />
-      </button>
 
-      {isPopupOpen && (
-        <div className={styles.popup}>
-          <div
-            className={`${styles.loadPanel} ${dragActive ? styles.dragActive : ''}`}
-          >
-            <h4 className={styles.title}>Drag script and video URL here</h4>
-            <div
-              ref={dropAreaRef}
-              className={styles.dropZone}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <p className={styles.dropInstructions}>
-                {dragActive ? 'Drop now!' : 'Drag here'}
-              </p>
-              <p className={styles.dropScript}>{script.script}</p>
-              <p className={styles.dropScript}>{script.url}</p>
-            </div>
-            <button
-              className={styles.loadButton}
-              onClick={saveAndLoadScript}
-              disabled={!script.script || !script.url || isLoading}
-            >
-              {isLoading ? 'Loading...' : 'Load and play'}
-            </button>
-          </div>
-        </div>
-      )}
+        <select
+          className={styles.select}
+          value={selectedVideo}
+          onChange={(e) => setSelectedVideo(e.target.value)}
+        >
+          <option value=''>Choose video...</option>
+          {autoDetected.videos.map((video, index) => (
+            <option key={index} value={video.url}>
+              {video.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={styles.select}
+          value={selectedScript}
+          onChange={(e) => setSelectedScript(e.target.value)}
+        >
+          <option value=''>Choose script...</option>
+          {autoDetected.scripts.map((script, index) => (
+            <option key={index} value={script.url}>
+              {script.name}
+            </option>
+          ))}
+        </select>
+
+        <button
+          className={styles.loadButton}
+          onClick={saveAndLoadScript}
+          disabled={!canLoad || isLoading}
+        >
+          {isLoading ? 'Loading...' : 'Load & Play'}
+        </button>
+      </div>
     </div>
   )
 }
