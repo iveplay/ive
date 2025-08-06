@@ -154,8 +154,15 @@ const handleUrlChange = async () => {
 
   try {
     if (currentUrl.includes(EROSCRIPT_URL)) {
-      const container = document.querySelector('[class*="with-timeline"]')
+      const isMobile =
+        window.matchMedia('(max-width: 924px)').matches ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        )
 
+      const container = document.querySelector(
+        isMobile ? '#post_1' : '[class*="with-timeline"]',
+      )
       if (container) {
         mountComponent(container, <EroLoadPanel />, 'prepend', {
           position: 'relative',
