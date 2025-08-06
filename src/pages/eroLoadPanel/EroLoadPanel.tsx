@@ -13,6 +13,7 @@ import styles from './EroLoadPanel.module.scss'
 
 export const EroLoadPanel = () => {
   const mountedRef = useRef(false)
+  const currentUrlRef = useRef(window.location.href)
   const [isLoading, setIsLoading] = useState(false)
   const [autoDetected, setAutoDetected] = useState<EroscriptContent>({
     scripts: [],
@@ -67,6 +68,33 @@ export const EroLoadPanel = () => {
     chrome.runtime.onMessage.addListener(handleMessage)
     return () => chrome.runtime.onMessage.removeListener(handleMessage)
   }, [addContent])
+
+  useEffect(() => {
+    const getThreadUrl = (url: string) => {
+      return url.split('/').slice(0, 6).join('/')
+    }
+
+    const checkUrlChange = () => {
+      const currentUrl = window.location.href
+      const currentThreadUrl = getThreadUrl(currentUrl)
+      const prevThreadUrl = getThreadUrl(currentUrlRef.current)
+
+      if (currentThreadUrl !== prevThreadUrl) {
+        currentUrlRef.current = currentUrl
+        // Reset selections when navigating to new thread
+        setSelectedScript('')
+        setSelectedVideo('')
+        setTimeout(() => detectContent(), 500)
+      } else {
+        currentUrlRef.current = currentUrl
+      }
+    }
+
+    // Check for URL changes every 500ms
+    const urlCheckInterval = setInterval(checkUrlChange, 500)
+
+    return () => clearInterval(urlCheckInterval)
+  }, [detectContent])
 
   // Set up mutation observer to detect new posts
   useEffect(() => {
