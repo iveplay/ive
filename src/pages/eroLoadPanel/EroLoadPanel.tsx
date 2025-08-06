@@ -4,6 +4,8 @@ import logoImg from '@/assets/logo.png'
 import {
   EroscriptContent,
   eroscriptDetectContent,
+  addVideoToContent,
+  addScriptToContent,
 } from '@/utils/eroscriptDetectContent'
 import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
 import { saveScript } from '@/utils/saveScripts'
@@ -18,6 +20,9 @@ export const EroLoadPanel = () => {
   })
   const [selectedScript, setSelectedScript] = useState<string>('')
   const [selectedVideo, setSelectedVideo] = useState<string>('')
+  const [dragOverTarget, setDragOverTarget] = useState<
+    'video' | 'script' | null
+  >(null)
 
   const detectContent = useCallback(() => {
     const detected = eroscriptDetectContent()
@@ -31,30 +36,37 @@ export const EroLoadPanel = () => {
     }
   }, [selectedScript, selectedVideo])
 
+  const addContent = useCallback(
+    (url: string, type: 'video' | 'script') => {
+      if (type === 'video') {
+        const updated = addVideoToContent(autoDetected, url)
+        setAutoDetected(updated)
+        setSelectedVideo(url)
+      } else {
+        const updated = addScriptToContent(autoDetected, url)
+        setAutoDetected(updated)
+        setSelectedScript(url)
+      }
+    },
+    [autoDetected],
+  )
+
   // Listen for context menu messages
   useEffect(() => {
     const handleMessage = (message: { type: string; url: string }) => {
       switch (message.type) {
         case CONTEXT_MESSAGES.EROSCRIPTS_VIDEO:
-          setAutoDetected((prev) => ({
-            ...prev,
-            videos: [...prev.videos, { url: message.url, label: message.url }],
-          }))
-          setSelectedVideo(message.url)
+          addContent(message.url, 'video')
           break
         case CONTEXT_MESSAGES.EROSCRIPTS_SCRIPT:
-          setAutoDetected((prev) => ({
-            ...prev,
-            scripts: [...prev.scripts, { url: message.url, name: message.url }],
-          }))
-          setSelectedScript(message.url)
+          addContent(message.url, 'script')
           break
       }
     }
 
     chrome.runtime.onMessage.addListener(handleMessage)
     return () => chrome.runtime.onMessage.removeListener(handleMessage)
-  }, [setSelectedVideo, setSelectedScript])
+  }, [addContent])
 
   // Set up mutation observer to detect new posts
   useEffect(() => {
@@ -66,7 +78,6 @@ export const EroLoadPanel = () => {
 
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
-          // Check if new posts were added
           mutation.addedNodes.forEach((node) => {
             if (
               node instanceof Element &&
@@ -98,6 +109,47 @@ export const EroLoadPanel = () => {
       detectContent()
     }
   }, [detectContent])
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, target: 'video' | 'script') => {
+      e.preventDefault()
+      setDragOverTarget(target)
+    },
+    [],
+  )
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    if (e.currentTarget === e.target) {
+      setDragOverTarget(null)
+    }
+  }, [])
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, target: 'video' | 'script') => {
+      e.preventDefault()
+      setDragOverTarget(null)
+
+      const url =
+        e.dataTransfer.getData('text/plain') ||
+        e.dataTransfer.getData('text/uri-list')
+
+      if (!url) return
+
+      try {
+        new URL(url.startsWith('http') ? url : `https://${url}`)
+
+        if (target === 'script' && url.endsWith('.funscript')) {
+          addContent(url, 'script')
+        } else if (target === 'video' && !url.endsWith('.funscript')) {
+          addContent(url, 'video')
+        }
+      } catch {
+        // Invalid URL, ignore
+      }
+    },
+    [addContent],
+  )
 
   const saveAndLoadScript = async () => {
     if (!selectedScript || !selectedVideo) return
@@ -139,9 +191,12 @@ export const EroLoadPanel = () => {
         />
 
         <select
-          className={styles.select}
+          className={`${styles.select} ${dragOverTarget === 'video' ? styles.dragOver : ''}`}
           value={selectedVideo}
           onChange={(e) => setSelectedVideo(e.target.value)}
+          onDragOver={(e) => handleDragOver(e, 'video')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 'video')}
         >
           <option value=''>Choose video...</option>
           {autoDetected.videos.map((video, index) => (
@@ -152,9 +207,12 @@ export const EroLoadPanel = () => {
         </select>
 
         <select
-          className={styles.select}
+          className={`${styles.select} ${dragOverTarget === 'script' ? styles.dragOver : ''}`}
           value={selectedScript}
           onChange={(e) => setSelectedScript(e.target.value)}
+          onDragOver={(e) => handleDragOver(e, 'script')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 'script')}
         >
           <option value=''>Choose script...</option>
           {autoDetected.scripts.map((script, index) => (

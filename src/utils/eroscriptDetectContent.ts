@@ -70,7 +70,7 @@ export const eroscriptDetectContent = (): EroscriptContent => {
     }
   })
 
-  // Remove duplicate
+  // Remove duplicates
   const uniqueScripts = scripts.filter(
     (script, index, arr) =>
       arr.findIndex((s) => s.url === script.url) === index,
@@ -80,4 +80,32 @@ export const eroscriptDetectContent = (): EroscriptContent => {
   )
 
   return { scripts: uniqueScripts, videos: uniqueVideos }
+}
+
+export const addVideoToContent = (
+  content: EroscriptContent,
+  url: string,
+): EroscriptContent => {
+  const exists = content.videos.some((v) => v.url === url)
+  if (exists) return content
+
+  const label = url.replace(/^https?:\/\//, '').replace(/^www\./, '')
+  return {
+    ...content,
+    videos: [...content.videos, { url, label }],
+  }
+}
+
+export const addScriptToContent = (
+  content: EroscriptContent,
+  url: string,
+): EroscriptContent => {
+  const exists = content.scripts.some((s) => s.url === url)
+  if (exists) return content
+
+  const name = url.split('/').pop()?.replace('.funscript', '') || 'Script'
+  return {
+    ...content,
+    scripts: [...content.scripts, { url, name }],
+  }
 }

@@ -56,6 +56,12 @@
       border-color: rgba(80, 80, 80, 0.5);
     }
 
+    &.dragOver {
+      background-color: rgba(166, 5, 105, 0.4);
+      border-color: rgba(166, 5, 105, 0.8);
+      box-shadow: 0 0 0 2px rgba(166, 5, 105, 0.3);
+    }
+
     option {
       background-color: #290b1d;
       color: white;
