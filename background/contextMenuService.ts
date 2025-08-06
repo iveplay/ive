@@ -1,4 +1,5 @@
 import { deviceService } from './service'
+import { CONTEXT_MESSAGES } from './types'
 
 class ContextMenuService {
   private heatmapEnabled = false
@@ -29,6 +30,22 @@ class ContextMenuService {
       title: 'Float Video',
       contexts: ['action'],
     })
+
+    // Link context menus - only on EroScript pages
+    chrome.contextMenus.create({
+      id: 'add-as-video',
+      title: 'IVE: Select as video',
+      contexts: ['link'],
+      documentUrlPatterns: ['*://discuss.eroscripts.com/*'],
+    })
+
+    chrome.contextMenus.create({
+      id: 'add-as-script',
+      title: 'IVE: Select as script',
+      contexts: ['link'],
+      documentUrlPatterns: ['*://discuss.eroscripts.com/*'],
+      targetUrlPatterns: ['*://*/*.funscript*'],
+    })
   }
 
   private setupEventHandlers(): void {
@@ -41,6 +58,16 @@ class ContextMenuService {
           case 'float-video':
             if (tab?.id) {
               await this.floatVideo(tab.id)
+            }
+            break
+          case 'add-as-video':
+            if (tab?.id && info.linkUrl) {
+              await this.addAsVideo(tab.id, info.linkUrl)
+            }
+            break
+          case 'add-as-script':
+            if (tab?.id && info.linkUrl) {
+              await this.addAsScript(tab.id, info.linkUrl)
             }
             break
         }
@@ -65,10 +92,32 @@ class ContextMenuService {
   private async floatVideo(tabId: number): Promise<void> {
     try {
       await chrome.tabs.sendMessage(tabId, {
-        type: 'IVE_FLOAT_VIDEO',
+        type: CONTEXT_MESSAGES.FLOAT_VIDEO,
       })
     } catch (error) {
       console.error('Error floating video:', error)
+    }
+  }
+
+  private async addAsVideo(tabId: number, linkUrl: string): Promise<void> {
+    try {
+      await chrome.tabs.sendMessage(tabId, {
+        type: CONTEXT_MESSAGES.EROSCRIPTS_VIDEO,
+        url: linkUrl,
+      })
+    } catch (error) {
+      console.error('Error adding as video:', error)
+    }
+  }
+
+  private async addAsScript(tabId: number, linkUrl: string): Promise<void> {
+    try {
+      await chrome.tabs.sendMessage(tabId, {
+        type: CONTEXT_MESSAGES.EROSCRIPTS_SCRIPT,
+        url: linkUrl,
+      })
+    } catch (error) {
+      console.error('Error adding as script:', error)
     }
   }
 

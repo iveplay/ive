@@ -1,3 +1,4 @@
+import { CONTEXT_MESSAGES } from '@background/types'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import logoImg from '@/assets/logo.png'
 import {
@@ -29,6 +30,31 @@ export const EroLoadPanel = () => {
       setSelectedVideo(detected.videos[0].url)
     }
   }, [selectedScript, selectedVideo])
+
+  // Listen for context menu messages
+  useEffect(() => {
+    const handleMessage = (message: { type: string; url: string }) => {
+      switch (message.type) {
+        case CONTEXT_MESSAGES.EROSCRIPTS_VIDEO:
+          setAutoDetected((prev) => ({
+            ...prev,
+            videos: [...prev.videos, { url: message.url, label: message.url }],
+          }))
+          setSelectedVideo(message.url)
+          break
+        case CONTEXT_MESSAGES.EROSCRIPTS_SCRIPT:
+          setAutoDetected((prev) => ({
+            ...prev,
+            scripts: [...prev.scripts, { url: message.url, name: message.url }],
+          }))
+          setSelectedScript(message.url)
+          break
+      }
+    }
+
+    chrome.runtime.onMessage.addListener(handleMessage)
+    return () => chrome.runtime.onMessage.removeListener(handleMessage)
+  }, [setSelectedVideo, setSelectedScript])
 
   // Set up mutation observer to detect new posts
   useEffect(() => {
@@ -69,7 +95,6 @@ export const EroLoadPanel = () => {
   useEffect(() => {
     if (mountedRef.current === false) {
       mountedRef.current = true
-
       detectContent()
     }
   }, [detectContent])
@@ -120,7 +145,7 @@ export const EroLoadPanel = () => {
         >
           <option value=''>Choose video...</option>
           {autoDetected.videos.map((video, index) => (
-            <option key={index} value={video.url}>
+            <option key={`${video.url}-${index}`} value={video.url}>
               {video.label}
             </option>
           ))}
@@ -133,7 +158,7 @@ export const EroLoadPanel = () => {
         >
           <option value=''>Choose script...</option>
           {autoDetected.scripts.map((script, index) => (
-            <option key={index} value={script.url}>
+            <option key={`${script.url}-${index}`} value={script.url}>
               {script.name}
             </option>
           ))}

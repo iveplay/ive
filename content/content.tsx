@@ -1,3 +1,4 @@
+import { CONTEXT_MESSAGES } from '@background/types'
 import { CSSProperties, ReactNode, StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { EroLoadPanel } from '@/pages/eroLoadPanel/EroLoadPanel'
@@ -42,7 +43,7 @@ setupIveEventApi()
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
-  if (message.type === 'IVE_FLOAT_VIDEO' && !isInIframe) {
+  if (message.type === CONTEXT_MESSAGES.FLOAT_VIDEO && !isInIframe) {
     // First check if we need to mount the video page component
     if (!document.getElementById('ive')) {
       mountedComponent = false
@@ -59,6 +60,14 @@ chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
       useVideoStore.getState().setIsFloating(true)
     }, 100)
 
+    sendResponse({ success: true })
+  }
+
+  if (
+    message.type === CONTEXT_MESSAGES.EROSCRIPTS_VIDEO ||
+    message.type === CONTEXT_MESSAGES.EROSCRIPTS_SCRIPT
+  ) {
+    // Forward to EroLoadPanel - the panel component will handle it via its own listener
     sendResponse({ success: true })
   }
 })

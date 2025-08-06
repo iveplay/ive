@@ -30,6 +30,7 @@ const INVALID_DOMAINS = [
   'funscript',
   'donate',
   'twitter',
+  'youtube',
 ]
 
 export const eroscriptDetectContent = (): EroscriptContent => {

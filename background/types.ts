@@ -70,6 +70,13 @@ export const EVENTS = {
 
 export type EventType = (typeof EVENTS)[keyof typeof EVENTS]
 
+export const CONTEXT_MESSAGES = {
+  TOGGLE_HEATMAP: 'ive:context:toggle_heatmap',
+  FLOAT_VIDEO: 'ive:context:float_video',
+  EROSCRIPTS_VIDEO: 'ive:context:eroscripts_video',
+  EROSCRIPTS_SCRIPT: 'ive:context:eroscripts_script',
+}
+
 export const MESSAGES = {
   GET_STATE: 'ive:get_state',
   GET_DEVICE_INFO: 'ive:get_device_info',
