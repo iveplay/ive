@@ -94,10 +94,16 @@ const handleUrlChange = async () => {
   }
   const scriptMappings = await getScripts()
 
+  const normalizedCurrentUrl = currentUrl
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/^[a-z]{2,3}\./, '')
+
   let scripts: Scripts | undefined
 
-  scripts = Object.entries(scriptMappings).find(([url]) =>
-    currentUrl.includes(url),
+  scripts = Object.entries(scriptMappings).find(
+    ([url]) =>
+      normalizedCurrentUrl.includes(url) || url.includes(normalizedCurrentUrl),
   )?.[1]
 
   // Get custom URLs from settings
@@ -113,9 +119,6 @@ const handleUrlChange = async () => {
 
   // Check if current URL matches any custom URLs
   let matchesCustomUrl = customUrls.some((url) => {
-    const normalizedCurrentUrl = currentUrl
-      .replace(/^https?:\/\//, '')
-      .replace(/^www\./, '')
     const normalizedCustomUrl = url
       .replace(/^https?:\/\//, '')
       .replace(/^www\./, '')
@@ -132,12 +135,13 @@ const handleUrlChange = async () => {
         parentUrl.includes(url),
       )?.[1]
 
+      const normalizedParentUrl = parentUrl
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+
       // Check if parent URL matches custom URLs
       if (!scripts && !matchesCustomUrl) {
         matchesCustomUrl = customUrls.some((url) => {
-          const normalizedParentUrl = parentUrl
-            .replace(/^https?:\/\//, '')
-            .replace(/^www\./, '')
           const normalizedCustomUrl = url
             .replace(/^https?:\/\//, '')
             .replace(/^www\./, '')
