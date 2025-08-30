@@ -11,20 +11,43 @@ export class IveDBService {
   private db: IDBDatabase | null = null
   private readonly DB_NAME = 'ive-database'
   private readonly DB_VERSION = 3
+  private initPromise: Promise<IDBDatabase> | null = null
 
   async openDB(): Promise<IDBDatabase> {
-    if (this.db) return Promise.resolve(this.db)
+    // Return existing connection if available
+    if (this.db && this.db.objectStoreNames.length > 0) {
+      return Promise.resolve(this.db)
+    }
 
-    return new Promise<IDBDatabase>((resolve, reject) => {
+    // Return existing promise if initialization is in progress
+    if (this.initPromise) {
+      return this.initPromise
+    }
+
+    // Create new initialization promise
+    this.initPromise = new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION)
 
       request.onerror = (event) => {
         console.error('IveDB error:', event)
+        this.initPromise = null
         reject(new Error('Failed to open IveDB database'))
       }
 
       request.onsuccess = (event) => {
         this.db = (event.target as IDBOpenDBRequest).result
+
+        // Handle unexpected database close
+        this.db.onclose = () => {
+          console.warn('IveDB connection closed unexpectedly')
+          this.db = null
+          this.initPromise = null
+        }
+
+        this.db.onerror = (event) => {
+          console.error('IveDB connection error:', event)
+        }
+
         resolve(this.db)
       }
 
@@ -85,6 +108,8 @@ export class IveDBService {
         }
       }
     })
+
+    return this.initPromise
   }
 
   // Find entries that share video or script URLs with the new data
@@ -92,30 +117,41 @@ export class IveDBService {
     data: CreateIveEntryData,
   ): Promise<Set<string>> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      throw new Error('Database connection invalid')
+    }
+
     const tx = db.transaction(['videoUrlLookup', 'scriptUrlLookup'], 'readonly')
     const relatedEntryIds = new Set<string>()
 
-    // Check video URLs
-    for (const videoData of data.videoSources) {
-      const lookup = await this.promisifyRequest(
-        tx.objectStore('videoUrlLookup').get(videoData.url),
-      )
-      if (lookup) {
-        relatedEntryIds.add(lookup.entryId)
+    try {
+      // Check video URLs
+      for (const videoData of data.videoSources) {
+        const lookup = await this.promisifyRequest(
+          tx.objectStore('videoUrlLookup').get(videoData.url),
+        )
+        if (lookup) {
+          relatedEntryIds.add(lookup.entryId)
+        }
       }
-    }
 
-    // Check script URLs
-    for (const scriptData of data.scripts) {
-      const lookup = await this.promisifyRequest(
-        tx.objectStore('scriptUrlLookup').get(scriptData.url),
-      )
-      if (lookup) {
-        relatedEntryIds.add(lookup.entryId)
+      // Check script URLs
+      for (const scriptData of data.scripts) {
+        const lookup = await this.promisifyRequest(
+          tx.objectStore('scriptUrlLookup').get(scriptData.url),
+        )
+        if (lookup) {
+          relatedEntryIds.add(lookup.entryId)
+        }
       }
-    }
 
-    return relatedEntryIds
+      return relatedEntryIds
+    } catch (error) {
+      console.error('Error finding related entries:', error)
+      throw error
+    }
   }
 
   // Create a new IVE entry with related data or merge with existing
@@ -132,6 +168,12 @@ export class IveDBService {
 
       // No related entries, create new one
       const db = await this.openDB()
+
+      // Check if database is still valid
+      if (!db || db.objectStoreNames.length === 0) {
+        throw new Error('Database connection invalid')
+      }
+
       const now = Date.now()
       const entryId = v4()
       const videoSourceIds: string[] = []
@@ -220,6 +262,12 @@ export class IveDBService {
     data: CreateIveEntryData,
   ): Promise<string> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      throw new Error('Database connection invalid')
+    }
+
     const now = Date.now()
 
     // Get existing entry
@@ -317,6 +365,12 @@ export class IveDBService {
   // Quick lookup for entries by video URL
   async findEntryByVideoUrl(url: string): Promise<IveEntry | null> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return null
+    }
+
     const tx = db.transaction(['videoUrlLookup', 'entries'], 'readonly')
 
     const lookup = await this.promisifyRequest(
@@ -333,6 +387,12 @@ export class IveDBService {
   // Quick lookup for entries by script URL
   async findEntryByScriptUrl(url: string): Promise<IveEntry | null> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return null
+    }
+
     const tx = db.transaction(['scriptUrlLookup', 'entries'], 'readonly')
 
     const lookup = await this.promisifyRequest(
@@ -349,6 +409,12 @@ export class IveDBService {
   // Get all video URL lookups
   async getAllVideoLookups(): Promise<{ url: string; entryId: string }[]> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return []
+    }
+
     const tx = db.transaction(['videoUrlLookup'], 'readonly')
 
     return await this.promisifyRequest(
@@ -359,6 +425,12 @@ export class IveDBService {
   // Get entry with all related data
   async getEntryWithDetails(entryId: string) {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return null
+    }
+
     const tx = db.transaction(
       ['entries', 'videoSources', 'scripts'],
       'readonly',
@@ -397,6 +469,12 @@ export class IveDBService {
   // Search entries
   async searchEntries(options: IveSearchOptions = {}): Promise<IveEntry[]> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return []
+    }
+
     const tx = db.transaction(['entries', 'scripts'], 'readonly')
     const entryStore = tx.objectStore('entries')
 
@@ -464,6 +542,12 @@ export class IveDBService {
   // Get all entries (for listing)
   async getAllEntries(): Promise<IveEntry[]> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return []
+    }
+
     const tx = db.transaction(['entries'], 'readonly')
     const entries: IveEntry[] = await this.promisifyRequest(
       tx.objectStore('entries').getAll(),
@@ -477,6 +561,12 @@ export class IveDBService {
     updates: Partial<Omit<IveEntry, 'id' | 'createdAt'>>,
   ): Promise<void> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      throw new Error('Database connection invalid')
+    }
+
     const tx = db.transaction(['entries'], 'readwrite')
 
     const entry = await this.promisifyRequest(
@@ -496,6 +586,12 @@ export class IveDBService {
   // Delete entry and related data
   async deleteEntry(entryId: string): Promise<void> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      throw new Error('Database connection invalid')
+    }
+
     const tx = db.transaction(
       [
         'entries',
@@ -569,6 +665,12 @@ export class IveDBService {
   // Favorites methods
   async addToFavorites(entryId: string): Promise<void> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      throw new Error('Database connection invalid')
+    }
+
     const tx = db.transaction(['favorites'], 'readwrite')
     const favorite = { entryId, favoritedAt: Date.now() }
     await this.promisifyRequest(tx.objectStore('favorites').put(favorite))
@@ -576,12 +678,24 @@ export class IveDBService {
 
   async removeFromFavorites(entryId: string): Promise<void> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      throw new Error('Database connection invalid')
+    }
+
     const tx = db.transaction(['favorites'], 'readwrite')
     await this.promisifyRequest(tx.objectStore('favorites').delete(entryId))
   }
 
   async getFavorites(): Promise<IveEntry[]> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return []
+    }
+
     const tx = db.transaction(['favorites', 'entries'], 'readonly')
 
     // Get favorite entry IDs sorted by when favorited
@@ -604,6 +718,12 @@ export class IveDBService {
 
   async isFavorited(entryId: string): Promise<boolean> {
     const db = await this.openDB()
+
+    // Check if database is still valid
+    if (!db || db.objectStoreNames.length === 0) {
+      return false
+    }
+
     const tx = db.transaction(['favorites'], 'readonly')
     const favorite = await this.promisifyRequest(
       tx.objectStore('favorites').get(entryId),

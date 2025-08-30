@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import logoImg from '@/assets/logo.png'
+import { useVideoListener } from '@/hooks/useVideoListener'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { useVideoStore } from '@/store/useVideoStore'
 import { IveEntry, ScriptMetadata } from '@/types/ivedb'
@@ -64,6 +65,8 @@ export const VideoPanel = ({
       setActiveScript: state.setActiveScript,
     })),
   )
+
+  useVideoListener(videoElement)
 
   // Load script options from IveDB entry
   useEffect(() => {
