@@ -8,6 +8,10 @@
     width: 100% !important;
     inset: 0 !important;
     height: 100% !important;
+    max-width: initial !important;
+    min-width: initial !important;
+    max-height: initial !important;
+    min-height: initial !important;
     object-fit: contain;
     aspect-ratio: 16 / 9;
     display: block;
