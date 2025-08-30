@@ -123,6 +123,9 @@ export const MESSAGES = {
   IVEDB_REMOVE_FAVORITE: 'ive:ivedb:remove_favorite',
   IVEDB_GET_FAVORITES: 'ive:ivedb:get_favorites',
   IVEDB_IS_FAVORITED: 'ive:ivedb:is_favorited',
+  IVEDB_FIND_BY_VIDEO_URL: 'ive:ivedb:find_by_video_url',
+  IVEDB_FIND_BY_SCRIPT_URL: 'ive:ivedb:find_by_script_url',
+  IVEDB_GET_VIDEO_LOOKUPS: 'ive:ivedb:get_video_lookups',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -200,3 +203,6 @@ export type UIMessage =
   | { type: typeof MESSAGES.IVEDB_REMOVE_FAVORITE; entryId: string }
   | { type: typeof MESSAGES.IVEDB_GET_FAVORITES }
   | { type: typeof MESSAGES.IVEDB_IS_FAVORITED; entryId: string }
+  | { type: typeof MESSAGES.IVEDB_FIND_BY_VIDEO_URL; url: string }
+  | { type: typeof MESSAGES.IVEDB_FIND_BY_SCRIPT_URL; url: string }
+  | { type: typeof MESSAGES.IVEDB_GET_VIDEO_LOOKUPS }

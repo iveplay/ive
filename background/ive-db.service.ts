@@ -346,6 +346,16 @@ export class IveDBService {
     )
   }
 
+  // Get all video URL lookups
+  async getAllVideoLookups(): Promise<{ url: string; entryId: string }[]> {
+    const db = await this.openDB()
+    const tx = db.transaction(['videoUrlLookup'], 'readonly')
+
+    return await this.promisifyRequest(
+      tx.objectStore('videoUrlLookup').getAll(),
+    )
+  }
+
   // Get entry with all related data
   async getEntryWithDetails(entryId: string) {
     const db = await this.openDB()

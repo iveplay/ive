@@ -140,6 +140,15 @@ export function setupMessageHandler(): void {
             case MESSAGES.IVEDB_IS_FAVORITED:
               return await iveDBService.isFavorited(message.entryId)
 
+            case MESSAGES.IVEDB_FIND_BY_VIDEO_URL:
+              return await iveDBService.findEntryByVideoUrl(message.url)
+
+            case MESSAGES.IVEDB_FIND_BY_SCRIPT_URL:
+              return await iveDBService.findEntryByScriptUrl(message.url)
+
+            case MESSAGES.IVEDB_GET_VIDEO_LOOKUPS:
+              return await iveDBService.getAllVideoLookups()
+
             // Utils
             case MESSAGES.EXTRACT_SCRIPT_URL:
               return await deviceService.extractRealScriptUrlFromCloudflare(

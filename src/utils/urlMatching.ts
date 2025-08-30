@@ -1,5 +1,5 @@
 import { IveEntry } from '@/types/ivedb'
-import { getAllEntries, getEntry } from '@/utils/iveDbUtils'
+import { getEntry, getVideoLookups } from '@/utils/iveDbUtils'
 
 const normalizeUrl = (url: string): string => {
   return url
@@ -14,32 +14,29 @@ export const findMatchingEntry = async (
   currentUrl: string,
 ): Promise<IveEntry | undefined> => {
   try {
-    const allEntries = await getAllEntries()
     const normalizedCurrentUrl = normalizeUrl(currentUrl)
 
-    for (const entry of allEntries) {
-      const entryDetails = await getEntry(entry.id)
-      if (!entryDetails) continue
+    const videoLookups = await getVideoLookups()
 
-      // Check if any video source URL matches
-      const hasMatchingVideo = entryDetails.videoSources.some((videoSource) => {
-        const normalizedVideoUrl = normalizeUrl(videoSource.url)
+    const matchingLookup = videoLookups.find((videoSource) => {
+      const normalizedVideoUrl = normalizeUrl(videoSource.url)
 
-        return (
-          normalizedCurrentUrl.includes(normalizedVideoUrl) ||
-          normalizedVideoUrl.includes(normalizedCurrentUrl)
-        )
-      })
+      return (
+        normalizedCurrentUrl.includes(normalizedVideoUrl) ||
+        normalizedVideoUrl.includes(normalizedCurrentUrl)
+      )
+    })
 
-      if (hasMatchingVideo) {
-        return entry
-      }
-    }
+    if (!matchingLookup) return undefined
 
-    return
+    const entryDetails = await getEntry(matchingLookup.entryId)
+
+    if (entryDetails) return entryDetails.entry
+
+    return undefined
   } catch (error) {
     console.error('Error finding matching entry:', error)
-    return
+    return undefined
   }
 }
 

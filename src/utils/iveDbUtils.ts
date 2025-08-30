@@ -139,3 +139,44 @@ export const isFavorited = async (entryId: string): Promise<boolean> => {
     return false
   }
 }
+
+export const findEntryByVideoUrl = async (
+  url: string,
+): Promise<IveEntry | null> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_FIND_BY_VIDEO_URL,
+      url,
+    })
+  } catch (error) {
+    console.error('Error finding entry by video URL:', error)
+    return null
+  }
+}
+
+export const findEntryByScriptUrl = async (
+  url: string,
+): Promise<IveEntry | null> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_FIND_BY_SCRIPT_URL,
+      url,
+    })
+  } catch (error) {
+    console.error('Error finding entry by script URL:', error)
+    return null
+  }
+}
+
+export const getVideoLookups = async (): Promise<
+  { url: string; entryId: string }[]
+> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_GET_VIDEO_LOOKUPS,
+    })
+  } catch (error) {
+    console.error('Error getting video lookups:', error)
+    return []
+  }
+}
