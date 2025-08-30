@@ -42,6 +42,7 @@ export const VideoPanel = ({
     (state) => state.scriptInverted || false,
   )
   const setScriptInverted = useDeviceStore((state) => state.setScriptInverted)
+  const scriptUrl = useDeviceStore((state) => state.scriptUrl)
 
   const {
     videoElement,
@@ -50,6 +51,7 @@ export const VideoPanel = ({
     searchForVideo,
     isFloating,
     setIsFloating,
+    activeScript,
     setActiveScript,
   } = useVideoStore(
     useShallow((state) => ({
@@ -59,6 +61,7 @@ export const VideoPanel = ({
       searchForVideo: state.searchForVideo,
       isFloating: state.isFloating,
       setIsFloating: state.setIsFloating,
+      activeScript: state.activeScript,
       setActiveScript: state.setActiveScript,
     })),
   )
@@ -172,6 +175,7 @@ export const VideoPanel = ({
 
   const isError = !!(videoError || errorMessage)
   const hasScripts = scriptOptions.length > 0
+  const isActive = scriptUrl === activeScript
 
   return (
     <div
@@ -230,10 +234,10 @@ export const VideoPanel = ({
             <span
               className={clsx(
                 styles.value,
-                isPlaying ? styles.playing : styles.stopped,
+                isActive ? styles.playing : styles.stopped,
               )}
             >
-              {isPlaying ? 'Playing' : 'Stopped'}
+              {isActive ? 'Syncing' : 'Not syncing'}
             </span>
           </div>
           {hasScripts && !isIvdbScript && (
