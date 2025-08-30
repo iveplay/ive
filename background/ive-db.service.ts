@@ -10,7 +10,7 @@ import {
 export class IveDBService {
   private db: IDBDatabase | null = null
   private readonly DB_NAME = 'ive-database'
-  private readonly DB_VERSION = 2
+  private readonly DB_VERSION = 3
 
   async openDB(): Promise<IDBDatabase> {
     if (this.db) return Promise.resolve(this.db)
@@ -68,23 +68,86 @@ export class IveDBService {
           })
           favStore.createIndex('favoritedAt', 'favoritedAt')
         }
+
+        // Create URL lookup tables for quick matching
+        if (!db.objectStoreNames.contains('videoUrlLookup')) {
+          const videoLookupStore = db.createObjectStore('videoUrlLookup', {
+            keyPath: 'url',
+          })
+          videoLookupStore.createIndex('entryId', 'entryId')
+        }
+
+        if (!db.objectStoreNames.contains('scriptUrlLookup')) {
+          const scriptLookupStore = db.createObjectStore('scriptUrlLookup', {
+            keyPath: 'url',
+          })
+          scriptLookupStore.createIndex('entryId', 'entryId')
+        }
       }
     })
   }
 
-  // Create a new IVE entry with related data
-  async createEntry(data: CreateIveEntryData): Promise<string> {
+  // Find entries that share video or script URLs with the new data
+  private async findRelatedEntries(
+    data: CreateIveEntryData,
+  ): Promise<Set<string>> {
     const db = await this.openDB()
-    const tx = db.transaction(
-      ['entries', 'videoSources', 'scripts'],
-      'readwrite',
-    )
-    const now = Date.now()
+    const tx = db.transaction(['videoUrlLookup', 'scriptUrlLookup'], 'readonly')
+    const relatedEntryIds = new Set<string>()
 
+    // Check video URLs
+    for (const videoData of data.videoSources) {
+      const lookup = await this.promisifyRequest(
+        tx.objectStore('videoUrlLookup').get(videoData.url),
+      )
+      if (lookup) {
+        relatedEntryIds.add(lookup.entryId)
+      }
+    }
+
+    // Check script URLs
+    for (const scriptData of data.scripts) {
+      const lookup = await this.promisifyRequest(
+        tx.objectStore('scriptUrlLookup').get(scriptData.url),
+      )
+      if (lookup) {
+        relatedEntryIds.add(lookup.entryId)
+      }
+    }
+
+    return relatedEntryIds
+  }
+
+  // Create a new IVE entry with related data or merge with existing
+  async createEntry(data: CreateIveEntryData): Promise<string> {
     try {
+      // Find any existing entries that share URLs
+      const relatedEntryIds = await this.findRelatedEntries(data)
+
+      if (relatedEntryIds.size > 0) {
+        // Merge with the first related entry
+        const targetEntryId = Array.from(relatedEntryIds)[0]
+        return await this.mergeWithExistingEntry(targetEntryId, data)
+      }
+
+      // No related entries, create new one
+      const db = await this.openDB()
+      const now = Date.now()
       const entryId = v4()
       const videoSourceIds: string[] = []
       const scriptIds: string[] = []
+
+      // Single transaction for all operations
+      const tx = db.transaction(
+        [
+          'entries',
+          'videoSources',
+          'scripts',
+          'videoUrlLookup',
+          'scriptUrlLookup',
+        ],
+        'readwrite',
+      )
 
       // Create video sources
       for (const videoData of data.videoSources) {
@@ -99,6 +162,13 @@ export class IveDBService {
         await this.promisifyRequest(
           tx.objectStore('videoSources').add(videoSource),
         )
+        await this.promisifyRequest(
+          tx.objectStore('videoUrlLookup').add({
+            url: videoData.url,
+            entryId,
+          }),
+        )
+
         videoSourceIds.push(videoId)
       }
 
@@ -113,6 +183,13 @@ export class IveDBService {
         }
 
         await this.promisifyRequest(tx.objectStore('scripts').add(script))
+        await this.promisifyRequest(
+          tx.objectStore('scriptUrlLookup').add({
+            url: scriptData.url,
+            entryId,
+          }),
+        )
+
         scriptIds.push(scriptId)
       }
 
@@ -130,12 +207,143 @@ export class IveDBService {
       }
 
       await this.promisifyRequest(tx.objectStore('entries').add(entry))
-
       return entryId
     } catch (error) {
-      tx.abort()
+      console.error('Error creating entry:', error)
       throw error
     }
+  }
+
+  // Merge new data with existing entry
+  private async mergeWithExistingEntry(
+    entryId: string,
+    data: CreateIveEntryData,
+  ): Promise<string> {
+    const db = await this.openDB()
+    const now = Date.now()
+
+    // Get existing entry
+    const entryDetails = await this.getEntryWithDetails(entryId)
+    if (!entryDetails) {
+      throw new Error('Target entry not found for merge')
+    }
+
+    const existingVideoUrls = new Set(
+      entryDetails.videoSources.map((v) => v.url),
+    )
+    const existingScriptUrls = new Set(entryDetails.scripts.map((s) => s.url))
+
+    const newVideoSourceIds = [...entryDetails.entry.videoSourceIds]
+    const newScriptIds = [...entryDetails.entry.scriptIds]
+
+    // Single transaction for all merge operations
+    const tx = db.transaction(
+      [
+        'entries',
+        'videoSources',
+        'scripts',
+        'videoUrlLookup',
+        'scriptUrlLookup',
+      ],
+      'readwrite',
+    )
+
+    // Add new video sources
+    for (const videoData of data.videoSources) {
+      if (!existingVideoUrls.has(videoData.url)) {
+        const videoId = v4()
+        const videoSource: VideoSource = {
+          ...videoData,
+          id: videoId,
+          createdAt: now,
+          updatedAt: now,
+        }
+
+        await this.promisifyRequest(
+          tx.objectStore('videoSources').add(videoSource),
+        )
+        await this.promisifyRequest(
+          tx.objectStore('videoUrlLookup').add({
+            url: videoData.url,
+            entryId,
+          }),
+        )
+
+        newVideoSourceIds.push(videoId)
+      }
+    }
+
+    // Add new scripts
+    for (const scriptData of data.scripts) {
+      if (!existingScriptUrls.has(scriptData.url)) {
+        const scriptId = v4()
+        const script: ScriptMetadata = {
+          ...scriptData,
+          id: scriptId,
+          createdAt: now,
+          updatedAt: now,
+        }
+
+        await this.promisifyRequest(tx.objectStore('scripts').add(script))
+        await this.promisifyRequest(
+          tx.objectStore('scriptUrlLookup').add({
+            url: scriptData.url,
+            entryId,
+          }),
+        )
+
+        newScriptIds.push(scriptId)
+      }
+    }
+
+    // Update entry with new IDs and merge tags
+    const existingTags = entryDetails.entry.tags || []
+    const newTags = data.tags || []
+    const mergedTags = [...new Set([...existingTags, ...newTags])]
+
+    const updatedEntry: IveEntry = {
+      ...entryDetails.entry,
+      videoSourceIds: newVideoSourceIds,
+      scriptIds: newScriptIds,
+      tags: mergedTags,
+      updatedAt: now,
+    }
+
+    await this.promisifyRequest(tx.objectStore('entries').put(updatedEntry))
+
+    return entryId
+  }
+
+  // Quick lookup for entries by video URL
+  async findEntryByVideoUrl(url: string): Promise<IveEntry | null> {
+    const db = await this.openDB()
+    const tx = db.transaction(['videoUrlLookup', 'entries'], 'readonly')
+
+    const lookup = await this.promisifyRequest(
+      tx.objectStore('videoUrlLookup').get(url),
+    )
+
+    if (!lookup) return null
+
+    return await this.promisifyRequest(
+      tx.objectStore('entries').get(lookup.entryId),
+    )
+  }
+
+  // Quick lookup for entries by script URL
+  async findEntryByScriptUrl(url: string): Promise<IveEntry | null> {
+    const db = await this.openDB()
+    const tx = db.transaction(['scriptUrlLookup', 'entries'], 'readonly')
+
+    const lookup = await this.promisifyRequest(
+      tx.objectStore('scriptUrlLookup').get(url),
+    )
+
+    if (!lookup) return null
+
+    return await this.promisifyRequest(
+      tx.objectStore('entries').get(lookup.entryId),
+    )
   }
 
   // Get entry with all related data
@@ -279,7 +487,14 @@ export class IveDBService {
   async deleteEntry(entryId: string): Promise<void> {
     const db = await this.openDB()
     const tx = db.transaction(
-      ['entries', 'videoSources', 'scripts', 'favorites'],
+      [
+        'entries',
+        'videoSources',
+        'scripts',
+        'favorites',
+        'videoUrlLookup',
+        'scriptUrlLookup',
+      ],
       'readwrite',
     )
 
@@ -288,15 +503,50 @@ export class IveDBService {
     )
     if (!entry) return
 
-    // Delete related video sources and scripts
+    // Check if video sources or scripts are used by other entries before deleting
+    const allEntries: IveEntry[] = await this.promisifyRequest(
+      tx.objectStore('entries').getAll(),
+    )
+    const otherEntries = allEntries.filter((e) => e.id !== entryId)
+
+    // Delete video sources and lookup entries only if not used by other entries
     for (const videoId of entry.videoSourceIds) {
-      await this.promisifyRequest(
-        tx.objectStore('videoSources').delete(videoId),
+      const isUsedElsewhere = otherEntries.some((e) =>
+        e.videoSourceIds.includes(videoId),
       )
+      if (!isUsedElsewhere) {
+        const video = await this.promisifyRequest(
+          tx.objectStore('videoSources').get(videoId),
+        )
+        if (video) {
+          await this.promisifyRequest(
+            tx.objectStore('videoSources').delete(videoId),
+          )
+          await this.promisifyRequest(
+            tx.objectStore('videoUrlLookup').delete(video.url),
+          )
+        }
+      }
     }
 
+    // Delete scripts and lookup entries only if not used by other entries
     for (const scriptId of entry.scriptIds) {
-      await this.promisifyRequest(tx.objectStore('scripts').delete(scriptId))
+      const isUsedElsewhere = otherEntries.some((e) =>
+        e.scriptIds.includes(scriptId),
+      )
+      if (!isUsedElsewhere) {
+        const script = await this.promisifyRequest(
+          tx.objectStore('scripts').get(scriptId),
+        )
+        if (script) {
+          await this.promisifyRequest(
+            tx.objectStore('scripts').delete(scriptId),
+          )
+          await this.promisifyRequest(
+            tx.objectStore('scriptUrlLookup').delete(script.url),
+          )
+        }
+      }
     }
 
     // Delete from favorites if exists
