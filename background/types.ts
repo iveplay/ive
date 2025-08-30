@@ -1,5 +1,5 @@
 import { DeviceInfo as IVEDeviceInfo } from 'ive-connect'
-import { ScriptInfo } from '@/types/script'
+import { CreateIveEntryData, IveEntry, IveSearchOptions } from '@/types/ivedb'
 
 export interface DeviceServiceState {
   // Connection state
@@ -102,10 +102,6 @@ export const MESSAGES = {
   DURATION_CHANGE: 'ive:video:duration_change',
   VOLUME_CHANGE: 'ive:video:volume_change',
 
-  // IDB changes
-  SAVE_SCRIPT: 'ive:save_script',
-  GET_SCRIPTS: 'ive:get_scripts',
-
   // Settings
   SHOW_HEATMAP: 'ive:settings:show_heatmap',
   SET_CUSTOM_URLS: 'ive:settings:set_custom_urls',
@@ -115,6 +111,18 @@ export const MESSAGES = {
 
   // Utils
   EXTRACT_SCRIPT_URL: 'ive:extract_script_url',
+
+  // IveDB messages
+  IVEDB_CREATE_ENTRY: 'ive:ivedb:create_entry',
+  IVEDB_GET_ENTRY: 'ive:ivedb:get_entry',
+  IVEDB_GET_ALL_ENTRIES: 'ive:ivedb:get_all_entries',
+  IVEDB_SEARCH_ENTRIES: 'ive:ivedb:search_entries',
+  IVEDB_UPDATE_ENTRY: 'ive:ivedb:update_entry',
+  IVEDB_DELETE_ENTRY: 'ive:ivedb:delete_entry',
+  IVEDB_ADD_FAVORITE: 'ive:ivedb:add_favorite',
+  IVEDB_REMOVE_FAVORITE: 'ive:ivedb:remove_favorite',
+  IVEDB_GET_FAVORITES: 'ive:ivedb:get_favorites',
+  IVEDB_IS_FAVORITED: 'ive:ivedb:is_favorited',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -159,14 +167,6 @@ export type UIMessage =
   | { type: typeof MESSAGES.TIME_CHANGE; timeMs: number }
   | { type: typeof MESSAGES.DURATION_CHANGE; duration: number }
   | { type: typeof MESSAGES.VOLUME_CHANGE; volume: number; muted: boolean }
-  // IDB changes
-  | {
-      type: typeof MESSAGES.SAVE_SCRIPT
-      websiteKey: string
-      scriptId: string
-      scriptInfo: ScriptInfo
-    }
-  | { type: typeof MESSAGES.GET_SCRIPTS }
   // Settings
   | {
       type: typeof MESSAGES.SHOW_HEATMAP
@@ -185,3 +185,18 @@ export type UIMessage =
     }
   // Utils
   | { type: typeof MESSAGES.EXTRACT_SCRIPT_URL; url: string }
+  // IveDB messages
+  | { type: typeof MESSAGES.IVEDB_CREATE_ENTRY; data: CreateIveEntryData }
+  | { type: typeof MESSAGES.IVEDB_GET_ENTRY; entryId: string }
+  | { type: typeof MESSAGES.IVEDB_GET_ALL_ENTRIES }
+  | { type: typeof MESSAGES.IVEDB_SEARCH_ENTRIES; options: IveSearchOptions }
+  | {
+      type: typeof MESSAGES.IVEDB_UPDATE_ENTRY
+      entryId: string
+      updates: Partial<Omit<IveEntry, 'id' | 'createdAt'>>
+    }
+  | { type: typeof MESSAGES.IVEDB_DELETE_ENTRY; entryId: string }
+  | { type: typeof MESSAGES.IVEDB_ADD_FAVORITE; entryId: string }
+  | { type: typeof MESSAGES.IVEDB_REMOVE_FAVORITE; entryId: string }
+  | { type: typeof MESSAGES.IVEDB_GET_FAVORITES }
+  | { type: typeof MESSAGES.IVEDB_IS_FAVORITED; entryId: string }

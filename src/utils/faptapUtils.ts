@@ -1,4 +1,5 @@
-import { saveScript } from '@/utils/saveScripts'
+import { CreateIveEntryData } from '@/types/ivedb'
+import { createEntry } from '@/utils/iveDbUtils'
 
 type FaptapVideoResponse = {
   data: {
@@ -38,24 +39,33 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
       ? ''
       : data.stream_url_selfhosted)
 
-  const creator = data.user.username
-  const supportUrl =
-    data.user.profile?.support_url || `https://faptap.net/u/${creator}`
-
   if (!videoUrl) {
     throw new Error('No video URL available')
   }
 
-  const result = await saveScript(videoUrl, scriptUrl, {
-    name: data.name,
-    creator,
-    supportUrl,
-    isDefault: true,
-  })
+  const creator = data.user.username
+  const supportUrl =
+    data.user.profile?.support_url || `https://faptap.net/u/${creator}`
 
-  if (!result) {
-    throw new Error('Failed to save script')
+  const createData: CreateIveEntryData = {
+    title: data.name,
+    tags: ['faptap'],
+    thumbnail: undefined,
+    videoSources: [
+      {
+        url: videoUrl,
+        status: 'working' as const,
+      },
+    ],
+    scripts: [
+      {
+        url: scriptUrl,
+        creator,
+        supportUrl,
+      },
+    ],
   }
 
+  await createEntry(createData)
   window.open(videoUrl, '_blank')
 }

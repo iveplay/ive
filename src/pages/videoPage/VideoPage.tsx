@@ -5,7 +5,6 @@ import { ScrubberHeatmap } from '@/components/heatmap/ScrubberHeatmap'
 import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
 import { useSettingsStore, useSettingsSetup } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
-import { Scripts } from '@/types/script'
 import { VideoPanel } from '../videoPanel/VideoPanel'
 import styles from './VideoPage.module.scss'
 

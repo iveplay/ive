@@ -1,6 +1,7 @@
 import { CONTEXT_MESSAGES } from '@background/types'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import logoImg from '@/assets/logo.png'
+import { CreateIveEntryData } from '@/types/ivedb'
 import {
   EroscriptContent,
   eroscriptDetectContent,
@@ -8,7 +9,7 @@ import {
   addScriptToContent,
 } from '@/utils/eroscriptDetectContent'
 import { extractTopicOwnerInfo, getScriptLinkName } from '@/utils/eroscripts'
-import { saveScript } from '@/utils/saveScripts'
+import { createEntry } from '@/utils/iveDbUtils'
 import styles from './EroLoadPanel.module.scss'
 
 export const EroLoadPanel = () => {
@@ -190,18 +191,32 @@ export const EroLoadPanel = () => {
         ? autoDetected.scripts.find((s) => s.url === selectedScript)?.name
         : getScriptLinkName(selectedScript)
 
-      const result = await saveScript(selectedVideo, selectedScript, {
-        name: scriptName || 'EroScript',
-        creator: ownerInfo.username || 'Unknown',
-        supportUrl: window.location.href,
-        isDefault: false,
-      })
-
-      if (!result) {
-        throw new Error('Failed to save script')
+      const createData: CreateIveEntryData = {
+        title: scriptName || 'EroScript', // Extract better title
+        tags: ['eroscripts'], // Extract tags
+        thumbnail: undefined, // Extract thumbnail
+        videoSources: [
+          {
+            url: selectedVideo,
+            status: 'working' as const,
+          },
+        ],
+        scripts: [
+          {
+            url: selectedScript,
+            creator: ownerInfo.username || 'Unknown',
+            supportUrl: window.location.href,
+          },
+        ],
       }
 
+      const entryId = await createEntry(createData)
+
+      console.log('Created IveDB entry:', entryId)
+
       window.open(selectedVideo, '_blank')
+    } catch (error) {
+      console.error('Error saving script:', error)
     } finally {
       setIsLoading(false)
     }

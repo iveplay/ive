@@ -6,7 +6,6 @@ import logoImg from '@/assets/logo.png'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { useVideoStore } from '@/store/useVideoStore'
-import { Scripts } from '@/types/script'
 import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
