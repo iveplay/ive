@@ -10,7 +10,7 @@ import { VideoPanel } from '../videoPanel/VideoPanel'
 import styles from './VideoPage.module.scss'
 
 type VideoPageProps = {
-  entry?: IveEntry | null
+  entry?: IveEntry
 }
 
 export const VideoPage = ({ entry }: VideoPageProps) => {

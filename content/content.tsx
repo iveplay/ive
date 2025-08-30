@@ -9,6 +9,7 @@ import {
   mountIvdbPanel,
   mountFunscripthubPanel,
   mountVideoPage,
+  hasVideoIframes,
 } from '@/utils/componentMounting'
 import { setupIveEventApi } from '@/utils/iveEventApi'
 import {
@@ -42,13 +43,13 @@ const handleFloatVideoMessage = () => {
   // Mount component if needed
   if (!document.getElementById('ive')) {
     mountedComponent = false
-    mountVideoPage(null)
+    mountVideoPage(undefined, false, !isInIframe) // Force mount if not in iframe
   }
 
   // Trigger floating mode
   setTimeout(() => {
     useVideoStore.getState().setIsFloating(true)
-  }, 100)
+  }, 200)
 }
 
 // URL change monitoring
@@ -78,97 +79,95 @@ const handleUrlChange = async () => {
   if (document.getElementById('ive')) return // Prevent duplicates
 
   try {
-    await mountComponentForUrl(currentUrl)
+    // Handle specific site panels first
+    if (currentUrl.includes(SITE_URLS.EROSCRIPT)) {
+      const success = await mountEroscriptPanel()
+      if (success) mountedComponent = true
+      return
+    }
+
+    if (currentUrl.includes(SITE_URLS.FAPTAP)) {
+      const success = await mountFaptapPanel()
+      if (success) mountedComponent = true
+      return
+    }
+
+    if (currentUrl.includes(SITE_URLS.FAPTAP_DOMAIN)) {
+      const success = mountFaptapCardHandler()
+      if (success) mountedComponent = true
+      return
+    }
+
+    if (currentUrl.includes(SITE_URLS.IVDB)) {
+      const success = await mountIvdbPanel()
+      if (success) mountedComponent = true
+      return
+    }
+
+    if (currentUrl.includes(SITE_URLS.FUNSCRIPTHUB)) {
+      const success = await mountFunscripthubPanel()
+      if (success) mountedComponent = true
+      return
+    }
+
+    let entry: IveEntry | undefined = undefined
+    let shouldMount = false
+
+    // Try to find matching IveDB entry
+    entry = await findMatchingEntry(currentUrl)
+
+    // Check custom URLs if no entry found
+    if (!entry) {
+      const customUrls = await getCustomUrls()
+      shouldMount = matchesCustomUrls(currentUrl, customUrls)
+    } else {
+      shouldMount = true
+    }
+
+    // Handle iframe context
+    if (isInIframe && !entry && !shouldMount) {
+      try {
+        // Try to get parent URL and check for matches
+        const parentUrl = window.parent.location.href
+        entry = await findMatchingEntry(parentUrl)
+
+        if (!entry) {
+          const customUrls = await getCustomUrls()
+          const normalizedParentUrl = parentUrl
+            .replace(/^https?:\/\//, '')
+            .replace(/^www\./, '')
+
+          shouldMount = customUrls.some((url) => {
+            const normalizedCustomUrl = url
+              .replace(/^https?:\/\//, '')
+              .replace(/^www\./, '')
+            return normalizedParentUrl.includes(normalizedCustomUrl)
+          })
+        } else {
+          shouldMount = true
+        }
+      } catch {
+        // CORS error - try domain-based matching (from original)
+        const currentDomain = new URL(currentUrl).hostname.replace(/^www\./, '')
+        entry = await findMatchingEntry(`https://${currentDomain}`)
+        if (entry) shouldMount = true
+      }
+    }
+
+    // Only mount if we have entry OR custom URL match
+    // For iframe: always mount if conditions are met
+    // For main page: only mount if no video iframes OR we have an entry
+    if (shouldMount) {
+      const shouldMountFinal =
+        isInIframe || (!hasVideoIframes() && (entry || shouldMount))
+
+      if (shouldMountFinal) {
+        const success = mountVideoPage(entry, isInIframe)
+        if (success) mountedComponent = true
+      }
+    }
   } catch (error) {
     console.error('Error mounting IVE component:', error)
-  }
-}
-
-// Mount appropriate component based on URL
-const mountComponentForUrl = async (url: string): Promise<void> => {
-  let successMount = false
-
-  // Handle specific site panels first
-  if (url.includes(SITE_URLS.EROSCRIPT)) {
-    successMount = await mountEroscriptPanel()
-  } else if (url.includes(SITE_URLS.FAPTAP)) {
-    successMount = await mountFaptapPanel()
-  } else if (url.includes(SITE_URLS.FAPTAP_DOMAIN)) {
-    successMount = await mountFaptapCardHandler()
-  } else if (url.includes(SITE_URLS.IVDB)) {
-    successMount = await mountIvdbPanel()
-  } else if (url.includes(SITE_URLS.FUNSCRIPTHUB)) {
-    successMount = await mountFunscripthubPanel()
-  } else {
-    // Handle video pages with IveDB entries
-    successMount = await handleVideoPageMounting(url)
-  }
-
-  if (successMount) {
-    console.log('IVE component mounted successfully')
-    mountedComponent = true
-  }
-}
-
-// Handle video page mounting with IveDB lookup
-const handleVideoPageMounting = async (url: string) => {
-  let matchingEntry: IveEntry | null = null
-  let shouldMount = false
-
-  // Try to find matching IveDB entry
-  matchingEntry = await findMatchingEntry(url)
-
-  // Check custom URLs if no entry found
-  if (!matchingEntry) {
-    const customUrls = await getCustomUrls()
-    shouldMount = matchesCustomUrls(url, customUrls)
-  } else {
-    shouldMount = true
-  }
-
-  // Handle iframe context
-  if (isInIframe && !shouldMount) {
-    matchingEntry = await handleIframeContext(url)
-    shouldMount = !!matchingEntry
-  }
-
-  if (shouldMount) {
-    return mountVideoPage(matchingEntry, isInIframe)
-  }
-
-  return false
-}
-
-// Handle iframe-specific logic
-const handleIframeContext = async (url: string): Promise<IveEntry | null> => {
-  try {
-    // Try to get parent URL and check for matches
-    const parentUrl = window.parent.location.href
-    const matchingEntry = await findMatchingEntry(parentUrl)
-    if (matchingEntry) return matchingEntry
-
-    // Check parent URL against custom URLs
-    const customUrls = await getCustomUrls()
-    if (matchesCustomUrls(parentUrl, customUrls)) {
-      return null // Return null but indicate we should mount
-    }
-  } catch {
-    // CORS error - try domain-based matching
-    return await handleCorsRestrictedIframe(url)
-  }
-
-  return null
-}
-
-// Handle CORS-restricted iframe by domain matching
-const handleCorsRestrictedIframe = async (
-  url: string,
-): Promise<IveEntry | null> => {
-  try {
-    const currentDomain = new URL(url).hostname.replace(/^www\./, '')
-    return await findMatchingEntry(`https://${currentDomain}`)
-  } catch {
-    return null
   }
 }
 

@@ -119,11 +119,13 @@ export const mountFunscripthubPanel = async (): Promise<boolean> => {
 }
 
 export const mountVideoPage = (
-  entry: IveEntry | null,
+  entry: IveEntry | undefined,
   isInIframe: boolean = false,
+  force: boolean = false,
 ): boolean => {
   const shouldMount = isInIframe || (!hasVideoIframes() && entry)
-  if (!shouldMount) return false
+
+  if (!shouldMount && !force) return false
 
   return mountComponent(document.body, <VideoPage entry={entry} />, 'append', {
     zIndex: '2147483640',

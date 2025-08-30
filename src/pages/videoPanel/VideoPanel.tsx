@@ -11,7 +11,7 @@ import { getEntry } from '@/utils/iveDbUtils'
 import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
-  entry?: IveEntry | null
+  entry?: IveEntry
   isIvdbScript?: boolean
   disableFloat?: boolean
   hasVideoIframes?: boolean
