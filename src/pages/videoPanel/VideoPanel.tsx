@@ -6,27 +6,37 @@ import logoImg from '@/assets/logo.png'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { useVideoStore } from '@/store/useVideoStore'
+import { IveEntry, ScriptMetadata } from '@/types/ivedb'
+import { getEntry } from '@/utils/iveDbUtils'
 import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
-  scripts?: Scripts
+  entry?: IveEntry | null
   isIvdbScript?: boolean
   disableFloat?: boolean
   hasVideoIframes?: boolean
 }
 
+type ScriptOption = {
+  url: string
+  name: string
+  creator: string
+  supportUrl?: string
+}
+
 export const VideoPanel = ({
-  scripts,
+  entry,
   isIvdbScript,
   disableFloat,
   hasVideoIframes,
 }: VideoPanelProps) => {
-  const scriptEntries = Object.entries(scripts || {})
-
   const [currentScript, setCurrentScript] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const [scriptOptions, setScriptOptions] = useState<ScriptOption[]>([])
+  const [currentScriptInfo, setCurrentScriptInfo] =
+    useState<ScriptOption | null>(null)
 
   const scriptInverted = useDeviceStore(
     (state) => state.scriptInverted || false,
@@ -55,25 +65,64 @@ export const VideoPanel = ({
 
   const { isPlaying } = useVideoListener(videoElement)
 
+  // Load script options from IveDB entry
+  useEffect(() => {
+    const loadScriptOptions = async () => {
+      if (!entry) {
+        setScriptOptions([])
+        return
+      }
+
+      try {
+        const entryDetails = await getEntry(entry.id)
+        if (!entryDetails) {
+          setScriptOptions([])
+          return
+        }
+
+        const options: ScriptOption[] = entryDetails.scripts.map(
+          (script: ScriptMetadata) => ({
+            url: script.url,
+            name: script.creator
+              ? `${entry.title} - ${script.creator}`
+              : entry.title,
+            creator: script.creator,
+            supportUrl: script.supportUrl,
+          }),
+        )
+
+        setScriptOptions(options)
+      } catch (error) {
+        console.error(`Error loading entry details for ${entry.id}:`, error)
+        setScriptOptions([])
+      }
+    }
+
+    loadScriptOptions()
+  }, [entry])
+
   // Handle script selection
   const handleScriptSelect = useCallback(
     async (scriptUrl: string) => {
       if (!videoElement) return
 
+      const scriptOption = scriptOptions.find((opt) => opt.url === scriptUrl)
+      if (!scriptOption) return
+
       setCurrentScript(scriptUrl)
+      setCurrentScriptInfo(scriptOption)
       setActiveScript(scriptUrl)
       setErrorMessage(null)
       setIsLoading(true)
 
       try {
-        // Load the script with the background service
         console.log('Loading script:', scriptUrl)
         await chrome.runtime.sendMessage({
           type: MESSAGES.LOAD_SCRIPT_URL,
           url: scriptUrl,
         })
 
-        // If video is already playing, start haptic playback immediately
+        // Start playback if video is already playing
         if (!videoElement.paused) {
           console.log('Video is playing, starting haptic playback')
           await chrome.runtime.sendMessage({
@@ -88,6 +137,7 @@ export const VideoPanel = ({
         setIsLoading(false)
       } catch (e) {
         setCurrentScript(null)
+        setCurrentScriptInfo(null)
         setActiveScript(null)
         setErrorMessage(
           `Error loading script: ${e instanceof Error ? e.message : String(e)}`,
@@ -95,41 +145,33 @@ export const VideoPanel = ({
         setIsLoading(false)
       }
     },
-    [videoElement, setActiveScript],
+    [videoElement, setActiveScript, scriptOptions],
   )
 
-  // Select script on load
+  // Auto-select first script
   useEffect(() => {
-    if (videoElement && !currentScript) {
-      const defaultScript = scriptEntries.find(([, info]) => info.isDefault)
-      console.log('Auto loading script')
-      if (defaultScript) {
-        handleScriptSelect(defaultScript[0])
-      } else if (scriptEntries.length > 0) {
-        handleScriptSelect(scriptEntries[0][0])
-      }
+    if (videoElement && !currentScript && scriptOptions.length > 0) {
+      console.log('Auto loading first script')
+      handleScriptSelect(scriptOptions[0].url)
     }
-  }, [videoElement, currentScript, scriptEntries, handleScriptSelect])
+  }, [videoElement, currentScript, scriptOptions, handleScriptSelect])
 
-  // Stop playback when page unloads
+  // Cleanup on unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      chrome.runtime.sendMessage({
-        type: MESSAGES.STOP,
-      })
+      chrome.runtime.sendMessage({ type: MESSAGES.STOP })
       setActiveScript(null)
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload)
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
       setActiveScript(null)
     }
   }, [setActiveScript])
 
-  const currentScriptInfo = currentScript ? scripts?.[currentScript] : null
   const isError = !!(videoError || errorMessage)
+  const hasScripts = scriptOptions.length > 0
 
   return (
     <div
@@ -156,11 +198,12 @@ export const VideoPanel = ({
             )}
           </div>
         )}
+
         <div className={styles.actions}>
-          {scripts && (
+          {hasScripts && (
             <button
               className={styles.syncButton}
-              onClick={() => handleScriptSelect(currentScript || '')}
+              onClick={() => currentScript && handleScriptSelect(currentScript)}
               disabled={isLoading}
             >
               Sync
@@ -180,6 +223,7 @@ export const VideoPanel = ({
             </button>
           )}
         </div>
+
         <div className={styles.scriptContainer}>
           <div className={styles.status}>
             <span className={styles.label}>Status:</span>
@@ -192,7 +236,7 @@ export const VideoPanel = ({
               {isPlaying ? 'Playing' : 'Stopped'}
             </span>
           </div>
-          {scripts && !isIvdbScript && (
+          {hasScripts && !isIvdbScript && (
             <div className={styles.invertContainer}>
               <span className={styles.label}>Invert:</span>
               <label className={styles.switch}>
@@ -207,31 +251,25 @@ export const VideoPanel = ({
             </div>
           )}
         </div>
-        {scriptEntries.length > 1 && (
+
+        {scriptOptions.length > 1 && (
           <div className={styles.scriptDropdownContainer}>
             <select
               className={styles.scriptDropdown}
               value={currentScript || ''}
               onChange={(e) => handleScriptSelect(e.target.value)}
-              disabled={isLoading || scriptEntries.length === 0}
+              disabled={isLoading}
             >
-              {scriptEntries.length === 0 ? (
-                <option value='' disabled>
-                  No scripts available
+              {scriptOptions.map((option) => (
+                <option key={option.url} value={option.url}>
+                  {option.name}
                 </option>
-              ) : (
-                <>
-                  {scriptEntries.map(([url, info]) => (
-                    <option key={url} value={url}>
-                      {info.name}
-                    </option>
-                  ))}
-                </>
-              )}
+              ))}
             </select>
           </div>
         )}
-        {currentScript && currentScriptInfo && (
+
+        {currentScriptInfo && (
           <div className={styles.scriptInfo}>
             <p className={styles.scriptCreator}>{currentScriptInfo.creator}</p>
             {currentScriptInfo.supportUrl && (
@@ -246,6 +284,7 @@ export const VideoPanel = ({
             )}
           </div>
         )}
+
         {(isLoading || isSearching) && (
           <div className={styles.loadingIndicator}>
             {isSearching ? 'Searching video element' : 'Loading'}

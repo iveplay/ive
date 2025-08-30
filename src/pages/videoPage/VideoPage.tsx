@@ -5,14 +5,15 @@ import { ScrubberHeatmap } from '@/components/heatmap/ScrubberHeatmap'
 import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
 import { useSettingsStore, useSettingsSetup } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
+import { IveEntry } from '@/types/ivedb'
 import { VideoPanel } from '../videoPanel/VideoPanel'
 import styles from './VideoPage.module.scss'
 
 type VideoPageProps = {
-  scripts?: Scripts
+  entry?: IveEntry | null
 }
 
-export const VideoPage = ({ scripts }: VideoPageProps) => {
+export const VideoPage = ({ entry }: VideoPageProps) => {
   useSettingsSetup()
   useDeviceSetup()
 
@@ -25,7 +26,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
 
   const isIvdbScript = scriptUrl?.startsWith('ivdb://')
   const shouldShowHeatmap =
-    showHeatmap && scripts && scriptUrl === activeScript && !isIvdbScript
+    showHeatmap && entry && scriptUrl === activeScript && !isIvdbScript
   const isInIframe = window !== window.top
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export const VideoPage = ({ scripts }: VideoPageProps) => {
   return (
     <div className={styles.videoPage}>
       <VideoPanel
-        scripts={scripts}
+        entry={entry}
         isIvdbScript={isIvdbScript}
         disableFloat={isInIframe}
         hasVideoIframes={hasVideoIframes}
