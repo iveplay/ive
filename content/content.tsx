@@ -11,6 +11,7 @@ import {
   mountVideoPage,
   hasVideoIframes,
 } from '@/utils/componentMounting'
+import { setupIveBridge } from '@/utils/iveBridge'
 import { setupIveEventApi } from '@/utils/iveEventApi'
 import {
   findMatchingEntry,
@@ -173,6 +174,7 @@ const handleUrlChange = async () => {
 
 // Initialize everything
 const initialize = () => {
+  setupIveBridge()
   setupIveEventApi()
   setupMessageListeners()
   setupUrlMonitoring()
