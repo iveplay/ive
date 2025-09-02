@@ -12,16 +12,13 @@ import {
   updateEntry,
 } from './iveDbUtils'
 
-const ALLOWED_ORIGIN =
-  process.env.NODE_ENV === 'development'
-    ? 'https://iveplay.io'
-    : 'http://localhost:3000'
+const ALLOWED_ORIGINS = ['https://iveplay.io', 'http://localhost:3000']
 
 // Bridge between website and extension
 export const setupIveBridge = () => {
   window.addEventListener('message', async (event) => {
     // Security: Only accept messages from allowed origins
-    if (event.origin !== ALLOWED_ORIGIN) return
+    if (!ALLOWED_ORIGINS.includes(event.origin)) return
     if (event.source !== window) return
 
     const message = event.data
