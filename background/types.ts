@@ -113,6 +113,9 @@ export const MESSAGES = {
   EXTRACT_SCRIPT_URL: 'ive:extract_script_url',
 
   // IveDB messages
+  IVEDB_PING: 'ive:ivedb:ping',
+  IVEDB_GET_ENTRIES_PAGINATED: 'ive:ivedb:get_entries_paginated',
+  IVEDB_GET_ENTRY_WITH_DETAILS: 'ive:ivedb:get_entry_with_details',
   IVEDB_CREATE_ENTRY: 'ive:ivedb:create_entry',
   IVEDB_GET_ENTRY: 'ive:ivedb:get_entry',
   IVEDB_GET_ALL_ENTRIES: 'ive:ivedb:get_all_entries',
@@ -189,6 +192,13 @@ export type UIMessage =
   // Utils
   | { type: typeof MESSAGES.EXTRACT_SCRIPT_URL; url: string }
   // IveDB messages
+  | { type: typeof MESSAGES.IVEDB_PING }
+  | {
+      type: typeof MESSAGES.IVEDB_GET_ENTRIES_PAGINATED
+      offset: number
+      limit: number
+    }
+  | { type: typeof MESSAGES.IVEDB_GET_ENTRY_WITH_DETAILS; entryId: string }
   | { type: typeof MESSAGES.IVEDB_CREATE_ENTRY; data: CreateIveEntryData }
   | { type: typeof MESSAGES.IVEDB_GET_ENTRY; entryId: string }
   | { type: typeof MESSAGES.IVEDB_GET_ALL_ENTRIES }

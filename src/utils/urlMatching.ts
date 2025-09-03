@@ -1,5 +1,5 @@
 import { IveEntry } from '@/types/ivedb'
-import { getEntry, getVideoLookups } from '@/utils/iveDbUtils'
+import { getEntryWithDetails, getVideoLookups } from '@/utils/iveDbUtils'
 
 const normalizeUrl = (url: string): string => {
   return url
@@ -29,7 +29,7 @@ export const findMatchingEntry = async (
 
     if (!matchingLookup) return undefined
 
-    const entryDetails = await getEntry(matchingLookup.entryId)
+    const entryDetails = await getEntryWithDetails(matchingLookup.entryId)
 
     if (entryDetails) return entryDetails.entry
 

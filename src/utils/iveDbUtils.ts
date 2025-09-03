@@ -7,6 +7,64 @@ import {
   ScriptMetadata,
 } from '@/types/ivedb'
 
+export const ping = async (): Promise<boolean> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_PING,
+    })
+  } catch (error) {
+    console.error('Error pinging IveDB:', error)
+    return false
+  }
+}
+
+export const getEntriesPaginated = async (
+  offset: number = 0,
+  limit: number = 20,
+): Promise<IveEntry[]> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_GET_ENTRIES_PAGINATED,
+      offset,
+      limit,
+    })
+  } catch (error) {
+    console.error('Error getting paginated IveDB entries:', error)
+    throw error
+  }
+}
+
+export const getEntry = async (entryId: string): Promise<IveEntry | null> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_GET_ENTRY,
+      entryId,
+    })
+  } catch (error) {
+    console.error('Error getting IveDB entry:', error)
+    throw error
+  }
+}
+
+export const getEntryWithDetails = async (
+  entryId: string,
+): Promise<{
+  entry: IveEntry
+  videoSources: VideoSource[]
+  scripts: ScriptMetadata[]
+} | null> => {
+  try {
+    return await chrome.runtime.sendMessage({
+      type: MESSAGES.IVEDB_GET_ENTRY_WITH_DETAILS,
+      entryId,
+    })
+  } catch (error) {
+    console.error('Error getting IveDB entry with details:', error)
+    throw error
+  }
+}
+
+// Existing methods remain the same
 export const createEntry = async (
   data: CreateIveEntryData,
 ): Promise<string> => {
@@ -18,24 +76,6 @@ export const createEntry = async (
     return entryId
   } catch (error) {
     console.error('Error creating IveDB entry:', error)
-    throw error
-  }
-}
-
-export const getEntry = async (
-  entryId: string,
-): Promise<{
-  entry: IveEntry
-  videoSources: VideoSource[]
-  scripts: ScriptMetadata[]
-} | null> => {
-  try {
-    return await chrome.runtime.sendMessage({
-      type: MESSAGES.IVEDB_GET_ENTRY,
-      entryId,
-    })
-  } catch (error) {
-    console.error('Error getting IveDB entry:', error)
     throw error
   }
 }

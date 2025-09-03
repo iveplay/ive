@@ -107,11 +107,23 @@ export function setupMessageHandler(): void {
               return await deviceService.setCustomUrls(message.urls)
 
             // IveDB
-            case MESSAGES.IVEDB_CREATE_ENTRY:
-              return await iveDBService.createEntry(message.data)
+            case MESSAGES.IVEDB_PING:
+              return await iveDBService.ping()
+
+            case MESSAGES.IVEDB_GET_ENTRIES_PAGINATED:
+              return await iveDBService.getEntriesPaginated(
+                message.offset,
+                message.limit,
+              )
 
             case MESSAGES.IVEDB_GET_ENTRY:
+              return await iveDBService.getBasicEntry(message.entryId)
+
+            case MESSAGES.IVEDB_GET_ENTRY_WITH_DETAILS:
               return await iveDBService.getEntryWithDetails(message.entryId)
+
+            case MESSAGES.IVEDB_CREATE_ENTRY:
+              return await iveDBService.createEntry(message.data)
 
             case MESSAGES.IVEDB_GET_ALL_ENTRIES:
               return await iveDBService.getAllEntries()

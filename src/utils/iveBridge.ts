@@ -5,17 +5,22 @@ import {
   deleteEntry,
   getAllEntries,
   getEntry,
+  getEntryWithDetails,
+  getEntriesPaginated,
   getFavorites,
   isFavorited,
   removeFromFavorites,
   searchEntries,
   updateEntry,
+  ping,
 } from './iveDbUtils'
 
 const ALLOWED_ORIGINS = ['https://iveplay.io', 'http://localhost:3000']
 
 // Bridge between website and extension
 export const setupIveBridge = () => {
+  if (!ALLOWED_ORIGINS.includes(window.location.origin)) return
+
   window.addEventListener('message', async (event) => {
     // Security: Only accept messages from allowed origins
     if (!ALLOWED_ORIGINS.includes(event.origin)) return
@@ -28,12 +33,24 @@ export const setupIveBridge = () => {
       let response
 
       switch (message.type) {
+        case MESSAGES.IVEDB_PING:
+          response = await ping()
+          break
+
         case MESSAGES.IVEDB_GET_ALL_ENTRIES:
           response = await getAllEntries()
           break
 
+        case MESSAGES.IVEDB_GET_ENTRIES_PAGINATED:
+          response = await getEntriesPaginated(message.offset, message.limit)
+          break
+
         case MESSAGES.IVEDB_GET_ENTRY:
           response = await getEntry(message.entryId)
+          break
+
+        case MESSAGES.IVEDB_GET_ENTRY_WITH_DETAILS:
+          response = await getEntryWithDetails(message.entryId)
           break
 
         case MESSAGES.IVEDB_CREATE_ENTRY:
@@ -67,6 +84,7 @@ export const setupIveBridge = () => {
         case MESSAGES.IVEDB_SEARCH_ENTRIES:
           response = await searchEntries(message.options)
           break
+
         default:
           throw new Error(`Unknown message type: ${message.type}`)
       }

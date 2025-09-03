@@ -154,6 +154,152 @@ export class IveDBService {
     }
   }
 
+  async ping(): Promise<boolean> {
+    const db = await this.openDB()
+    return db && db.objectStoreNames.length > 0
+  }
+
+  async getEntriesPaginated(
+    offset: number = 0,
+    limit: number = 20,
+  ): Promise<IveEntry[]> {
+    const db = await this.openDB()
+
+    if (!db || db.objectStoreNames.length === 0) {
+      return []
+    }
+
+    const tx = db.transaction(['entries'], 'readonly')
+    const store = tx.objectStore('entries')
+    const index = store.index('createdAt')
+
+    // Use cursor for efficient pagination
+    const entries: IveEntry[] = []
+    let skipped = 0
+
+    return new Promise((resolve, reject) => {
+      // Open cursor in descending order (newest first)
+      const request = index.openCursor(null, 'prev')
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result
+
+        if (!cursor) {
+          resolve(entries)
+          return
+        }
+
+        if (skipped < offset) {
+          skipped++
+          cursor.continue()
+          return
+        }
+
+        if (entries.length >= limit) {
+          resolve(entries)
+          return
+        }
+
+        entries.push(cursor.value)
+        cursor.continue()
+      }
+
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async getBasicEntry(entryId: string): Promise<IveEntry | null> {
+    const db = await this.openDB()
+
+    if (!db || db.objectStoreNames.length === 0) {
+      return null
+    }
+
+    const tx = db.transaction(['entries'], 'readonly')
+    return await this.promisifyRequest(tx.objectStore('entries').get(entryId))
+  }
+
+  async getEntryWithDetails(entryId: string): Promise<{
+    entry: IveEntry
+    videoSources: VideoSource[]
+    scripts: ScriptMetadata[]
+  } | null> {
+    const db = await this.openDB()
+
+    if (!db || db.objectStoreNames.length === 0) {
+      return null
+    }
+
+    const tx = db.transaction(
+      ['entries', 'videoSources', 'scripts'],
+      'readonly',
+    )
+
+    const entry = await this.promisifyRequest(
+      tx.objectStore('entries').get(entryId),
+    )
+    if (!entry) return null
+
+    // Get video sources
+    const videoSources: VideoSource[] = []
+    for (const videoId of entry.videoSourceIds) {
+      const video = await this.promisifyRequest(
+        tx.objectStore('videoSources').get(videoId),
+      )
+      if (video) videoSources.push(video)
+    }
+
+    // Get scripts
+    const scripts: ScriptMetadata[] = []
+    for (const scriptId of entry.scriptIds) {
+      const script = await this.promisifyRequest(
+        tx.objectStore('scripts').get(scriptId),
+      )
+      if (script) scripts.push(script)
+    }
+
+    return {
+      entry,
+      videoSources,
+      scripts,
+    }
+  }
+
+  // Enhanced search with pagination
+  async searchEntriesPaginated(
+    options: IveSearchOptions & { offset?: number; limit?: number } = {},
+  ): Promise<IveEntry[]> {
+    const { offset = 0, limit = 20, ...searchOptions } = options
+
+    // Get all matching entries first (could be optimized further)
+    const allResults = await this.searchEntries(searchOptions)
+
+    // Apply pagination
+    return allResults.slice(offset, offset + limit)
+  }
+
+  // Get entry count for pagination info
+  async getEntriesCount(options?: IveSearchOptions): Promise<number> {
+    if (options && (options.tags?.length || options.creator || options.query)) {
+      const results = await this.searchEntries(options)
+      return results.length
+    }
+
+    const db = await this.openDB()
+
+    if (!db || db.objectStoreNames.length === 0) {
+      return 0
+    }
+
+    const tx = db.transaction(['entries'], 'readonly')
+
+    return new Promise((resolve, reject) => {
+      const request = tx.objectStore('entries').count()
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+  }
+
   // Create a new IVE entry with related data or merge with existing
   async createEntry(data: CreateIveEntryData): Promise<string> {
     try {
@@ -420,50 +566,6 @@ export class IveDBService {
     return await this.promisifyRequest(
       tx.objectStore('videoUrlLookup').getAll(),
     )
-  }
-
-  // Get entry with all related data
-  async getEntryWithDetails(entryId: string) {
-    const db = await this.openDB()
-
-    // Check if database is still valid
-    if (!db || db.objectStoreNames.length === 0) {
-      return null
-    }
-
-    const tx = db.transaction(
-      ['entries', 'videoSources', 'scripts'],
-      'readonly',
-    )
-
-    const entry = await this.promisifyRequest(
-      tx.objectStore('entries').get(entryId),
-    )
-    if (!entry) return null
-
-    // Get video sources
-    const videoSources: VideoSource[] = []
-    for (const videoId of entry.videoSourceIds) {
-      const video = await this.promisifyRequest(
-        tx.objectStore('videoSources').get(videoId),
-      )
-      if (video) videoSources.push(video)
-    }
-
-    // Get scripts
-    const scripts: ScriptMetadata[] = []
-    for (const scriptId of entry.scriptIds) {
-      const script = await this.promisifyRequest(
-        tx.objectStore('scripts').get(scriptId),
-      )
-      if (script) scripts.push(script)
-    }
-
-    return {
-      entry,
-      videoSources,
-      scripts,
-    }
   }
 
   // Search entries

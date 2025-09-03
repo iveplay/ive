@@ -7,7 +7,7 @@ import { useVideoListener } from '@/hooks/useVideoListener'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { useVideoStore } from '@/store/useVideoStore'
 import { IveEntry, ScriptMetadata } from '@/types/ivedb'
-import { getEntry } from '@/utils/iveDbUtils'
+import { getEntryWithDetails } from '@/utils/iveDbUtils'
 import styles from './VideoPanel.module.scss'
 
 type VideoPanelProps = {
@@ -77,7 +77,7 @@ export const VideoPanel = ({
       }
 
       try {
-        const entryDetails = await getEntry(entry.id)
+        const entryDetails = await getEntryWithDetails(entry.id)
         if (!entryDetails) {
           setScriptOptions([])
           return
