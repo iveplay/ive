@@ -21,7 +21,7 @@ type NavItem = {
 
 export const PopupApp = () => {
   const [opened, setOpened] = useState(false)
-  const [activeItem, setActiveItem] = useState<string>('handy')
+  const [activeItem, setActiveItem] = useState<string>()
 
   useDeviceSetup()
   useSettingsSetup()
@@ -35,7 +35,7 @@ export const PopupApp = () => {
   )
 
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded || activeItem) return
 
     if (buttplugConnected && !handyConnected) {
       setActiveItem('buttplug')
@@ -43,7 +43,7 @@ export const PopupApp = () => {
     }
 
     setActiveItem('handy')
-  }, [handyConnected, buttplugConnected, isLoaded])
+  }, [handyConnected, buttplugConnected, isLoaded, activeItem])
 
   const navItems: NavItem[] = [
     { id: 'handy', label: 'Handy', component: <HandyConnect />, visible: true },
