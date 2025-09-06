@@ -6,10 +6,13 @@ import { useDeviceStore } from '@/store/useDeviceStore'
 import { DeviceInfo } from '../deviceInfo/DeviceInfo'
 import styles from './HandyConnect.module.scss'
 
+const SUPPORTED_HANDY_FW = 4
+
 export const HandyConnect = () => {
   const {
     handyConnected,
     handyConnectionKey,
+    handyDeviceInfo,
     handyOffset,
     handyStrokeMin,
     handyStrokeMax,
@@ -23,6 +26,7 @@ export const HandyConnect = () => {
     useShallow((state) => ({
       handyConnected: state.handyConnected,
       handyConnectionKey: state.handyConnectionKey,
+      handyDeviceInfo: state.handyDeviceInfo,
       handyOffset: state.handyOffset,
       handyStrokeMin: state.handyStrokeMin,
       handyStrokeMax: state.handyStrokeMax,
@@ -100,10 +104,26 @@ export const HandyConnect = () => {
     }
   }
 
+  const fwVersion = Number(handyDeviceInfo?.firmware?.split('.')[0])
+  const showFirmwareWarning =
+    handyConnected &&
+    handyDeviceInfo?.firmware &&
+    !(fwVersion >= SUPPORTED_HANDY_FW)
+
   return (
     <div className={styles.handyConnect}>
-      {error && !handyConnected && (
-        <div className={styles.errorMessage}>{error}</div>
+      {(showFirmwareWarning || (error && !handyConnected)) && (
+        <div className={styles.errorMessage}>
+          {showFirmwareWarning ? (
+            <>
+              <strong>Only FW 4 and above is supported.</strong>
+              <br />
+              Please update your Handy firmware via the official handy app.
+            </>
+          ) : (
+            error
+          )}
+        </div>
       )}
 
       <div className={styles.connectionForm}>
