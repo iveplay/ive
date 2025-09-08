@@ -61,8 +61,9 @@ export const IvdbPanel = () => {
 
       const createData: CreateIveEntryData = {
         title: videoData.title,
-        tags: ['ivdb'],
-        thumbnail: undefined,
+        tags: ['ivdb', ...videoData.tags],
+        thumbnail: videoData.thumbnail,
+        duration: videoData.duration * 1000,
         videoSources: [
           {
             url: videoData.videoUrl,

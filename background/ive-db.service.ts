@@ -442,7 +442,7 @@ export class IveDBService {
       'readwrite',
     )
 
-    // Add new video sources
+    // Add new video sources (only if URL doesn't exist)
     for (const videoData of data.videoSources) {
       if (!existingVideoUrls.has(videoData.url)) {
         const videoId = v4()
@@ -490,13 +490,16 @@ export class IveDBService {
       }
     }
 
-    // Update entry with new IDs and merge tags
+    // Update entry - override title, thumbnail, duration, and merge tags
     const existingTags = entryDetails.entry.tags || []
     const newTags = data.tags || []
     const mergedTags = [...new Set([...existingTags, ...newTags])]
 
     const updatedEntry: IveEntry = {
       ...entryDetails.entry,
+      title: data.title,
+      duration: data.duration,
+      thumbnail: data.thumbnail,
       videoSourceIds: newVideoSourceIds,
       scriptIds: newScriptIds,
       tags: mergedTags,

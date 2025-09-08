@@ -192,10 +192,11 @@ export const getTopicMetadata = () => {
   }
 
   const parsedTopic = JSON.parse(topic)
+  const tags = ['eroscripts', ...(parsedTopic.tags || [])]
 
   return {
     title: parsedTopic.title || 'EroScript',
-    tags: parsedTopic.tags || ['eroscripts'],
+    tags,
     thumbnail: parsedTopic.image_url || undefined,
   }
 }
