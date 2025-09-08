@@ -81,10 +81,27 @@ export const FunscripthubPanel = () => {
             '#app > div > div:nth-child(2) > div > div > div.-mx-4.px-4.py-4.shadow-sm.ring-1.ring-gray-900\\/5.sm\\:mx-0.sm\\:rounded-lg.lg\\:col-span-2.lg\\:row-span-2.lg\\:row-end-2.lg\\:px-8.lg\\:py-8 > h2',
           )
           ?.textContent?.trim() || 'FunScriptHub'
-
       const authorLink: HTMLAnchorElement | null = document.querySelector(
         '#app > div > div:nth-child(2) > div > div > div.-mx-4.px-4.py-4.shadow-sm.ring-1.ring-gray-900\\/5.sm\\:mx-0.sm\\:rounded-lg.lg\\:col-span-2.lg\\:row-span-2.lg\\:row-end-2.lg\\:px-8.lg\\:py-8 > dl > div.mt-6.border-t.border-gray-900\\/5.pt-6.sm\\:pr-4 > dd > span > a',
       )
+      const thumbnail = document
+        .querySelector(
+          '#app > div > div:nth-child(2) > div > div > div.-mx-4.px-4.py-4.shadow-sm.ring-1.ring-gray-900\\/5.sm\\:mx-0.sm\\:rounded-lg.lg\\:col-span-2.lg\\:row-span-2.lg\\:row-end-2.lg\\:px-8.lg\\:py-8 > div > img',
+        )
+        ?.getAttribute('src')
+      const durationText = document
+        .querySelector(
+          '#app > div > div:nth-child(2) > div > div > div.-mx-4.px-4.py-4.shadow-sm.ring-1.ring-gray-900\\/5.sm\\:mx-0.sm\\:rounded-lg.lg\\:col-span-2.lg\\:row-span-2.lg\\:row-end-2.lg\\:px-8.lg\\:py-8 > dl > div.mt-8.sm\\:mt-6.sm\\:border-t.sm\\:border-gray-900\\/5.sm\\:pl-4.sm\\:pt-6 > div:nth-child(1) > dd',
+        )
+        ?.textContent?.trim()
+      const duration = durationText
+        ?.split(':')
+        .map(Number)
+        .reduce((ms, time, index) => {
+          const multipliers = [3600000, 60000, 1000]
+          return ms + time * multipliers[index]
+        }, 0)
+
       const creator = authorLink?.textContent?.trim() || 'Unknown'
       const selectedScriptName =
         scriptLinks.find((s) => s.url === selectedScript)?.name || title
@@ -92,7 +109,8 @@ export const FunscripthubPanel = () => {
       const createData: CreateIveEntryData = {
         title: selectedScriptName,
         tags: ['funscripthub'],
-        thumbnail: undefined,
+        thumbnail: thumbnail || undefined,
+        duration: duration || undefined,
         videoSources: [
           {
             url: selectedVideo,

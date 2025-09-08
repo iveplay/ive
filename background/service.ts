@@ -1036,16 +1036,20 @@ class DeviceService {
   ): Promise<string | null> => {
     try {
       const response = await fetch(scriptUrl)
+
       if (!response.ok) {
+        console.error('Error getting funscript:', response)
         throw new Error(`Failed to fetch funscript: ${response.status}`)
       }
+
       const responseText = await response.text()
 
       // Look for any path containing .funscript in the HTML
       const funscriptPathMatch = responseText.match(
         /["']([^"']*\.funscript[^"']*?)["']/,
       )
-      const cZoneMatch = responseText.match(/cZone:\s*"([^"]+)"/)
+
+      const cZoneMatch = responseText.match(/cZone:\s*['"]([^'"]+)['"]/)
 
       if (funscriptPathMatch && cZoneMatch) {
         let path = funscriptPathMatch[1]
