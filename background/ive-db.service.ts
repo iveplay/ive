@@ -467,9 +467,28 @@ export class IveDBService {
       }
     }
 
-    // Add new scripts
+    // Handle scripts - override existing ones with same URL
     for (const scriptData of data.scripts) {
-      if (!existingScriptUrls.has(scriptData.url)) {
+      if (existingScriptUrls.has(scriptData.url)) {
+        // Find and update existing script
+        const existingScript = entryDetails.scripts.find(
+          (s) => s.url === scriptData.url,
+        )
+        if (existingScript) {
+          const updatedScript: ScriptMetadata = {
+            ...existingScript,
+            ...scriptData,
+            id: existingScript.id,
+            createdAt: existingScript.createdAt,
+            updatedAt: now,
+          }
+
+          await this.promisifyRequest(
+            tx.objectStore('scripts').put(updatedScript),
+          )
+        }
+      } else {
+        // Add new script
         const scriptId = v4()
         const script: ScriptMetadata = {
           ...scriptData,

@@ -5,16 +5,21 @@ type FaptapVideoResponse = {
   data: {
     id: string
     name: string
+    duration: number
+    thumbnail_url: string
     user: {
       username: string
       profile?: {
         support_url?: string
       }
     }
+    tags: { id: string; name: string; slug: string }[]
     stream_url: string
     stream_url_selfhosted?: string
     script?: {
       url?: string
+      average_speed?: number
+      total_actions?: number
     }
   }
 }
@@ -49,8 +54,11 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
 
   const createData: CreateIveEntryData = {
     title: data.name,
-    tags: ['faptap'],
-    thumbnail: undefined,
+    tags: ['faptap', ...data.tags.map((tag) => tag.name)],
+    thumbnail: data.thumbnail_url
+      ? `https://faptap.net/api/assets/${data.thumbnail_url}`
+      : undefined,
+    duration: data.duration * 1000,
     videoSources: [
       {
         url: videoUrl,
@@ -62,6 +70,8 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
         url: scriptUrl,
         creator,
         supportUrl,
+        avgSpeed: data.script.average_speed || undefined,
+        actionCount: data.script.total_actions || undefined,
       },
     ],
   }
