@@ -53,3 +53,22 @@ export interface IveSearchOptions {
   maxDuration?: number
   status?: VideoSource['status']
 }
+
+// {
+//   title: '',
+//   duration: 0,
+//   thumbnail: '',
+//   tags: [],
+//   videoSources: [{
+//     url: '',
+//     status: 'unknown'
+//   }],
+//   scripts: [{
+//     url: '',
+//     creator: '',
+//     supportUrl: '',
+//     avgSpeed: 0,
+//     maxSpeed: 0,
+//     actionCount: 0
+//   }]
+// }
