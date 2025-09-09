@@ -38,13 +38,21 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
   }
 
   const scriptUrl = `https://faptap.net/api/assets/${data.script.url}`
-  const videoUrl =
-    data.stream_url ||
-    (data.stream_url_selfhosted?.includes('faptap')
-      ? ''
-      : data.stream_url_selfhosted)
+  const sources: CreateIveEntryData['videoSources'] = []
 
-  if (!videoUrl) {
+  // Prefer self-hosted URL if available faptap does this if video isn't available
+  if (
+    data.stream_url_selfhosted &&
+    !data.stream_url_selfhosted.includes('faptap')
+  ) {
+    sources.push({ url: data.stream_url_selfhosted, status: 'working' })
+  }
+
+  if (data.stream_url) {
+    sources.push({ url: data.stream_url, status: 'working' })
+  }
+
+  if (!sources.length) {
     throw new Error('No video URL available')
   }
 
@@ -59,12 +67,7 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
       ? `https://faptap.net/api/assets/${data.thumbnail_url}`
       : undefined,
     duration: data.duration * 1000,
-    videoSources: [
-      {
-        url: videoUrl,
-        status: 'working' as const,
-      },
-    ],
+    videoSources: sources,
     scripts: [
       {
         url: scriptUrl,
@@ -77,5 +80,5 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
   }
 
   await createEntry(createData)
-  window.open(videoUrl, '_blank')
+  window.open(sources[0]?.url, '_blank')
 }
