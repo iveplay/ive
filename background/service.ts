@@ -41,6 +41,7 @@ class DeviceService {
   // Track which tab has the active script
   private activeScriptTabId: number | null = null
   private activeScriptFrameId: number | null = null
+  private tabUrls: Map<number, string> = new Map()
 
   // Playback state
   private isPlaying = false
@@ -67,6 +68,25 @@ class DeviceService {
 
     const tabId = sender?.tab?.id
     const frameId = sender?.frameId
+    const currentUrl = sender?.tab?.url
+
+    if (!tabId) return false
+
+    // Check if URL changed for this tab (different video)
+    const lastUrl = this.tabUrls.get(tabId)
+    if (lastUrl && currentUrl && lastUrl !== currentUrl) {
+      // URL changed - clear the script if this was the controlling tab
+      if (this.activeScriptTabId === tabId) {
+        console.log(`URL changed in controlling tab ${tabId}, clearing script`)
+        this.clearScriptForTab(tabId)
+        return false
+      }
+    }
+
+    // Update URL tracking
+    if (currentUrl) {
+      this.tabUrls.set(tabId, currentUrl)
+    }
 
     // If no active script tab, allow first requester to take control
     if (this.activeScriptTabId === null && tabId) {
@@ -76,11 +96,9 @@ class DeviceService {
       return true
     }
 
-    // Allow control from:
-    // 1. Same tab, same frame (exact match)
-    // 2. Same tab, different frame (iframe in same page)
+    // Allow control from same tab
     if (tabId === this.activeScriptTabId) {
-      // Update frame ID if it's more specific (iframe taking over from main frame)
+      // Update frame ID if it's more specific
       if (
         frameId !== undefined &&
         frameId !== 0 &&
@@ -93,6 +111,25 @@ class DeviceService {
     }
 
     return false
+  }
+
+  private clearScriptForTab(tabId: number): void {
+    if (this.activeScriptTabId === tabId) {
+      console.log(`Clearing script for tab ${tabId}`)
+      this.activeScriptTabId = null
+      this.activeScriptFrameId = null
+      this.scriptLoaded = false
+      this.lastLoadedScript = null
+      this.funscript = null
+      this.isPlaying = false
+      this.broadcastState()
+    }
+    // Clean up URL tracking
+    this.tabUrls.delete(tabId)
+  }
+
+  public clearActiveScriptTab(tabId: number): void {
+    this.clearScriptForTab(tabId)
   }
 
   // Helper method to get sender tab ID from Chrome API
@@ -839,20 +876,6 @@ class DeviceService {
     await this.broadcastState()
   }
 
-  // Clear active script tab when tab is closed
-  public clearActiveScriptTab(tabId: number): void {
-    if (this.activeScriptTabId === tabId) {
-      console.log(`Active script tab ${tabId} closed, clearing script control`)
-      this.activeScriptTabId = null
-      this.activeScriptFrameId = null
-      this.scriptLoaded = false
-      this.lastLoadedScript = null
-      this.funscript = null
-      this.isPlaying = false
-      this.broadcastState()
-    }
-  }
-
   // Event listeners
   private setupHandyListeners(): void {
     if (!this.handyDevice) return
@@ -1013,16 +1036,20 @@ class DeviceService {
   ): Promise<string | null> => {
     try {
       const response = await fetch(scriptUrl)
+
       if (!response.ok) {
+        console.error('Error getting funscript:', response)
         throw new Error(`Failed to fetch funscript: ${response.status}`)
       }
+
       const responseText = await response.text()
 
       // Look for any path containing .funscript in the HTML
       const funscriptPathMatch = responseText.match(
         /["']([^"']*\.funscript[^"']*?)["']/,
       )
-      const cZoneMatch = responseText.match(/cZone:\s*"([^"]+)"/)
+
+      const cZoneMatch = responseText.match(/cZone:\s*['"]([^'"]+)['"]/)
 
       if (funscriptPathMatch && cZoneMatch) {
         let path = funscriptPathMatch[1]

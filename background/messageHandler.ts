@@ -1,4 +1,4 @@
-import { idbService } from './idb.service'
+import { iveDBService } from './ive-db.service'
 import { deviceService } from './service'
 import { MESSAGES, UIMessage } from './types'
 
@@ -106,16 +106,61 @@ export function setupMessageHandler(): void {
             case MESSAGES.SET_CUSTOM_URLS:
               return await deviceService.setCustomUrls(message.urls)
 
-            // Add IndexedDB handlers
-            case MESSAGES.GET_SCRIPTS:
-              return await idbService.getScripts()
+            // IveDB
+            case MESSAGES.IVEDB_PING:
+              return await iveDBService.ping()
 
-            case MESSAGES.SAVE_SCRIPT:
-              return await idbService.saveScript(
-                message.websiteKey,
-                message.scriptId,
-                message.scriptInfo,
+            case MESSAGES.IVEDB_GET_ENTRIES_PAGINATED:
+              return await iveDBService.getEntriesPaginated(
+                message.offset,
+                message.limit,
               )
+
+            case MESSAGES.IVEDB_GET_ENTRY:
+              return await iveDBService.getBasicEntry(message.entryId)
+
+            case MESSAGES.IVEDB_GET_ENTRY_WITH_DETAILS:
+              return await iveDBService.getEntryWithDetails(message.entryId)
+
+            case MESSAGES.IVEDB_CREATE_ENTRY:
+              return await iveDBService.createEntry(message.data)
+
+            case MESSAGES.IVEDB_GET_ALL_ENTRIES:
+              return await iveDBService.getAllEntries()
+
+            case MESSAGES.IVEDB_SEARCH_ENTRIES:
+              return await iveDBService.searchEntries(message.options)
+
+            case MESSAGES.IVEDB_UPDATE_ENTRY:
+              return await iveDBService.updateEntry(
+                message.entryId,
+                message.updates,
+              )
+
+            case MESSAGES.IVEDB_DELETE_ENTRY:
+              return await iveDBService.deleteEntry(message.entryId)
+
+            case MESSAGES.IVEDB_ADD_FAVORITE:
+              return await iveDBService.addToFavorites(message.entryId)
+
+            case MESSAGES.IVEDB_REMOVE_FAVORITE:
+              return await iveDBService.removeFromFavorites(message.entryId)
+
+            case MESSAGES.IVEDB_GET_FAVORITES:
+              return await iveDBService.getFavorites()
+
+            case MESSAGES.IVEDB_IS_FAVORITED:
+              return await iveDBService.isFavorited(message.entryId)
+
+            case MESSAGES.IVEDB_FIND_BY_VIDEO_URL:
+              return await iveDBService.findEntryByVideoUrl(message.url)
+
+            case MESSAGES.IVEDB_FIND_BY_SCRIPT_URL:
+              return await iveDBService.findEntryByScriptUrl(message.url)
+
+            case MESSAGES.IVEDB_GET_VIDEO_LOOKUPS:
+              return await iveDBService.getAllVideoLookups()
+
             // Utils
             case MESSAGES.EXTRACT_SCRIPT_URL:
               return await deviceService.extractRealScriptUrlFromCloudflare(

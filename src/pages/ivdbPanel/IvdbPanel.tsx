@@ -2,23 +2,9 @@ import clsx from 'clsx'
 import { useState } from 'react'
 import logoImg from '@/assets/logo.png'
 import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
-import { saveScript } from '@/utils/saveScripts'
+import { CreateIveEntryData } from '@/types/ivedb'
+import { createEntry } from '@/utils/iveDbUtils'
 import styles from './IvdbPanel.module.scss'
-
-type IvdbVideoResponse = {
-  title: string
-  videoUrl: string
-  partnerName: string
-  partnerVideoId: string
-}
-
-type IvdbScriptResponse = {
-  scriptId: string
-  scripter: {
-    scripterId: string
-    name: string
-  }
-}
 
 export const IvdbPanel = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -38,7 +24,6 @@ export const IvdbPanel = () => {
         throw new Error('Could not extract video ID from URL')
       }
 
-      // Fetch both video data and scripts in parallel
       const [videoResponse, scriptsResponse] = await Promise.all([
         fetch(
           `https://scripts01.handyfeeling.com/api/script/index/v0/videos/${videoId}`,
@@ -56,10 +41,9 @@ export const IvdbPanel = () => {
         throw new Error(`Scripts API request failed: ${scriptsResponse.status}`)
       }
 
-      // Parse both responses in parallel
       const [videoData, scripts] = await Promise.all([
-        videoResponse.json() as Promise<IvdbVideoResponse>,
-        scriptsResponse.json() as Promise<IvdbScriptResponse[]>,
+        videoResponse.json(),
+        scriptsResponse.json(),
       ])
 
       if (!videoData.videoUrl) {
@@ -73,21 +57,29 @@ export const IvdbPanel = () => {
       const bestScript = scripts[0]
       const creator =
         bestScript.scripter?.name || videoData.partnerName || 'IVDB'
-
-      // Save the IVDB script reference instead of the token URL
       const ivdbScriptUrl = `ivdb://${videoId}/${bestScript.scriptId}`
 
-      const result = await saveScript(videoData.videoUrl, ivdbScriptUrl, {
-        name: videoData.title,
-        creator,
-        supportUrl: `https://ivdb.io/#/videos/${videoId}`,
-        isDefault: true,
-      })
-
-      if (!result) {
-        throw new Error('Failed to save script')
+      const createData: CreateIveEntryData = {
+        title: videoData.title,
+        tags: ['ivdb', ...videoData.tags],
+        thumbnail: videoData.thumbnail,
+        duration: videoData.duration * 1000,
+        videoSources: [
+          {
+            url: videoData.videoUrl,
+            status: 'working' as const,
+          },
+        ],
+        scripts: [
+          {
+            url: ivdbScriptUrl,
+            creator,
+            supportUrl: `https://ivdb.io/#/videos/${videoId}`,
+          },
+        ],
       }
 
+      await createEntry(createData)
       window.open(videoData.videoUrl, '_blank')
     } catch (error) {
       console.error('Error loading IVDB script:', error)

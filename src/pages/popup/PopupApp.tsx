@@ -1,12 +1,13 @@
 import { Burger, Drawer, ScrollArea, Text } from '@mantine/core'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
+import { useShallow } from 'zustand/shallow'
 import DiscordIcon from '@/assets/discord.svg'
 import logoImg from '@/assets/logo.png'
 import PatreonIcon from '@/assets/patreon.svg'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { Settings } from '@/components/settings/Settings'
-import { useDeviceSetup } from '@/store/useDeviceStore'
+import { useDeviceSetup, useDeviceStore } from '@/store/useDeviceStore'
 import { useSettingsSetup } from '@/store/useSettingsStore'
 import styles from './PopupApp.module.scss'
 
@@ -20,10 +21,29 @@ type NavItem = {
 
 export const PopupApp = () => {
   const [opened, setOpened] = useState(false)
-  const [activeItem, setActiveItem] = useState<string>('handy')
+  const [activeItem, setActiveItem] = useState<string>()
 
   useDeviceSetup()
   useSettingsSetup()
+
+  const { handyConnected, buttplugConnected, isLoaded } = useDeviceStore(
+    useShallow((state) => ({
+      handyConnected: state.handyConnected,
+      buttplugConnected: state.buttplugConnected,
+      isLoaded: state.isLoaded,
+    })),
+  )
+
+  useEffect(() => {
+    if (!isLoaded || activeItem) return
+
+    if (buttplugConnected && !handyConnected) {
+      setActiveItem('buttplug')
+      return
+    }
+
+    setActiveItem('handy')
+  }, [handyConnected, buttplugConnected, isLoaded, activeItem])
 
   const navItems: NavItem[] = [
     { id: 'handy', label: 'Handy', component: <HandyConnect />, visible: true },
