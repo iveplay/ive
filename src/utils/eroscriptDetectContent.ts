@@ -184,7 +184,7 @@ export const getTopicMetadata = () => {
   const tagElements = tagsContainer?.querySelectorAll('a[data-tag-name]') || []
   const tags = Array.from(tagElements)
     .map((el) => el.getAttribute('data-tag-name'))
-    .filter(Boolean)
+    .filter((tag): tag is string => tag !== null)
 
   // Thumbnail
   const contentArea = document.querySelector(
