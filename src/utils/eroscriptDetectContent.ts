@@ -162,41 +162,49 @@ const findCreatorForUrl = (url: string): string => {
   return 'Unknown'
 }
 
-const defaultMetadata = {
-  title: 'EroScript',
-  tags: ['eroscripts'] as string[],
-  thumbnail: undefined,
-}
-
 export const getTopicMetadata = () => {
-  const dataElement = document.querySelector('#data-preloaded')
-  const dataPreloaded = dataElement?.getAttribute('data-preloaded')
-
-  if (!dataPreloaded) {
-    return defaultMetadata
+  // Title
+  let titleElement = document.querySelector('#topic-title > div > h1 > a')
+  if (!titleElement) {
+    titleElement = document.querySelector(
+      '#ember3 > div.drop-down-mode.d-header-wrap > header > div > div > div.two-rows.extra-info-wrapper > div > div > h1 > a > span',
+    )
   }
 
-  // Parse the HTML-encoded JSON
-  const parser = new DOMParser()
-  const decoded = parser.parseFromString(dataPreloaded, 'text/html')
-    .documentElement.textContent
-
-  // Parse the JSON
-  const jsonData = JSON.parse(decoded)
-  const topicId = window.location.href.match(/\/(\d+)(?:\/\d+)?(?:\/|$)/)
-  const topic = jsonData[`topic_${topicId?.[1]}`]
-  console.log(JSON.parse(jsonData[`topic_${topicId?.[1]}`]))
-
-  if (!topic) {
-    return defaultMetadata
+  // Tags
+  let tagsContainer = document.querySelector(
+    '#topic-title > div > div > div > div > div',
+  )
+  if (!tagsContainer) {
+    tagsContainer = document.querySelector(
+      '#ember3 > div.drop-down-mode.d-header-wrap > header > div > div > div.two-rows.extra-info-wrapper > div > div > div.topic-header-extra > div',
+    )
   }
 
-  const parsedTopic = JSON.parse(topic)
-  const tags = ['eroscripts', ...(parsedTopic.tags || [])]
+  const tagElements = tagsContainer?.querySelectorAll('a[data-tag-name]') || []
+  const tags = Array.from(tagElements)
+    .map((el) => el.getAttribute('data-tag-name'))
+    .filter(Boolean)
+
+  // Thumbnail
+  const contentArea = document.querySelector(
+    'div.topic-owner > article > div.row > div.topic-body.clearfix > div.regular.contents',
+  )
+  let thumbnail = undefined
+
+  if (contentArea) {
+    const images = contentArea.querySelectorAll('img')
+    for (const img of images) {
+      if (!img.classList.contains('emoji')) {
+        thumbnail = img.src
+        break
+      }
+    }
+  }
 
   return {
-    title: parsedTopic.title || 'EroScript',
-    tags,
-    thumbnail: parsedTopic.image_url || undefined,
+    title: titleElement?.textContent?.trim() || 'EroScript',
+    tags: ['eroscripts', ...tags],
+    thumbnail,
   }
 }
