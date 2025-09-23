@@ -42,7 +42,11 @@ export const setupIveBridge = () => {
           break
 
         case MESSAGES.IVEDB_GET_ENTRIES_PAGINATED:
-          response = await getEntriesPaginated(message.offset, message.limit)
+          response = await getEntriesPaginated(
+            message.offset,
+            message.limit,
+            message.options,
+          )
           break
 
         case MESSAGES.IVEDB_GET_ENTRY:
