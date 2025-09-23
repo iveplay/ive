@@ -60,12 +60,16 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
   const supportUrl =
     data.user.profile?.support_url || `https://faptap.net/u/${creator}`
 
+  const thumbnail = data.thumbnail_url
+    ? data.thumbnail_url.startsWith('http')
+      ? data.thumbnail_url
+      : `https://faptap.net/api/assets/${data.thumbnail_url}`
+    : undefined
+
   const createData: CreateIveEntryData = {
     title: data.name,
     tags: ['faptap', ...(data.tags?.map((tag) => tag.name) || [])],
-    thumbnail: data.thumbnail_url
-      ? `https://faptap.net/api/assets/${data.thumbnail_url}`
-      : undefined,
+    thumbnail,
     duration: data.duration * 1000,
     videoSources: sources,
     scripts: [

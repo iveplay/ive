@@ -197,6 +197,7 @@ export type UIMessage =
       type: typeof MESSAGES.IVEDB_GET_ENTRIES_PAGINATED
       offset: number
       limit: number
+      options?: IveSearchOptions
     }
   | { type: typeof MESSAGES.IVEDB_GET_ENTRY_WITH_DETAILS; entryId: string }
   | { type: typeof MESSAGES.IVEDB_CREATE_ENTRY; data: CreateIveEntryData }

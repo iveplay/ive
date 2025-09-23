@@ -52,6 +52,7 @@ export interface IveSearchOptions {
   minDuration?: number
   maxDuration?: number
   status?: VideoSource['status']
+  favorites?: boolean
 }
 
 // {

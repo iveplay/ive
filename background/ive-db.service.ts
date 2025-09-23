@@ -599,7 +599,7 @@ export class IveDBService {
       return []
     }
 
-    const tx = db.transaction(['entries', 'scripts'], 'readonly')
+    const tx = db.transaction(['entries', 'scripts', 'favorites'], 'readonly')
     const entryStore = tx.objectStore('entries')
 
     let entries: IveEntry[] = []
@@ -635,6 +635,15 @@ export class IveDBService {
     } else {
       // Get all entries
       entries = await this.promisifyRequest(entryStore.getAll())
+    }
+
+    // Apply favorites filter if requested
+    if (options.favorites) {
+      const favoriteRefs = await this.promisifyRequest(
+        tx.objectStore('favorites').getAll(),
+      )
+      const favoriteIds = new Set(favoriteRefs.map((fav) => fav.entryId))
+      entries = entries.filter((entry) => favoriteIds.has(entry.id))
     }
 
     // Apply additional filters
