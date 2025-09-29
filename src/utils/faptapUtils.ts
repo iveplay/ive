@@ -75,6 +75,7 @@ export const loadFaptapScript = async (videoId: string): Promise<void> => {
     scripts: [
       {
         url: scriptUrl,
+        name: `${data.script.total_actions}actions_${data.name}`,
         creator,
         supportUrl,
         avgSpeed: data.script.average_speed || undefined,

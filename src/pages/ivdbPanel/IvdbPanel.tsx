@@ -72,6 +72,8 @@ export const IvdbPanel = () => {
         ],
         scripts: [
           {
+            name: `${bestScript.metadata.actions}actions_${videoData.title}`,
+            actionCount: bestScript.metadata.actions,
             url: ivdbScriptUrl,
             creator,
             supportUrl: `https://ivdb.io/#/videos/${videoId}`,

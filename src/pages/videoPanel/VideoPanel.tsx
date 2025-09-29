@@ -87,8 +87,8 @@ export const VideoPanel = ({
           (script: ScriptMetadata) => ({
             url: script.url,
             name: script.creator
-              ? `${entry.title} - ${script.creator}`
-              : entry.title,
+              ? `${script.name} - ${script.creator}`
+              : script.name,
             creator: script.creator,
             supportUrl: script.supportUrl,
           }),

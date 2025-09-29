@@ -21,6 +21,7 @@ export interface VideoSource {
 export interface ScriptMetadata {
   id: string
   url: string
+  name: string
   creator: string
   supportUrl?: string
   avgSpeed?: number
@@ -54,22 +55,3 @@ export interface IveSearchOptions {
   status?: VideoSource['status']
   favorites?: boolean
 }
-
-// {
-//   title: '',
-//   duration: 0,
-//   thumbnail: '',
-//   tags: [],
-//   videoSources: [{
-//     url: '',
-//     status: 'unknown'
-//   }],
-//   scripts: [{
-//     url: '',
-//     creator: '',
-//     supportUrl: '',
-//     avgSpeed: 0,
-//     maxSpeed: 0,
-//     actionCount: 0
-//   }]
-// }
