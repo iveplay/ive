@@ -688,11 +688,8 @@ export class IveDBService {
     return entries.sort((a, b) => b.createdAt - a.createdAt)
   }
 
-  // Update entry
-  async updateEntry(
-    entryId: string,
-    updates: Partial<Omit<IveEntry, 'id' | 'createdAt'>>,
-  ): Promise<void> {
+  // Update entry with full data including videos and scripts
+  async updateEntry(entryId: string, data: CreateIveEntryData): Promise<void> {
     const db = await this.openDB()
 
     // Check if database is still valid
@@ -700,17 +697,154 @@ export class IveDBService {
       throw new Error('Database connection invalid')
     }
 
-    const tx = db.transaction(['entries'], 'readwrite')
+    const now = Date.now()
 
-    const entry = await this.promisifyRequest(
-      tx.objectStore('entries').get(entryId),
+    // Get existing entry
+    const entryDetails = await this.getEntryWithDetails(entryId)
+    if (!entryDetails) {
+      throw new Error('Entry not found')
+    }
+
+    const tx = db.transaction(
+      [
+        'entries',
+        'videoSources',
+        'scripts',
+        'videoUrlLookup',
+        'scriptUrlLookup',
+      ],
+      'readwrite',
     )
-    if (!entry) throw new Error('Entry not found')
 
+    // Track which resources are still being used
+    const newVideoSourceIds: string[] = []
+    const newScriptIds: string[] = []
+
+    // Map existing resources by URL for easy lookup
+    const existingVideosByUrl = new Map(
+      entryDetails.videoSources.map((v) => [v.url, v]),
+    )
+    const existingScriptsByUrl = new Map(
+      entryDetails.scripts.map((s) => [s.url, s]),
+    )
+
+    // Process video sources
+    for (const videoData of data.videoSources) {
+      const existingVideo = existingVideosByUrl.get(videoData.url)
+
+      if (existingVideo) {
+        // Update existing video source
+        const updatedVideo: VideoSource = {
+          ...existingVideo,
+          ...videoData,
+          updatedAt: now,
+        }
+        await this.promisifyRequest(
+          tx.objectStore('videoSources').put(updatedVideo),
+        )
+        newVideoSourceIds.push(existingVideo.id)
+        existingVideosByUrl.delete(videoData.url)
+      } else {
+        // Create new video source
+        const videoId = v4()
+        const videoSource: VideoSource = {
+          ...videoData,
+          id: videoId,
+          createdAt: now,
+          updatedAt: now,
+        }
+        await this.promisifyRequest(
+          tx.objectStore('videoSources').add(videoSource),
+        )
+        await this.promisifyRequest(
+          tx.objectStore('videoUrlLookup').add({
+            url: videoData.url,
+            entryId,
+          }),
+        )
+        newVideoSourceIds.push(videoId)
+      }
+    }
+
+    // Process scripts
+    for (const scriptData of data.scripts) {
+      const existingScript = existingScriptsByUrl.get(scriptData.url)
+
+      if (existingScript) {
+        // Update existing script
+        const updatedScript: ScriptMetadata = {
+          ...existingScript,
+          ...scriptData,
+          updatedAt: now,
+        }
+        await this.promisifyRequest(
+          tx.objectStore('scripts').put(updatedScript),
+        )
+        newScriptIds.push(existingScript.id)
+        existingScriptsByUrl.delete(scriptData.url)
+      } else {
+        // Create new script
+        const scriptId = v4()
+        const script: ScriptMetadata = {
+          ...scriptData,
+          id: scriptId,
+          createdAt: now,
+          updatedAt: now,
+        }
+        await this.promisifyRequest(tx.objectStore('scripts').add(script))
+        await this.promisifyRequest(
+          tx.objectStore('scriptUrlLookup').add({
+            url: scriptData.url,
+            entryId,
+          }),
+        )
+        newScriptIds.push(scriptId)
+      }
+    }
+
+    // Delete removed video sources (only if not used by other entries)
+    const allEntries: IveEntry[] = await this.promisifyRequest(
+      tx.objectStore('entries').getAll(),
+    )
+    const otherEntries = allEntries.filter((e) => e.id !== entryId)
+
+    for (const [url, video] of existingVideosByUrl) {
+      const isUsedElsewhere = otherEntries.some((e) =>
+        e.videoSourceIds.includes(video.id),
+      )
+      if (!isUsedElsewhere) {
+        await this.promisifyRequest(
+          tx.objectStore('videoSources').delete(video.id),
+        )
+        await this.promisifyRequest(
+          tx.objectStore('videoUrlLookup').delete(url),
+        )
+      }
+    }
+
+    // Delete removed scripts (only if not used by other entries)
+    for (const [url, script] of existingScriptsByUrl) {
+      const isUsedElsewhere = otherEntries.some((e) =>
+        e.scriptIds.includes(script.id),
+      )
+      if (!isUsedElsewhere) {
+        await this.promisifyRequest(tx.objectStore('scripts').delete(script.id))
+        await this.promisifyRequest(
+          tx.objectStore('scriptUrlLookup').delete(url),
+        )
+      }
+    }
+
+    // Update main entry
     const updatedEntry: IveEntry = {
-      ...entry,
-      ...updates,
-      updatedAt: Date.now(),
+      ...entryDetails.entry,
+      title: data.title,
+      duration: data.duration,
+      thumbnail: data.thumbnail,
+      tags: data.tags,
+      videoSourceIds: newVideoSourceIds,
+      scriptIds: newScriptIds,
+      updatedAt: now,
     }
 
     await this.promisifyRequest(tx.objectStore('entries').put(updatedEntry))

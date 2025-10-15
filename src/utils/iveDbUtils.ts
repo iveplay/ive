@@ -109,13 +109,13 @@ export const searchEntries = async (
 
 export const updateEntry = async (
   entryId: string,
-  updates: Partial<Omit<IveEntry, 'id' | 'createdAt'>>,
+  data: CreateIveEntryData,
 ): Promise<void> => {
   try {
     await chrome.runtime.sendMessage({
       type: MESSAGES.IVEDB_UPDATE_ENTRY,
       entryId,
-      updates,
+      data,
     })
   } catch (error) {
     console.error('Error updating IveDB entry:', error)

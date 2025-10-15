@@ -1,5 +1,5 @@
 import { DeviceInfo as IVEDeviceInfo } from 'ive-connect'
-import { CreateIveEntryData, IveEntry, IveSearchOptions } from '@/types/ivedb'
+import { CreateIveEntryData, IveSearchOptions } from '@/types/ivedb'
 
 export interface DeviceServiceState {
   // Connection state
@@ -207,7 +207,7 @@ export type UIMessage =
   | {
       type: typeof MESSAGES.IVEDB_UPDATE_ENTRY
       entryId: string
-      updates: Partial<Omit<IveEntry, 'id' | 'createdAt'>>
+      data: CreateIveEntryData
     }
   | { type: typeof MESSAGES.IVEDB_DELETE_ENTRY; entryId: string }
   | { type: typeof MESSAGES.IVEDB_ADD_FAVORITE; entryId: string }

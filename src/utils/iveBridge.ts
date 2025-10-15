@@ -62,7 +62,7 @@ export const setupIveBridge = () => {
           break
 
         case MESSAGES.IVEDB_UPDATE_ENTRY:
-          response = await updateEntry(message.entryId, message.updates)
+          response = await updateEntry(message.entryId, message.data)
           break
 
         case MESSAGES.IVEDB_DELETE_ENTRY:

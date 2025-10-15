@@ -135,7 +135,7 @@ export function setupMessageHandler(): void {
             case MESSAGES.IVEDB_UPDATE_ENTRY:
               return await iveDBService.updateEntry(
                 message.entryId,
-                message.updates,
+                message.data,
               )
 
             case MESSAGES.IVEDB_DELETE_ENTRY:
