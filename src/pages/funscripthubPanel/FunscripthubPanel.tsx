@@ -107,7 +107,7 @@ export const FunscripthubPanel = () => {
         scriptLinks.find((s) => s.url === selectedScript)?.name || title
 
       const createData: CreateIveEntryData = {
-        title: selectedScriptName,
+        title: title || selectedScriptName,
         tags: ['funscripthub'],
         thumbnail: thumbnail || undefined,
         duration: duration || undefined,
@@ -119,6 +119,7 @@ export const FunscripthubPanel = () => {
         ],
         scripts: [
           {
+            name: selectedScriptName,
             url: realScriptUrl,
             creator,
             supportUrl: authorLink?.href || '',

@@ -17,7 +17,6 @@ export type EroscriptContent = {
 }
 
 const INVALID_DOMAINS = [
-  'patreon',
   'gumroad',
   'ko-fi',
   'buymeacoffee',
@@ -33,7 +32,6 @@ const INVALID_DOMAINS = [
   'funscript',
   'donate',
   'twitter',
-  'youtube',
 ]
 
 export const eroscriptDetectContent = (): EroscriptContent => {

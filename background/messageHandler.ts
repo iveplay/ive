@@ -111,10 +111,11 @@ export function setupMessageHandler(): void {
               return await iveDBService.ping()
 
             case MESSAGES.IVEDB_GET_ENTRIES_PAGINATED:
-              return await iveDBService.getEntriesPaginated(
-                message.offset,
-                message.limit,
-              )
+              return await iveDBService.searchEntriesPaginated({
+                offset: message.offset,
+                limit: message.limit,
+                ...message.options,
+              })
 
             case MESSAGES.IVEDB_GET_ENTRY:
               return await iveDBService.getBasicEntry(message.entryId)

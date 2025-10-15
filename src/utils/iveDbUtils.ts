@@ -21,12 +21,14 @@ export const ping = async (): Promise<boolean> => {
 export const getEntriesPaginated = async (
   offset: number = 0,
   limit: number = 20,
+  options: IveSearchOptions = {},
 ): Promise<IveEntry[]> => {
   try {
     return await chrome.runtime.sendMessage({
       type: MESSAGES.IVEDB_GET_ENTRIES_PAGINATED,
       offset,
       limit,
+      options,
     })
   } catch (error) {
     console.error('Error getting paginated IveDB entries:', error)
