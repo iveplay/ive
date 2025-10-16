@@ -705,6 +705,10 @@ export class IveDBService {
       throw new Error('Entry not found')
     }
 
+    console.log('Updating entry:', entryId)
+    console.log('Existing scripts:', entryDetails.scripts)
+    console.log('New scripts data:', data.scripts)
+
     const tx = db.transaction(
       [
         'entries',
@@ -745,24 +749,52 @@ export class IveDBService {
         newVideoSourceIds.push(existingVideo.id)
         existingVideosByUrl.delete(videoData.url)
       } else {
-        // Create new video source
-        const videoId = v4()
-        const videoSource: VideoSource = {
-          ...videoData,
-          id: videoId,
-          createdAt: now,
-          updatedAt: now,
+        // Check if video exists in database (from another entry or globally)
+        const videoStore = tx.objectStore('videoSources')
+        const videoIndex = videoStore.index('url')
+        const existingDbVideos = await this.promisifyRequest(
+          videoIndex.getAll(videoData.url),
+        )
+
+        if (existingDbVideos.length > 0) {
+          // Video exists in database, reuse the first one
+          const existingDbVideo = existingDbVideos[0]
+          console.log(
+            'Reusing existing video from database:',
+            videoData.url,
+            existingDbVideo.id,
+          )
+
+          // Update the video with new data if needed
+          const updatedVideo: VideoSource = {
+            ...existingDbVideo,
+            ...videoData,
+            updatedAt: now,
+          }
+          await this.promisifyRequest(
+            tx.objectStore('videoSources').put(updatedVideo),
+          )
+          newVideoSourceIds.push(existingDbVideo.id)
+        } else {
+          // Create new video source
+          const videoId = v4()
+          const videoSource: VideoSource = {
+            ...videoData,
+            id: videoId,
+            createdAt: now,
+            updatedAt: now,
+          }
+          await this.promisifyRequest(
+            tx.objectStore('videoSources').add(videoSource),
+          )
+          await this.promisifyRequest(
+            tx.objectStore('videoUrlLookup').add({
+              url: videoData.url,
+              entryId,
+            }),
+          )
+          newVideoSourceIds.push(videoId)
         }
-        await this.promisifyRequest(
-          tx.objectStore('videoSources').add(videoSource),
-        )
-        await this.promisifyRequest(
-          tx.objectStore('videoUrlLookup').add({
-            url: videoData.url,
-            entryId,
-          }),
-        )
-        newVideoSourceIds.push(videoId)
       }
     }
 
@@ -771,7 +803,8 @@ export class IveDBService {
       const existingScript = existingScriptsByUrl.get(scriptData.url)
 
       if (existingScript) {
-        // Update existing script
+        // Update existing script that's already in this entry
+        console.log('Updating existing script in entry:', scriptData.url)
         const updatedScript: ScriptMetadata = {
           ...existingScript,
           ...scriptData,
@@ -783,24 +816,56 @@ export class IveDBService {
         newScriptIds.push(existingScript.id)
         existingScriptsByUrl.delete(scriptData.url)
       } else {
-        // Create new script
-        const scriptId = v4()
-        const script: ScriptMetadata = {
-          ...scriptData,
-          id: scriptId,
-          createdAt: now,
-          updatedAt: now,
-        }
-        await this.promisifyRequest(tx.objectStore('scripts').add(script))
-        await this.promisifyRequest(
-          tx.objectStore('scriptUrlLookup').add({
-            url: scriptData.url,
-            entryId,
-          }),
+        // Check if script exists in database (from another entry or globally)
+        const scriptStore = tx.objectStore('scripts')
+        const scriptIndex = scriptStore.index('url')
+        const existingDbScripts = await this.promisifyRequest(
+          scriptIndex.getAll(scriptData.url),
         )
-        newScriptIds.push(scriptId)
+
+        if (existingDbScripts.length > 0) {
+          // Script exists in database, reuse the first one
+          const existingDbScript = existingDbScripts[0]
+          console.log(
+            'Reusing existing script from database:',
+            scriptData.url,
+            existingDbScript.id,
+          )
+
+          // Update the script with new data if needed
+          const updatedScript: ScriptMetadata = {
+            ...existingDbScript,
+            ...scriptData,
+            updatedAt: now,
+          }
+          await this.promisifyRequest(
+            tx.objectStore('scripts').put(updatedScript),
+          )
+          newScriptIds.push(existingDbScript.id)
+        } else {
+          // Create new script
+          console.log('Creating new script:', scriptData.url)
+          const scriptId = v4()
+          const script: ScriptMetadata = {
+            ...scriptData,
+            id: scriptId,
+            createdAt: now,
+            updatedAt: now,
+          }
+          await this.promisifyRequest(tx.objectStore('scripts').add(script))
+          await this.promisifyRequest(
+            tx.objectStore('scriptUrlLookup').add({
+              url: scriptData.url,
+              entryId,
+            }),
+          )
+          newScriptIds.push(scriptId)
+        }
       }
     }
+
+    console.log('New script IDs:', newScriptIds)
+    console.log('Scripts to remove:', Array.from(existingScriptsByUrl.keys()))
 
     // Delete removed video sources (only if not used by other entries)
     const allEntries: IveEntry[] = await this.promisifyRequest(
@@ -847,7 +912,9 @@ export class IveDBService {
       updatedAt: now,
     }
 
+    console.log('Final entry to save:', updatedEntry)
     await this.promisifyRequest(tx.objectStore('entries').put(updatedEntry))
+    console.log('Entry updated successfully')
   }
 
   // Delete entry and related data
