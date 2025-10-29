@@ -123,10 +123,9 @@ export const mountVideoPage = (
   isInIframe: boolean = false,
   force: boolean = false,
 ): boolean => {
-  const shouldMount = isInIframe || (!hasVideoIframes() && entry)
+  if (!(isInIframe || !!entry) && !force) return false
 
-  if (!shouldMount && !force) return false
-
+  console.log('IVE: Mounted panel')
   return mountComponent(document.body, <VideoPage entry={entry} />, 'append', {
     zIndex: '2147483640',
     position: 'fixed',

@@ -9,7 +9,6 @@ import {
   mountIvdbPanel,
   mountFunscripthubPanel,
   mountVideoPage,
-  hasVideoIframes,
 } from '@/utils/componentMounting'
 import { setupIveBridge } from '@/utils/iveBridge'
 import { setupIveEventApi } from '@/utils/iveEventApi'
@@ -84,30 +83,35 @@ const handleUrlChange = async () => {
     if (currentUrl.includes(SITE_URLS.EROSCRIPT)) {
       const success = await mountEroscriptPanel()
       if (success) mountedComponent = true
+      console.log('IVE: Mounted Eroscript panel')
       return
     }
 
     if (currentUrl.includes(SITE_URLS.FAPTAP)) {
       const success = await mountFaptapPanel()
       if (success) mountedComponent = true
+      console.log('IVE: Mounted Faptap panel')
       return
     }
 
     if (currentUrl.includes(SITE_URLS.FAPTAP_DOMAIN)) {
       const success = mountFaptapCardHandler()
       if (success) mountedComponent = true
+      console.log('IVE: Mounted Faptap card handler')
       return
     }
 
     if (currentUrl.includes(SITE_URLS.IVDB)) {
       const success = await mountIvdbPanel()
       if (success) mountedComponent = true
+      console.log('IVE: Mounted Ivdb panel')
       return
     }
 
     if (currentUrl.includes(SITE_URLS.FUNSCRIPTHUB)) {
       const success = await mountFunscripthubPanel()
       if (success) mountedComponent = true
+      console.log('IVE: Mounted Funscripthub panel')
       return
     }
 
@@ -159,13 +163,8 @@ const handleUrlChange = async () => {
     // For iframe: always mount if conditions are met
     // For main page: only mount if no video iframes OR we have an entry
     if (shouldMount) {
-      const shouldMountFinal =
-        isInIframe || (!hasVideoIframes() && (entry || shouldMount))
-
-      if (shouldMountFinal) {
-        const success = mountVideoPage(entry, isInIframe)
-        if (success) mountedComponent = true
-      }
+      const success = mountVideoPage(entry, isInIframe)
+      if (success) mountedComponent = true
     }
   } catch (error) {
     console.error('Error mounting IVE component:', error)
