@@ -154,9 +154,11 @@ export class IveDBService {
     }
   }
 
-  async ping(): Promise<boolean> {
+  async ping(): Promise<{ available: boolean; version: string }> {
     const db = await this.openDB()
-    return db && db.objectStoreNames.length > 0
+    const available = db && db.objectStoreNames.length > 0
+    const manifest = chrome.runtime.getManifest()
+    return { available, version: manifest.version }
   }
 
   async getEntriesPaginated(

@@ -7,14 +7,17 @@ import {
   ScriptMetadata,
 } from '@/types/ivedb'
 
-export const ping = async (): Promise<boolean> => {
+export const ping = async (): Promise<{
+  available: boolean
+  version: string
+}> => {
   try {
     return await chrome.runtime.sendMessage({
       type: MESSAGES.IVEDB_PING,
     })
   } catch (error) {
     console.error('Error pinging IveDB:', error)
-    return false
+    return { available: false, version: '0.0.0' }
   }
 }
 
