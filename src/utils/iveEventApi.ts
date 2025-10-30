@@ -20,6 +20,7 @@ export const setupIveEventApi = () => {
         scripts: [
           {
             url: scriptUrl,
+            name: scriptInfo.name,
             creator: scriptInfo.creator,
             supportUrl: scriptInfo.supportUrl,
           },
