@@ -9,18 +9,38 @@ const normalizeUrl = (url: string): string => {
     .toLowerCase()
 }
 
+const isRootDomain = (url: string): boolean => {
+  // Check if URL is just a domain without path (or only has trailing slash)
+  const normalized = normalizeUrl(url)
+  const pathPart = normalized.split('/')[1] // Get everything after domain
+  return !pathPart || pathPart === ''
+}
+
 // Find IveDB entry that matches current URL
 export const findMatchingEntry = async (
   currentUrl: string,
 ): Promise<IveEntry | undefined> => {
   try {
     const normalizedCurrentUrl = normalizeUrl(currentUrl)
+    const currentIsRoot = isRootDomain(currentUrl)
 
     const videoLookups = await getVideoLookups()
 
     const matchingLookup = videoLookups.find((videoSource) => {
       const normalizedVideoUrl = normalizeUrl(videoSource.url)
+      const videoIsRoot = isRootDomain(videoSource.url)
 
+      // If both are root domains, they must match exactly
+      if (currentIsRoot && videoIsRoot) {
+        return normalizedCurrentUrl === normalizedVideoUrl
+      }
+
+      // If only one is root, no match
+      if (currentIsRoot || videoIsRoot) {
+        return false
+      }
+
+      // Both have paths - do substring matching
       return (
         normalizedCurrentUrl.includes(normalizedVideoUrl) ||
         normalizedVideoUrl.includes(normalizedCurrentUrl)
@@ -46,9 +66,23 @@ export const matchesCustomUrls = (
   customUrls: string[],
 ): boolean => {
   const normalizedUrl = normalizeUrl(url)
+  const urlIsRoot = isRootDomain(url)
 
   return customUrls.some((customUrl) => {
     const normalizedCustomUrl = normalizeUrl(customUrl)
+    const customIsRoot = isRootDomain(customUrl)
+
+    // If both are root domains, they must match exactly
+    if (urlIsRoot && customIsRoot) {
+      return normalizedUrl === normalizedCustomUrl
+    }
+
+    // If only one is root, no match
+    if (urlIsRoot || customIsRoot) {
+      return false
+    }
+
+    // Both have paths - do substring matching
     return normalizedUrl.includes(normalizedCustomUrl)
   })
 }
