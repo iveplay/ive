@@ -1,4 +1,5 @@
 import { Burger, Drawer, ScrollArea, Text } from '@mantine/core'
+import clsx from 'clsx'
 import { ReactNode, useState, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import DiscordIcon from '@/assets/discord.svg'
@@ -75,6 +76,13 @@ export const PopupApp = () => {
           className={styles.burger}
         />
         <Text className={styles.title}>{currentItem.label}</Text>
+        <a
+          href='https://iveplay.io/hub'
+          target='_blank'
+          className={clsx('button primary', styles.hubButton)}
+        >
+          Hub
+        </a>
       </header>
 
       <Drawer

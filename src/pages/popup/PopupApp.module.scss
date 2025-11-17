@@ -51,6 +51,10 @@
   height: calc(100vh - 220px);
 }
 
+.hubButton {
+  min-width: initial !important;
+}
+
 .drawerFooter {
   padding: 16px 8px 8px;
   border-top: 1px solid rgba(123, 2, 77, 0.3);
