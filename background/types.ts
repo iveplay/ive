@@ -2,6 +2,7 @@ import { DeviceInfo as IVEDeviceInfo } from 'ive-connect'
 import { CreateIveEntryData, IveSearchOptions } from '@/types/ivedb'
 
 export const DB_NAME = 'ive-database'
+export const DB_LOCAL_SCRIPTS = 'ive-local-scripts'
 export const LOCAL_STORAGE_KEYS = {
   IVE_PENDING_SCRIPT: 'ive-pending-script',
 }
@@ -135,6 +136,13 @@ export const MESSAGES = {
   IVEDB_FIND_BY_SCRIPT_URL: 'ive:ivedb:find_by_script_url',
   IVEDB_GET_VIDEO_LOOKUPS: 'ive:ivedb:get_video_lookups',
   IVE_SELECT_SCRIPT: 'ive:select_script',
+
+  // Local scripts
+  LOCAL_SCRIPT_SAVE: 'ive:local_script:save',
+  LOCAL_SCRIPT_GET: 'ive:local_script:get',
+  LOCAL_SCRIPT_DELETE: 'ive:local_script:delete',
+  LOCAL_SCRIPT_LIST: 'ive:local_script:list',
+  LOCAL_SCRIPT_INFO: 'ive:local_script:info',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -223,3 +231,14 @@ export type UIMessage =
   | { type: typeof MESSAGES.IVEDB_FIND_BY_VIDEO_URL; url: string }
   | { type: typeof MESSAGES.IVEDB_FIND_BY_SCRIPT_URL; url: string }
   | { type: typeof MESSAGES.IVEDB_GET_VIDEO_LOOKUPS }
+  // Local scripts
+  | {
+      type: typeof MESSAGES.LOCAL_SCRIPT_SAVE
+      name: string
+      content: Record<string, unknown>
+      size: number
+    }
+  | { type: typeof MESSAGES.LOCAL_SCRIPT_GET; scriptId: string }
+  | { type: typeof MESSAGES.LOCAL_SCRIPT_DELETE; scriptId: string }
+  | { type: typeof MESSAGES.LOCAL_SCRIPT_LIST }
+  | { type: typeof MESSAGES.LOCAL_SCRIPT_INFO; scriptId: string }

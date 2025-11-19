@@ -1,4 +1,5 @@
 import { iveDBService } from './ive-db.service'
+import { localScriptsService } from './localScripts.service'
 import { deviceService } from './service'
 import { MESSAGES, UIMessage } from './types'
 
@@ -161,6 +162,26 @@ export function setupMessageHandler(): void {
 
             case MESSAGES.IVEDB_GET_VIDEO_LOOKUPS:
               return await iveDBService.getAllVideoLookups()
+
+            // Local scripts
+            case MESSAGES.LOCAL_SCRIPT_SAVE:
+              return await localScriptsService.saveScript(
+                message.name,
+                message.content,
+                message.size,
+              )
+
+            case MESSAGES.LOCAL_SCRIPT_GET:
+              return await localScriptsService.getScript(message.scriptId)
+
+            case MESSAGES.LOCAL_SCRIPT_DELETE:
+              return await localScriptsService.deleteScript(message.scriptId)
+
+            case MESSAGES.LOCAL_SCRIPT_LIST:
+              return await localScriptsService.getAllScripts()
+
+            case MESSAGES.LOCAL_SCRIPT_INFO:
+              return await localScriptsService.getScriptInfo(message.scriptId)
 
             // Utils
             case MESSAGES.EXTRACT_SCRIPT_URL:

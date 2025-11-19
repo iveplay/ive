@@ -6,6 +6,7 @@ import {
   CreateIveEntryData,
   IveSearchOptions,
 } from '@/types/ivedb'
+import { localScriptsService } from './localScripts.service'
 import { DB_NAME } from './types'
 
 export class IveDBService {
@@ -936,7 +937,6 @@ export class IveDBService {
   async deleteEntry(entryId: string): Promise<void> {
     const db = await this.openDB()
 
-    // Check if database is still valid
     if (!db || db.objectStoreNames.length === 0) {
       throw new Error('Database connection invalid')
     }
@@ -994,6 +994,16 @@ export class IveDBService {
           tx.objectStore('scripts').get(scriptId),
         )
         if (script) {
+          // Delete local script file if it's a file:// URL
+          if (script.url.startsWith('file://')) {
+            const localScriptId = script.url.replace('file://', '')
+            try {
+              await localScriptsService.deleteScript(localScriptId)
+            } catch (error) {
+              console.error('Error deleting local script:', error)
+            }
+          }
+
           await this.promisifyRequest(
             tx.objectStore('scripts').delete(scriptId),
           )

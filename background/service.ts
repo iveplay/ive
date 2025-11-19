@@ -6,6 +6,7 @@ import {
   ScriptData,
 } from 'ive-connect'
 import { contextMenuService } from './contextMenuService'
+import { localScriptsService } from './localScripts.service'
 import { DeviceServiceState, DevicesInfo, Funscript, MESSAGES } from './types'
 
 const defaultState: DeviceServiceState = {
@@ -568,19 +569,43 @@ class DeviceService {
   ): Promise<boolean> {
     try {
       let actualUrl = url
+      let scriptData: ScriptData
 
-      // Resolve IVDB URLs to actual token URLs
-      if (url.startsWith('ivdb://')) {
+      // Handle local scripts
+      if (url.startsWith('file://')) {
+        const scriptId = url.replace('file://', '')
+        const content = await localScriptsService.getScript(scriptId)
+
+        if (!content) {
+          throw new Error('Local script not found')
+        }
+
+        scriptData = {
+          type: 'funscript',
+          content,
+        }
+
+        this.state.scriptUrl = url
+      }
+      // Handle IVDB URLs
+      else if (url.startsWith('ivdb://')) {
         actualUrl = await this.resolveIvdbScript(url)
+        scriptData = {
+          type: actualUrl.toLowerCase().split('.').pop() || 'funscript',
+          url: actualUrl,
+        }
+        this.state.scriptUrl = url
+      }
+      // Handle regular URLs
+      else {
+        this.state.scriptUrl = url
+        scriptData = {
+          type: actualUrl.toLowerCase().split('.').pop() || 'funscript',
+          url: actualUrl,
+        }
       }
 
-      this.state.scriptUrl = url // Keep original URL for reference
       await this.saveState()
-
-      const scriptData: ScriptData = {
-        type: actualUrl.toLowerCase().split('.').pop() || 'funscript',
-        url: actualUrl,
-      }
 
       // Store the script data in memory only
       this.lastLoadedScript = scriptData

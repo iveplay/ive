@@ -99,6 +99,43 @@ export const setupIveBridge = () => {
           response = true
           break
 
+        // Local scripts
+        case MESSAGES.LOCAL_SCRIPT_SAVE:
+          response = await chrome.runtime.sendMessage({
+            type: MESSAGES.LOCAL_SCRIPT_SAVE,
+            name: message.name,
+            content: message.content,
+            size: message.size,
+          })
+          break
+
+        case MESSAGES.LOCAL_SCRIPT_GET:
+          response = await chrome.runtime.sendMessage({
+            type: MESSAGES.LOCAL_SCRIPT_GET,
+            scriptId: message.scriptId,
+          })
+          break
+
+        case MESSAGES.LOCAL_SCRIPT_DELETE:
+          response = await chrome.runtime.sendMessage({
+            type: MESSAGES.LOCAL_SCRIPT_DELETE,
+            scriptId: message.scriptId,
+          })
+          break
+
+        case MESSAGES.LOCAL_SCRIPT_LIST:
+          response = await chrome.runtime.sendMessage({
+            type: MESSAGES.LOCAL_SCRIPT_LIST,
+          })
+          break
+
+        case MESSAGES.LOCAL_SCRIPT_INFO:
+          response = await chrome.runtime.sendMessage({
+            type: MESSAGES.LOCAL_SCRIPT_INFO,
+            scriptId: message.scriptId,
+          })
+          break
+
         default:
           throw new Error(`Unknown message type: ${message.type}`)
       }
