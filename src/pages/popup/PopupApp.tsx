@@ -79,7 +79,7 @@ export const PopupApp = () => {
         <a
           href={
             process.env.NODE_ENV === 'development'
-              ? 'https://localhost:3000/hub'
+              ? 'http://localhost:3000/hub'
               : 'https://iveplay.io/hub'
           }
           target='_blank'
