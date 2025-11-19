@@ -152,12 +152,26 @@ export const VideoPanel = ({
   )
 
   // Auto-select first script
+  // Replace the existing useEffect that handles auto-loading
   useEffect(() => {
     if (videoElement && !currentScript && scriptOptions.length > 0) {
-      console.log('Auto loading first script')
-      handleScriptSelect(scriptOptions[0].url)
+      // Find default script or use first
+      const defaultScript = entry?.defaultScriptId
+        ? scriptOptions.find((s) => s.url === entry.defaultScriptId)
+        : scriptOptions[0]
+
+      if (defaultScript) {
+        console.log('Auto loading default script')
+        handleScriptSelect(defaultScript.url)
+      }
     }
-  }, [videoElement, currentScript, scriptOptions, handleScriptSelect])
+  }, [
+    videoElement,
+    currentScript,
+    scriptOptions,
+    entry?.defaultScriptId,
+    handleScriptSelect,
+  ])
 
   // Cleanup on unload
   useEffect(() => {
@@ -266,6 +280,7 @@ export const VideoPanel = ({
             >
               {scriptOptions.map((option) => (
                 <option key={option.url} value={option.url}>
+                  {entry?.defaultScriptId === option.url ? '★ ' : ''}
                   {option.name}
                 </option>
               ))}

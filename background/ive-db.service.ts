@@ -383,6 +383,11 @@ export class IveDBService {
         scriptIds.push(scriptId)
       }
 
+      // Set default script - use provided or first script
+      const defaultScriptId =
+        data.defaultScriptId ||
+        (scriptIds.length > 0 ? scriptIds[0] : undefined)
+
       // Create main entry
       const entry: IveEntry = {
         id: entryId,
@@ -392,6 +397,7 @@ export class IveDBService {
         tags: data.tags,
         videoSourceIds,
         scriptIds,
+        defaultScriptId,
         createdAt: now,
         updatedAt: now,
       }
@@ -523,6 +529,11 @@ export class IveDBService {
       thumbnail: data.thumbnail,
       videoSourceIds: newVideoSourceIds,
       scriptIds: newScriptIds,
+      defaultScriptId:
+        data.defaultScriptId ||
+        (newScriptIds.includes(entryDetails.entry.defaultScriptId || '')
+          ? entryDetails.entry.defaultScriptId
+          : newScriptIds[0]),
       tags: mergedTags,
       updatedAt: now,
     }
@@ -911,6 +922,7 @@ export class IveDBService {
       tags: data.tags,
       videoSourceIds: newVideoSourceIds,
       scriptIds: newScriptIds,
+      defaultScriptId: data.defaultScriptId || newScriptIds[0],
       updatedAt: now,
     }
 

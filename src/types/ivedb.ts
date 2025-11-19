@@ -6,6 +6,7 @@ export interface IveEntry {
   tags?: string[]
   videoSourceIds: string[]
   scriptIds: string[]
+  defaultScriptId?: string
   createdAt: number
   updatedAt: number
 }
@@ -44,6 +45,7 @@ export interface CreateIveEntryData {
   tags?: string[]
   videoSources: Omit<VideoSource, 'id' | 'createdAt' | 'updatedAt'>[]
   scripts: Omit<ScriptMetadata, 'id' | 'createdAt' | 'updatedAt'>[]
+  defaultScriptId?: string
 }
 
 export interface IveSearchOptions {
