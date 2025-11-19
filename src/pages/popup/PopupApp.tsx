@@ -77,7 +77,11 @@ export const PopupApp = () => {
         />
         <Text className={styles.title}>{currentItem.label}</Text>
         <a
-          href='https://iveplay.io/hub'
+          href={
+            process.env.NODE_ENV === 'development'
+              ? 'https://localhost:3000/hub'
+              : 'https://iveplay.io/hub'
+          }
           target='_blank'
           className={clsx('button primary', styles.hubButton)}
         >
