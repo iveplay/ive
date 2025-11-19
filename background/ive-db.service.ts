@@ -907,11 +907,15 @@ export class IveDBService {
       const isUsedElsewhere = otherEntries.some((e) =>
         e.scriptIds.includes(script.id),
       )
+
       if (!isUsedElsewhere) {
         await this.promisifyRequest(tx.objectStore('scripts').delete(script.id))
         await this.promisifyRequest(
           tx.objectStore('scriptUrlLookup').delete(url),
         )
+
+        // Clean up local script file if applicable
+        await this.cleanupUnusedLocalScript(url)
       }
     }
 
@@ -993,17 +997,15 @@ export class IveDBService {
         const script = await this.promisifyRequest(
           tx.objectStore('scripts').get(scriptId),
         )
-        if (script) {
-          // Delete local script file if it's a file:// URL
-          if (script.url.startsWith('file://')) {
-            const localScriptId = script.url.replace('file://', '')
-            try {
-              await localScriptsService.deleteScript(localScriptId)
-            } catch (error) {
-              console.error('Error deleting local script:', error)
-            }
-          }
+        if (script && script.url.startsWith('file://')) {
+          const localScriptId = script.url.replace('file://', '')
+          // Don't await here - let it happen in background
+          localScriptsService.deleteScript(localScriptId).catch((error) => {
+            console.error('Error deleting local script:', error)
+          })
+        }
 
+        if (script) {
           await this.promisifyRequest(
             tx.objectStore('scripts').delete(scriptId),
           )
@@ -1019,6 +1021,41 @@ export class IveDBService {
 
     // Delete main entry
     await this.promisifyRequest(tx.objectStore('entries').delete(entryId))
+  }
+
+  // Clean up unused local scripts
+  private async cleanupUnusedLocalScript(scriptUrl: string): Promise<void> {
+    if (!scriptUrl.startsWith('file://')) return
+
+    const db = await this.openDB()
+    if (!db || db.objectStoreNames.length === 0) return
+
+    const tx = db.transaction(['entries', 'scripts'], 'readonly')
+
+    // Check if any entry still references this script URL
+    const allEntries: IveEntry[] = await this.promisifyRequest(
+      tx.objectStore('entries').getAll(),
+    )
+
+    const scriptIndex = tx.objectStore('scripts').index('url')
+    const scriptsWithUrl = await this.promisifyRequest(
+      scriptIndex.getAll(scriptUrl),
+    )
+
+    if (scriptsWithUrl.length === 0) return
+
+    const scriptId = scriptsWithUrl[0].id
+    const isStillUsed = allEntries.some((e) => e.scriptIds.includes(scriptId))
+
+    if (!isStillUsed) {
+      const localScriptId = scriptUrl.replace('file://', '')
+      try {
+        await localScriptsService.deleteScript(localScriptId)
+        console.log('Cleaned up unused local script:', localScriptId)
+      } catch (error) {
+        console.error('Error cleaning up local script:', error)
+      }
+    }
   }
 
   // Favorites methods

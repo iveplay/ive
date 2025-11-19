@@ -23,6 +23,17 @@ class LocalScriptsService {
       throw new Error('File size exceeds 2MB limit')
     }
 
+    // Check for existing script with same name and size
+    const scripts = await this.getAllScripts()
+    const existingScript = Object.values(scripts).find(
+      (script) => script.name === name && script.size === size,
+    )
+
+    if (existingScript) {
+      console.log('Reusing existing local script:', existingScript.id)
+      return existingScript.id
+    }
+
     const scriptId = v4()
 
     const script: LocalScript = {
@@ -33,7 +44,6 @@ class LocalScriptsService {
       createdAt: Date.now(),
     }
 
-    const scripts = await this.getAllScripts()
     scripts[scriptId] = script
 
     await chrome.storage.local.set({ [this.STORAGE_KEY]: scripts })

@@ -562,7 +562,6 @@ class DeviceService {
     }
   }
 
-  // Update loadScriptFromUrl method
   public async loadScriptFromUrl(
     url: string,
     sender?: chrome.runtime.MessageSender,
@@ -586,6 +585,7 @@ class DeviceService {
         }
 
         this.state.scriptUrl = url
+        await this.saveState()
       }
       // Handle IVDB URLs
       else if (url.startsWith('ivdb://')) {
@@ -595,19 +595,19 @@ class DeviceService {
           url: actualUrl,
         }
         this.state.scriptUrl = url
+        await this.saveState()
       }
       // Handle regular URLs
       else {
         this.state.scriptUrl = url
+        await this.saveState()
         scriptData = {
           type: actualUrl.toLowerCase().split('.').pop() || 'funscript',
           url: actualUrl,
         }
       }
 
-      await this.saveState()
-
-      // Store the script data in memory only
+      // Store the script data in memory
       this.lastLoadedScript = scriptData
 
       // Set the active script tab
