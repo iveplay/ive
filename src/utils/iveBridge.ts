@@ -1,4 +1,4 @@
-import { MESSAGES } from '@background/types'
+import { LOCAL_STORAGE_KEYS, MESSAGES } from '@background/types'
 import {
   addToFavorites,
   createEntry,
@@ -87,6 +87,16 @@ export const setupIveBridge = () => {
 
         case MESSAGES.IVEDB_SEARCH_ENTRIES:
           response = await searchEntries(message.options)
+          break
+
+        case MESSAGES.IVE_SELECT_SCRIPT:
+          await chrome.storage.local.set({
+            [LOCAL_STORAGE_KEYS.IVE_PENDING_SCRIPT]: {
+              scriptId: message.scriptId,
+              timestamp: message.timestamp || Date.now(),
+            },
+          })
+          response = true
           break
 
         default:

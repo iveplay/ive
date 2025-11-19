@@ -6,10 +6,11 @@ import {
   CreateIveEntryData,
   IveSearchOptions,
 } from '@/types/ivedb'
+import { DB_NAME } from './types'
 
 export class IveDBService {
   private db: IDBDatabase | null = null
-  private readonly DB_NAME = 'ive-database'
+  private readonly DB_NAME = DB_NAME
   private readonly DB_VERSION = 3
   private initPromise: Promise<IDBDatabase> | null = null
 

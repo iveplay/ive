@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import logoImg from '@/assets/logo.png'
+import { useScriptAutoload } from '@/hooks/useScriptAutoload'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { useVideoStore } from '@/store/useVideoStore'
@@ -17,7 +18,8 @@ type VideoPanelProps = {
   hasVideoIframes?: boolean
 }
 
-type ScriptOption = {
+export type ScriptOption = {
+  id: string
   url: string
   name: string
   creator: string
@@ -85,6 +87,7 @@ export const VideoPanel = ({
 
         const options: ScriptOption[] = entryDetails.scripts.map(
           (script: ScriptMetadata) => ({
+            id: script.id,
             url: script.url,
             name: script.creator
               ? `${script.name} - ${script.creator}`
@@ -151,27 +154,13 @@ export const VideoPanel = ({
     [videoElement, setActiveScript, scriptOptions],
   )
 
-  // Auto-select first script
-  // Replace the existing useEffect that handles auto-loading
-  useEffect(() => {
-    if (videoElement && !currentScript && scriptOptions.length > 0) {
-      // Find default script or use first
-      const defaultScript = entry?.defaultScriptId
-        ? scriptOptions.find((s) => s.url === entry.defaultScriptId)
-        : scriptOptions[0]
-
-      if (defaultScript) {
-        console.log('Auto loading default script')
-        handleScriptSelect(defaultScript.url)
-      }
-    }
-  }, [
+  useScriptAutoload(
     videoElement,
     currentScript,
     scriptOptions,
-    entry?.defaultScriptId,
+    entry,
     handleScriptSelect,
-  ])
+  )
 
   // Cleanup on unload
   useEffect(() => {

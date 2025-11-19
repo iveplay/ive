@@ -1,6 +1,11 @@
 import { DeviceInfo as IVEDeviceInfo } from 'ive-connect'
 import { CreateIveEntryData, IveSearchOptions } from '@/types/ivedb'
 
+export const DB_NAME = 'ive-database'
+export const LOCAL_STORAGE_KEYS = {
+  IVE_PENDING_SCRIPT: 'ive-pending-script',
+}
+
 export interface DeviceServiceState {
   // Connection state
   handyConnectionKey: string
@@ -129,6 +134,7 @@ export const MESSAGES = {
   IVEDB_FIND_BY_VIDEO_URL: 'ive:ivedb:find_by_video_url',
   IVEDB_FIND_BY_SCRIPT_URL: 'ive:ivedb:find_by_script_url',
   IVEDB_GET_VIDEO_LOOKUPS: 'ive:ivedb:get_video_lookups',
+  IVE_SELECT_SCRIPT: 'ive:select_script',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
