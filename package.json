@@ -20,6 +20,7 @@
     "@tabler/icons-react": "3.17.0",
     "clsx": "^2.1.1",
     "ive-connect": "^0.6.1",
+    "meyda": "^5.6.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-draggable": "^4.4.6",

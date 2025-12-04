@@ -101,6 +101,12 @@ export function setupMessageHandler(): void {
                 sender,
               )
 
+            case MESSAGES.BUTTPLUG_SET_POSITION:
+              return await deviceService.setButtplugPosition(
+                message.position,
+                message.duration,
+              )
+
             // Settings
             case MESSAGES.SHOW_HEATMAP:
               return await deviceService.setSettings(message.settings)

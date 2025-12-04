@@ -901,6 +901,23 @@ class DeviceService {
     await this.broadcastState()
   }
 
+  public async setButtplugPosition(
+    position: number,
+    duration: number,
+  ): Promise<boolean> {
+    if (!this.buttplugDevice) return false
+    console.log('◇─◇──◇────◇────◇─乁(ツ)ㄏ─◇────◇─────◇──◇─◇')
+    console.log('position, duration')
+    console.log(position, duration)
+    console.log('◇─◇──◇────◇────◇─乁(ツ)ㄏ─◇────◇─────◇──◇─◇')
+    try {
+      return await this.buttplugDevice.setPosition(position, duration)
+    } catch (error) {
+      console.error('Error setting buttplug position:', error)
+      return false
+    }
+  }
+
   // Event listeners
   private setupHandyListeners(): void {
     if (!this.handyDevice) return

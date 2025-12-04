@@ -107,6 +107,7 @@ export const MESSAGES = {
   TIME_CHANGE: 'ive:video:time_change',
   DURATION_CHANGE: 'ive:video:duration_change',
   VOLUME_CHANGE: 'ive:video:volume_change',
+  BUTTPLUG_SET_POSITION: 'ive:buttplug_set_position',
 
   // Settings
   SHOW_HEATMAP: 'ive:settings:show_heatmap',
@@ -187,6 +188,11 @@ export type UIMessage =
   | { type: typeof MESSAGES.TIME_CHANGE; timeMs: number }
   | { type: typeof MESSAGES.DURATION_CHANGE; duration: number }
   | { type: typeof MESSAGES.VOLUME_CHANGE; volume: number; muted: boolean }
+  | {
+      type: typeof MESSAGES.BUTTPLUG_SET_POSITION
+      position: number
+      duration: number
+    }
   // Settings
   | {
       type: typeof MESSAGES.SHOW_HEATMAP

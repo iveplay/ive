@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/shallow'
 import logoImg from '@/assets/logo.png'
 import { useScriptAutoload } from '@/hooks/useScriptAutoload'
 import { useVideoListener } from '@/hooks/useVideoListener'
+import { audioSyncService } from '@/services/audioSync.service'
 import { useDeviceStore } from '@/store/useDeviceStore'
 import { useVideoStore } from '@/store/useVideoStore'
 import { IveEntry, ScriptMetadata } from '@/types/ivedb'
@@ -39,6 +40,7 @@ export const VideoPanel = ({
   const [scriptOptions, setScriptOptions] = useState<ScriptOption[]>([])
   const [currentScriptInfo, setCurrentScriptInfo] =
     useState<ScriptOption | null>(null)
+  const [isAudioSyncing, setIsAudioSyncing] = useState(false)
 
   const scriptInverted = useDeviceStore(
     (state) => state.scriptInverted || false,
@@ -154,6 +156,25 @@ export const VideoPanel = ({
     [videoElement, setActiveScript, scriptOptions],
   )
 
+  const handleAudioSync = useCallback(async () => {
+    if (!videoElement) return
+
+    if (isAudioSyncing) {
+      audioSyncService.stop()
+      setIsAudioSyncing(false)
+    } else {
+      try {
+        await audioSyncService.start(videoElement)
+        setIsAudioSyncing(true)
+      } catch (error) {
+        console.error('Error starting audio sync:', error)
+        setErrorMessage(
+          `Audio sync error: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+    }
+  }, [videoElement, isAudioSyncing])
+
   useScriptAutoload(
     videoElement,
     currentScript,
@@ -166,12 +187,14 @@ export const VideoPanel = ({
   useEffect(() => {
     const handleBeforeUnload = () => {
       chrome.runtime.sendMessage({ type: MESSAGES.STOP })
+      audioSyncService.stop()
       setActiveScript(null)
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
+      audioSyncService.stop()
       setActiveScript(null)
     }
   }, [setActiveScript])
@@ -216,6 +239,16 @@ export const VideoPanel = ({
               Sync
             </button>
           )}
+          <button
+            className={styles.syncButton}
+            onClick={handleAudioSync}
+            disabled={!videoElement}
+            style={{
+              backgroundColor: isAudioSyncing ? '#a60569' : '#7b024d',
+            }}
+          >
+            {isAudioSyncing ? 'Stop Audio' : 'AudioSync'}
+          </button>
           {!disableFloat && (
             <button
               className={styles.floatButton}
