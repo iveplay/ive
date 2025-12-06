@@ -1,7 +1,7 @@
 import { contextMenuService } from './contextMenuService'
+import { deviceService } from './deviceService/service'
 import { iveDBService } from './ive-db.service'
 import { setupMessageHandler } from './messageHandler'
-import { deviceService } from './service'
 
 async function init(): Promise<void> {
   console.log('Initializing IVE background service...')

@@ -89,18 +89,6 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
             </span>
           </li>
         )}
-
-        <li className={styles.infoItem}>
-          <span className={styles.label}>Status:</span>
-          <span
-            className={clsx(
-              styles.value,
-              isPlaying ? styles.playing : styles.stopped,
-            )}
-          >
-            {isPlaying ? 'Playing' : 'Stopped'}
-          </span>
-        </li>
       </ul>
     </div>
   )

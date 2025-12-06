@@ -1,4 +1,4 @@
-import { deviceService } from './service'
+import { deviceService } from './deviceService/service'
 import { CONTEXT_MESSAGES } from './types'
 
 class ContextMenuService {

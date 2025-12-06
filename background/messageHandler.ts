@@ -1,6 +1,6 @@
+import { deviceService } from './deviceService/service'
 import { iveDBService } from './ive-db.service'
 import { localScriptsService } from './localScripts.service'
-import { deviceService } from './service'
 import { MESSAGES, UIMessage } from './types'
 
 export function setupMessageHandler(): void {
