@@ -43,9 +43,9 @@ export const useScriptAutoload = (
       }
 
       // Fallback to default
-      const defaultScript = entry?.defaultScriptId
-        ? scriptOptions.find((s) => s.url === entry.defaultScriptId)
-        : scriptOptions[0]
+      const defaultScript =
+        scriptOptions.find((s) => s.url === entry?.defaultScriptId) ||
+        scriptOptions[0]
 
       if (defaultScript) {
         console.log('Auto loading default script')
