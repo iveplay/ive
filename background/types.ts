@@ -11,8 +11,10 @@ export interface DeviceServiceState {
   // Connection state
   handyConnectionKey: string
   buttplugServerUrl: string
+  autoblowDeviceToken: string
   handyConnected: boolean
   buttplugConnected: boolean
+  autoblowConnected: boolean
 
   // Script state
   scriptUrl: string
@@ -44,6 +46,9 @@ export interface DeviceServiceState {
       max: number
     }
   }
+  autoblowSettings: {
+    offset: number
+  }
 
   // Settings
   showHeatmap: boolean
@@ -68,6 +73,7 @@ export interface Funscript {
 export interface DevicesInfo {
   handy: IVEDeviceInfo | null
   buttplug: IVEDeviceInfo | null
+  autoblow: IVEDeviceInfo | null
 }
 
 export const EVENTS = {
@@ -95,6 +101,9 @@ export const MESSAGES = {
   BUTTPLUG_DISCONNECT: 'ive:buttplug_disconnect',
   BUTTPLUG_SCAN: 'ive:buttplug_scan',
   BUTTPLUG_SET_STROKE_SETTINGS: 'ive:buttplug_set_stroke_settings',
+  AUTOBLOW_CONNECT: 'ive:autoblow_connect',
+  AUTOBLOW_DISCONNECT: 'ive:autoblow_disconnect',
+  AUTOBLOW_SET_OFFSET: 'ive:autoblow_set_offset',
   LOAD_SCRIPT_URL: 'ive:load_script_url',
   LOAD_SCRIPT_CONTENT: 'ive:load_script_content',
   TOGGLE_SCRIPT_INVERSION: 'ive:toggle_script_inversion',
@@ -167,6 +176,9 @@ export type UIMessage =
       min: number
       max: number
     }
+  | { type: typeof MESSAGES.AUTOBLOW_CONNECT; deviceToken: string }
+  | { type: typeof MESSAGES.AUTOBLOW_DISCONNECT }
+  | { type: typeof MESSAGES.AUTOBLOW_SET_OFFSET; offset: number }
   | { type: typeof MESSAGES.LOAD_SCRIPT_URL; url: string }
   | {
       type: typeof MESSAGES.LOAD_SCRIPT_CONTENT

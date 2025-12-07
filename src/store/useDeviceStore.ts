@@ -6,10 +6,13 @@ import { create } from 'zustand'
 export interface DeviceState {
   handyConnected: boolean
   buttplugConnected: boolean
+  autoblowConnected: boolean
   handyConnectionKey: string
   buttplugServerUrl: string
+  autoblowDeviceToken: string
   handyDeviceInfo: DeviceInfo | null
   buttplugDeviceInfo: DeviceInfo | null
+  autoblowDeviceInfo: DeviceInfo | null
 
   // Script state
   scriptUrl: string
@@ -23,6 +26,7 @@ export interface DeviceState {
   handyStrokeMax: number
   buttplugStrokeMin: number
   buttplugStrokeMax: number
+  autoblowOffset: number
 
   // UI state
   error: string | null
@@ -43,6 +47,11 @@ interface DeviceActions {
   scanForButtplugDevices: () => Promise<boolean>
   setButtplugStrokeSettings: (min: number, max: number) => Promise<boolean>
 
+  // Autoblow actions
+  connectAutoblow: (deviceToken: string) => Promise<boolean>
+  disconnectAutoblow: () => Promise<boolean>
+  setAutoblowOffset: (offset: number) => Promise<boolean>
+
   // Script actions
   loadScriptFromUrl: (url: string) => Promise<boolean>
   loadScriptFile: (file: File) => Promise<boolean>
@@ -51,6 +60,7 @@ interface DeviceActions {
   // Handle local state updates
   setHandyConnectionKey: (key: string) => void
   setButtplugServerUrl: (url: string) => void
+  setAutoblowDeviceToken: (token: string) => void
   setError: (error: string | null) => void
 }
 
@@ -59,10 +69,13 @@ type DeviceStore = DeviceState & DeviceActions
 export const useDeviceStore = create<DeviceStore>()((set) => ({
   handyConnected: false,
   buttplugConnected: false,
+  autoblowConnected: false,
   handyConnectionKey: '',
   buttplugServerUrl: 'ws://localhost:12345',
+  autoblowDeviceToken: '',
   handyDeviceInfo: null,
   buttplugDeviceInfo: null,
+  autoblowDeviceInfo: null,
   scriptLoaded: false,
   scriptUrl: '',
   funscript: null,
@@ -72,6 +85,7 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
   handyStrokeMax: 1,
   buttplugStrokeMin: 0,
   buttplugStrokeMax: 1,
+  autoblowOffset: 0,
   error: null,
   isLoaded: false,
 
@@ -211,6 +225,56 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     }
   },
 
+  connectAutoblow: async (deviceToken: string) => {
+    try {
+      set({ error: null })
+      const success = await chrome.runtime.sendMessage({
+        type: MESSAGES.AUTOBLOW_CONNECT,
+        deviceToken,
+      })
+      return success
+    } catch (error) {
+      set({
+        error: `Connect error: ${error instanceof Error ? error.message : String(error)}`,
+      })
+      return false
+    }
+  },
+
+  disconnectAutoblow: async () => {
+    try {
+      set({ error: null })
+      const success = await chrome.runtime.sendMessage({
+        type: MESSAGES.AUTOBLOW_DISCONNECT,
+      })
+      return success
+    } catch (error) {
+      set({
+        error: `Disconnect error: ${error instanceof Error ? error.message : String(error)}`,
+      })
+      return false
+    }
+  },
+
+  setAutoblowOffset: async (offset: number) => {
+    try {
+      set({ error: null })
+      const success = await chrome.runtime.sendMessage({
+        type: MESSAGES.AUTOBLOW_SET_OFFSET,
+        offset,
+      })
+      if (success) {
+        set({ autoblowOffset: offset })
+      }
+      return success
+    } catch (error) {
+      set({
+        error: `Set offset error: ${error instanceof Error ? error.message : String(error)}`,
+      })
+      return false
+    }
+  },
+
   loadScriptFromUrl: async (url: string) => {
     try {
       set({ error: null })
@@ -292,6 +356,10 @@ export const useDeviceStore = create<DeviceStore>()((set) => ({
     set({ buttplugServerUrl: url })
   },
 
+  setAutoblowDeviceToken: (token: string) => {
+    set({ autoblowDeviceToken: token })
+  },
+
   setError: (error: string | null) => {
     set({ error })
   },
@@ -323,6 +391,7 @@ export function useDeviceSetup(): void {
           handyStrokeMax: state.handySettings?.stroke?.max || 1,
           buttplugStrokeMin: state.buttplugSettings?.stroke?.min || 0,
           buttplugStrokeMax: state.buttplugSettings?.stroke?.max || 1,
+          autoblowOffset: state.autoblowSettings?.offset || 0,
         })
 
         // Also fetch device info
@@ -333,6 +402,7 @@ export function useDeviceSetup(): void {
         useDeviceStore.setState({
           handyDeviceInfo: deviceInfo?.handy || null,
           buttplugDeviceInfo: deviceInfo?.buttplug || null,
+          autoblowDeviceInfo: deviceInfo?.autoblow || null,
         })
       } catch (error) {
         console.error('Error fetching initial state:', error)
@@ -348,8 +418,10 @@ export function useDeviceSetup(): void {
         useDeviceStore.setState({
           handyConnected: message.state.handyConnected,
           buttplugConnected: message.state.buttplugConnected,
+          autoblowConnected: message.state.autoblowConnected,
           handyConnectionKey: message.state.handyConnectionKey,
           buttplugServerUrl: message.state.buttplugServerUrl,
+          autoblowDeviceToken: message.state.autoblowDeviceToken,
           scriptUrl: message.state.scriptUrl,
           scriptLoaded: message.state.scriptLoaded,
           funscript: message.state.funscript || null,
@@ -359,9 +431,11 @@ export function useDeviceSetup(): void {
           handyStrokeMax: message.state.handySettings?.stroke?.max || 1,
           buttplugStrokeMin: message.state.buttplugSettings?.stroke?.min || 0,
           buttplugStrokeMax: message.state.buttplugSettings?.stroke?.max || 1,
+          autoblowOffset: message.state.autoblowSettings?.offset || 0,
           error: message.state.error || null,
           handyDeviceInfo: message.state.deviceInfo?.handy || null,
           buttplugDeviceInfo: message.state.deviceInfo?.buttplug || null,
+          autoblowDeviceInfo: message.state.deviceInfo?.autoblow || null,
         })
       }
     }

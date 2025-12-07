@@ -2,10 +2,12 @@ import {
   DeviceManager,
   HandyDevice,
   ButtplugDevice,
+  AutoblowDevice,
   ScriptData,
 } from 'ive-connect'
 import { contextMenuService } from '../contextMenuService'
 import { DeviceServiceState, DevicesInfo, Funscript, MESSAGES } from '../types'
+import { AutoblowManager } from './autoblowManager'
 import { ButtplugManager } from './buttplugManager'
 import { HandyManager } from './handyManager'
 import { PlaybackManager } from './playbackManager'
@@ -15,8 +17,10 @@ import { TabTracker } from './tabTracker'
 const defaultState: DeviceServiceState = {
   handyConnectionKey: '',
   buttplugServerUrl: 'ws://localhost:12345',
+  autoblowDeviceToken: '',
   handyConnected: false,
   buttplugConnected: false,
+  autoblowConnected: false,
   scriptUrl: '',
   showHeatmap: false,
   customUrls: [],
@@ -27,12 +31,16 @@ const defaultState: DeviceServiceState = {
   buttplugSettings: {
     stroke: { min: 0, max: 1 },
   },
+  autoblowSettings: {
+    offset: 0,
+  },
 }
 
 class DeviceService {
   private deviceManager: DeviceManager
   private handyManager: HandyManager
   private buttplugManager: ButtplugManager
+  private autoblowManager: AutoblowManager
   private tabTracker: TabTracker
   private scriptResolver: ScriptResolver
   private playbackManager: PlaybackManager
@@ -48,6 +56,7 @@ class DeviceService {
     this.deviceManager = new DeviceManager()
     this.handyManager = new HandyManager()
     this.buttplugManager = new ButtplugManager()
+    this.autoblowManager = new AutoblowManager()
     this.tabTracker = new TabTracker()
     this.scriptResolver = new ScriptResolver()
     this.playbackManager = new PlaybackManager()
@@ -65,6 +74,7 @@ class DeviceService {
         this.state.handyConnectionKey = parsed.handyConnectionKey || ''
         this.state.buttplugServerUrl =
           parsed.buttplugServerUrl || 'ws://localhost:12345'
+        this.state.autoblowDeviceToken = parsed.autoblowDeviceToken || ''
         this.state.showHeatmap = parsed.showHeatmap || false
         this.state.customUrls = parsed.customUrls || []
         this.state.handySettings = parsed.handySettings || {
@@ -73,6 +83,9 @@ class DeviceService {
         }
         this.state.buttplugSettings = parsed.buttplugSettings || {
           stroke: { min: 0, max: 1 },
+        }
+        this.state.autoblowSettings = parsed.autoblowSettings || {
+          offset: 0,
         }
       }
     } catch (error) {
@@ -223,9 +236,47 @@ class DeviceService {
     return this.buttplugManager.scan(this.state)
   }
 
+  // Autoblow methods
+  public async connectAutoblow(deviceToken: string): Promise<boolean> {
+    const result = await this.autoblowManager.connect(
+      deviceToken,
+      this.state,
+      () => this.saveState(),
+      (extra) => this.broadcastState(extra),
+      (device, script) => this.loadScriptToDevice(device, script),
+      this.lastLoadedScript,
+      this.playbackManager.isPlaying,
+    )
+
+    if (result && this.autoblowManager.device) {
+      this.deviceManager.registerDevice(this.autoblowManager.device)
+    }
+
+    return result
+  }
+
+  public async disconnectAutoblow(): Promise<boolean> {
+    return this.autoblowManager.disconnect(
+      this.state,
+      () => this.saveState(),
+      () => this.broadcastState(),
+    )
+  }
+
+  public async updateAutoblowSettings(settings: {
+    offset?: number
+  }): Promise<boolean> {
+    return this.autoblowManager.updateSettings(
+      settings,
+      this.state,
+      () => this.saveState(),
+      () => this.broadcastState(),
+    )
+  }
+
   // Script management
   private async loadScriptToDevice(
-    device: HandyDevice | ButtplugDevice,
+    device: HandyDevice | ButtplugDevice | AutoblowDevice,
     scriptData: ScriptData,
   ): Promise<boolean> {
     try {
@@ -265,6 +316,13 @@ class DeviceService {
 
         if (this.state.buttplugConnected) {
           await this.buttplugManager.loadScript(
+            this.lastLoadedScript,
+            this.scriptInverted,
+          )
+        }
+
+        if (this.state.autoblowConnected) {
+          await this.autoblowManager.loadScript(
             this.lastLoadedScript,
             this.scriptInverted,
           )
@@ -408,6 +466,7 @@ class DeviceService {
         this.state,
         this.handyManager,
         this.buttplugManager,
+        this.autoblowManager,
       )
 
       if (success) {
@@ -442,7 +501,11 @@ class DeviceService {
     }
 
     try {
-      await this.playbackManager.stop(this.handyManager, this.buttplugManager)
+      await this.playbackManager.stop(
+        this.handyManager,
+        this.buttplugManager,
+        this.autoblowManager,
+      )
       await this.broadcastState()
       return true
     } catch (error) {
@@ -547,6 +610,7 @@ class DeviceService {
     return {
       handy: this.handyManager.getDeviceInfo(),
       buttplug: this.buttplugManager.getDeviceInfo(),
+      autoblow: this.autoblowManager.getDeviceInfo(),
     }
   }
 
@@ -566,6 +630,14 @@ class DeviceService {
           await this.connectButtplug(this.state.buttplugServerUrl)
         } catch (error) {
           console.warn('Auto-connect to Intiface failed:', error)
+        }
+      }
+
+      if (this.state.autoblowDeviceToken && !this.state.autoblowConnected) {
+        try {
+          await this.connectAutoblow(this.state.autoblowDeviceToken)
+        } catch (error) {
+          console.warn('Auto-connect to Autoblow failed:', error)
         }
       }
     } catch (error) {

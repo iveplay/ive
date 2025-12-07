@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/shallow'
 import DiscordIcon from '@/assets/discord.svg'
 import logoImg from '@/assets/logo.png'
 import PatreonIcon from '@/assets/patreon.svg'
+import { AutoblowConnect } from '@/components/autoblowConnect/AutoblowConnect'
 import { ButtplugConnect } from '@/components/buttplugConnect/ButtplugConnect'
 import { HandyConnect } from '@/components/handyConnect/HandyConnect'
 import { Settings } from '@/components/settings/Settings'
@@ -27,24 +28,42 @@ export const PopupApp = () => {
   useDeviceSetup()
   useSettingsSetup()
 
-  const { handyConnected, buttplugConnected, isLoaded } = useDeviceStore(
-    useShallow((state) => ({
-      handyConnected: state.handyConnected,
-      buttplugConnected: state.buttplugConnected,
-      isLoaded: state.isLoaded,
-    })),
-  )
+  const { handyConnected, buttplugConnected, autoblowConnected, isLoaded } =
+    useDeviceStore(
+      useShallow((state) => ({
+        handyConnected: state.handyConnected,
+        buttplugConnected: state.buttplugConnected,
+        autoblowConnected: state.autoblowConnected,
+        isLoaded: state.isLoaded,
+      })),
+    )
 
   useEffect(() => {
     if (!isLoaded || activeItem) return
 
-    if (buttplugConnected && !handyConnected) {
+    if (handyConnected) {
+      setActiveItem('handy')
+      return
+    }
+
+    if (buttplugConnected) {
       setActiveItem('buttplug')
       return
     }
 
+    if (autoblowConnected) {
+      setActiveItem('autoblow')
+      return
+    }
+
     setActiveItem('handy')
-  }, [handyConnected, buttplugConnected, isLoaded, activeItem])
+  }, [
+    handyConnected,
+    buttplugConnected,
+    autoblowConnected,
+    isLoaded,
+    activeItem,
+  ])
 
   const navItems: NavItem[] = [
     { id: 'handy', label: 'Handy', component: <HandyConnect />, visible: true },
@@ -52,6 +71,12 @@ export const PopupApp = () => {
       id: 'buttplug',
       label: 'Intiface',
       component: <ButtplugConnect />,
+      visible: true,
+    },
+    {
+      id: 'autoblow',
+      label: 'Autoblow',
+      component: <AutoblowConnect />,
       visible: true,
     },
     {

@@ -1,4 +1,5 @@
 import { DeviceServiceState } from '../types'
+import { AutoblowManager } from './autoblowManager'
 import { ButtplugManager } from './buttplugManager'
 import { HandyManager } from './handyManager'
 
@@ -21,6 +22,7 @@ export class PlaybackManager {
     state: DeviceServiceState,
     handyManager: HandyManager,
     buttplugManager: ButtplugManager,
+    autoblowManager: AutoblowManager,
   ): Promise<boolean> {
     this.currentTimeMs = timeMs
     this.playbackRate = playbackRate
@@ -51,6 +53,19 @@ export class PlaybackManager {
       }
     }
 
+    if (state.autoblowConnected) {
+      try {
+        results['autoblow'] = await autoblowManager.play(
+          timeMs,
+          playbackRate,
+          loop,
+        )
+      } catch (error) {
+        console.error('Error playing script on Autoblow:', error)
+        results['autoblow'] = false
+      }
+    }
+
     const successCount = Object.values(results).filter(Boolean).length
 
     if (successCount > 0) {
@@ -65,10 +80,12 @@ export class PlaybackManager {
   async stop(
     handyManager: HandyManager,
     buttplugManager: ButtplugManager,
+    autoblowManager: AutoblowManager,
   ): Promise<void> {
     this.clearSyncTimeouts()
     await handyManager.stop()
     await buttplugManager.stop()
+    await autoblowManager.stop()
     this.isPlaying = false
   }
 

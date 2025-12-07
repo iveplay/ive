@@ -1,35 +1,42 @@
 import clsx from 'clsx'
 import { useShallow } from 'zustand/shallow'
 import { useDeviceStore } from '@/store/useDeviceStore'
-import { useVideoControlsStore } from '@/store/useVideoControlsStore'
 import styles from './DeviceInfo.module.scss'
 
 interface DeviceInfoProps {
-  type: 'handy' | 'buttplug'
+  type: 'handy' | 'buttplug' | 'autoblow'
 }
 
 export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
   const {
     handyConnected,
     buttplugConnected,
+    autoblowConnected,
     handyDeviceInfo,
     buttplugDeviceInfo,
+    autoblowDeviceInfo,
   } = useDeviceStore(
     useShallow((state) => ({
       handyConnected: state.handyConnected,
       buttplugConnected: state.buttplugConnected,
+      autoblowConnected: state.autoblowConnected,
       handyDeviceInfo: state.handyDeviceInfo,
       buttplugDeviceInfo: state.buttplugDeviceInfo,
+      autoblowDeviceInfo: state.autoblowDeviceInfo,
     })),
   )
 
-  const isPlaying = useVideoControlsStore((state) => state.isPlaying)
-
   // Check connection status based on device type
-  const isConnected = type === 'handy' ? handyConnected : buttplugConnected
+  const isConnected =
+    type === 'handy'
+      ? handyConnected
+      : type === 'buttplug'
+        ? buttplugConnected
+        : autoblowConnected
 
   // Get display name
-  const displayName = type === 'handy' ? 'Handy' : 'Intiface'
+  const displayName =
+    type === 'handy' ? 'Handy' : type === 'buttplug' ? 'Intiface' : 'Autoblow'
 
   return (
     <div
@@ -88,6 +95,33 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
               {buttplugDeviceInfo?.deviceCount || 0} connected
             </span>
           </li>
+        )}
+
+        {type === 'autoblow' && autoblowDeviceInfo && (
+          <>
+            <li className={styles.infoItem}>
+              <span className={styles.label}>Device:</span>
+              <span
+                className={clsx(
+                  styles.value,
+                  !autoblowDeviceInfo?.deviceType && styles.empty,
+                )}
+              >
+                {autoblowDeviceInfo?.deviceType || 'Unknown'}
+              </span>
+            </li>
+            <li className={styles.infoItem}>
+              <span className={styles.label}>Firmware:</span>
+              <span
+                className={clsx(
+                  styles.value,
+                  !autoblowDeviceInfo?.firmware && styles.empty,
+                )}
+              >
+                {autoblowDeviceInfo?.firmware || 'Not available'}
+              </span>
+            </li>
+          </>
         )}
       </ul>
     </div>

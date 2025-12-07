@@ -55,6 +55,17 @@ export function setupMessageHandler(): void {
                 stroke: { min: message.min, max: message.max },
               })
 
+            case MESSAGES.AUTOBLOW_CONNECT:
+              return await deviceService.connectAutoblow(message.deviceToken)
+
+            case MESSAGES.AUTOBLOW_DISCONNECT:
+              return await deviceService.disconnectAutoblow()
+
+            case MESSAGES.AUTOBLOW_SET_OFFSET:
+              return await deviceService.updateAutoblowSettings({
+                offset: message.offset,
+              })
+
             case MESSAGES.LOAD_SCRIPT_URL:
               return await deviceService.loadScriptFromUrl(message.url, sender)
 
