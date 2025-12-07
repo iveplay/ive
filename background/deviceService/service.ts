@@ -1,12 +1,11 @@
 import {
   DeviceManager,
-  HandyDevice,
-  ButtplugDevice,
-  AutoblowDevice,
   ScriptData,
+  Funscript,
+  ScriptLoadResult,
 } from 'ive-connect'
 import { contextMenuService } from '../contextMenuService'
-import { DeviceServiceState, DevicesInfo, Funscript, MESSAGES } from '../types'
+import { DeviceServiceState, DevicesInfo, MESSAGES } from '../types'
 import { AutoblowManager } from './autoblowManager'
 import { ButtplugManager } from './buttplugManager'
 import { HandyManager } from './handyManager'
@@ -48,7 +47,7 @@ class DeviceService {
   private scriptLoaded = false
   private scriptInverted = false
   private funscript: Funscript | null = null
-  private lastLoadedScript: ScriptData | null = null
+  private lastScriptData: ScriptData | null = null
 
   private state: DeviceServiceState = defaultState
 
@@ -63,7 +62,10 @@ class DeviceService {
     this.loadState()
   }
 
-  // State management
+  // ===========================================
+  // State Management
+  // ===========================================
+
   private async loadState(): Promise<void> {
     try {
       const storedState = await chrome.storage.sync.get('ive-state')
@@ -137,7 +139,10 @@ class DeviceService {
     })
   }
 
+  // ===========================================
   // Settings
+  // ===========================================
+
   public async setSettings({
     showHeatmap,
   }: {
@@ -155,20 +160,25 @@ class DeviceService {
     await this.broadcastState()
   }
 
-  // Handy methods
+  // ===========================================
+  // Handy Methods
+  // ===========================================
+
   public async connectHandy(connectionKey: string): Promise<boolean> {
     const result = await this.handyManager.connect(
       connectionKey,
       this.state,
       () => this.saveState(),
       (extra) => this.broadcastState(extra),
-      (device, script) => this.loadScriptToDevice(device, script),
-      this.lastLoadedScript,
-      this.playbackManager.isPlaying,
     )
 
     if (result && this.handyManager.device) {
       this.deviceManager.registerDevice(this.handyManager.device)
+
+      // If we have a script loaded, prepare it on the new device
+      if (this.funscript) {
+        await this.handyManager.device.prepareScript(this.funscript)
+      }
     }
 
     return result
@@ -194,20 +204,25 @@ class DeviceService {
     )
   }
 
-  // Buttplug methods
+  // ===========================================
+  // Buttplug Methods
+  // ===========================================
+
   public async connectButtplug(serverUrl: string): Promise<boolean> {
     const result = await this.buttplugManager.connect(
       serverUrl,
       this.state,
       () => this.saveState(),
       (extra) => this.broadcastState(extra),
-      (device, script) => this.loadScriptToDevice(device, script),
-      this.lastLoadedScript,
-      this.playbackManager.isPlaying,
     )
 
     if (result && this.buttplugManager.device) {
       this.deviceManager.registerDevice(this.buttplugManager.device)
+
+      // If we have a script loaded, prepare it on the new device
+      if (this.funscript) {
+        await this.buttplugManager.device.prepareScript(this.funscript)
+      }
     }
 
     return result
@@ -236,20 +251,25 @@ class DeviceService {
     return this.buttplugManager.scan(this.state)
   }
 
-  // Autoblow methods
+  // ===========================================
+  // Autoblow Methods
+  // ===========================================
+
   public async connectAutoblow(deviceToken: string): Promise<boolean> {
     const result = await this.autoblowManager.connect(
       deviceToken,
       this.state,
       () => this.saveState(),
       (extra) => this.broadcastState(extra),
-      (device, script) => this.loadScriptToDevice(device, script),
-      this.lastLoadedScript,
-      this.playbackManager.isPlaying,
     )
 
     if (result && this.autoblowManager.device) {
       this.deviceManager.registerDevice(this.autoblowManager.device)
+
+      // If we have a script loaded, prepare it on the new device
+      if (this.funscript) {
+        await this.autoblowManager.device.prepareScript(this.funscript)
+      }
     }
 
     return result
@@ -274,21 +294,9 @@ class DeviceService {
     )
   }
 
-  // Script management
-  private async loadScriptToDevice(
-    device: HandyDevice | ButtplugDevice | AutoblowDevice,
-    scriptData: ScriptData,
-  ): Promise<boolean> {
-    try {
-      const result = await device.loadScript(scriptData, {
-        invertScript: this.scriptInverted,
-      })
-      return result.success
-    } catch (error) {
-      console.error('Error loading script to device:', error)
-      return false
-    }
-  }
+  // ===========================================
+  // Script Management
+  // ===========================================
 
   public async toggleScriptInversion(
     sender?: chrome.runtime.MessageSender,
@@ -297,7 +305,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     ) {
       return false
@@ -305,29 +313,21 @@ class DeviceService {
 
     this.scriptInverted = !this.scriptInverted
 
-    if (this.lastLoadedScript) {
+    // Reload the script with the new inversion setting
+    if (this.lastScriptData) {
       try {
-        if (this.state.handyConnected) {
-          await this.handyManager.loadScript(
-            this.lastLoadedScript,
-            this.scriptInverted,
-          )
+        const result = await this.deviceManager.loadScript(
+          this.lastScriptData,
+          {
+            invertScript: this.scriptInverted,
+          },
+        )
+
+        if (result.success && result.funscript) {
+          this.funscript = result.funscript
         }
 
-        if (this.state.buttplugConnected) {
-          await this.buttplugManager.loadScript(
-            this.lastLoadedScript,
-            this.scriptInverted,
-          )
-        }
-
-        if (this.state.autoblowConnected) {
-          await this.autoblowManager.loadScript(
-            this.lastLoadedScript,
-            this.scriptInverted,
-          )
-        }
-
+        // Restart playback if it was playing
         if (this.playbackManager.isPlaying) {
           await this.play(
             this.playbackManager.currentTimeMs,
@@ -351,6 +351,7 @@ class DeviceService {
     sender?: chrome.runtime.MessageSender,
   ): Promise<boolean> {
     try {
+      // Resolve the URL to ScriptData
       const scriptData = await this.scriptResolver.resolve(
         url,
         this.state.handyConnectionKey,
@@ -359,33 +360,38 @@ class DeviceService {
       this.state.scriptUrl = url
       await this.saveState()
 
-      this.lastLoadedScript = scriptData
+      // Store the original script data for re-loading with different options
+      this.lastScriptData = scriptData
 
+      // Set up tab tracking
       const tabId = sender?.tab?.id
       const frameId = sender?.frameId
       if (tabId) {
         this.tabTracker.setActiveTab(tabId, frameId)
       }
 
-      const results = await this.deviceManager.loadScriptAll(scriptData, {
-        invertScript: this.scriptInverted,
-      })
-      const successCount = Object.values(results).filter(Boolean).length
+      // Use DeviceManager to load script (handles fetching, parsing, and distribution)
+      const result: ScriptLoadResult = await this.deviceManager.loadScript(
+        scriptData,
+        { invertScript: this.scriptInverted },
+      )
 
-      if (successCount > 0) {
+      if (result.success && result.funscript) {
         this.scriptLoaded = true
-        this.funscript = results['script'] as unknown as Funscript
+        this.funscript = result.funscript
         await this.broadcastState()
         return true
       }
 
-      throw new Error('Failed to load script on any device')
+      // Script loading failed
+      throw new Error(result.error || 'Failed to load script')
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
       console.error('Error loading script:', errorMessage)
 
       this.scriptLoaded = false
+      this.funscript = null
       await this.broadcastState({
         error: `Script loading error: ${errorMessage}`,
       })
@@ -398,33 +404,38 @@ class DeviceService {
     sender?: chrome.runtime.MessageSender,
   ): Promise<boolean> {
     try {
-      const scriptData: ScriptData = { type: 'funscript', content }
-      this.lastLoadedScript = scriptData
+      const scriptData: ScriptData = {
+        type: 'funscript',
+        content: content as Funscript,
+      }
+      this.lastScriptData = scriptData
 
       const tabId = sender?.tab?.id
       if (tabId) {
         this.tabTracker.setActiveTab(tabId, sender?.frameId)
       }
 
-      const results = await this.deviceManager.loadScriptAll(scriptData, {
-        invertScript: this.scriptInverted,
-      })
-      const successCount = Object.values(results).filter(Boolean).length
+      // Use DeviceManager to load script
+      const result: ScriptLoadResult = await this.deviceManager.loadScript(
+        scriptData,
+        { invertScript: this.scriptInverted },
+      )
 
-      if (successCount > 0) {
+      if (result.success && result.funscript) {
         this.scriptLoaded = true
-        this.funscript = results['script'] as unknown as Funscript
+        this.funscript = result.funscript
         await this.broadcastState()
         return true
       }
 
-      throw new Error('Failed to load script on any device')
+      throw new Error(result.error || 'Failed to load script')
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
       console.error('Error loading script:', errorMessage)
 
       this.scriptLoaded = false
+      this.funscript = null
       await this.broadcastState({
         error: `Script loading error: ${errorMessage}`,
       })
@@ -432,7 +443,10 @@ class DeviceService {
     }
   }
 
-  // Playback control
+  // ===========================================
+  // Playback Control
+  // ===========================================
+
   public async play(
     timeMs: number,
     playbackRate: number = 1.0,
@@ -444,7 +458,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     ) {
       console.log(
@@ -469,12 +483,8 @@ class DeviceService {
         this.autoblowManager,
       )
 
-      if (success) {
-        await this.broadcastState()
-        return true
-      }
-
-      throw new Error('Failed to start playback on any device')
+      await this.broadcastState()
+      return success
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error)
@@ -491,7 +501,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     ) {
       console.log(
@@ -527,7 +537,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     )
       return
@@ -542,7 +552,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     )
       return
@@ -558,7 +568,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     )
       return
@@ -575,7 +585,7 @@ class DeviceService {
       !this.tabTracker.shouldControlScript(
         sender,
         this.scriptLoaded,
-        !!this.lastLoadedScript,
+        !!this.lastScriptData,
       )
     )
       return
@@ -588,13 +598,17 @@ class DeviceService {
     await this.broadcastState()
   }
 
-  // Tab management
+  // ===========================================
+  // Tab Management
+  // ===========================================
+
   private clearScriptForTab(tabId: number): void {
     if (this.tabTracker.isActiveTab(tabId)) {
       this.tabTracker.clear()
       this.scriptLoaded = false
-      this.lastLoadedScript = null
+      this.lastScriptData = null
       this.funscript = null
+      this.deviceManager.clearScript()
       this.playbackManager.reset()
       this.broadcastState()
     }
@@ -605,7 +619,10 @@ class DeviceService {
     this.clearScriptForTab(tabId)
   }
 
-  // Device info
+  // ===========================================
+  // Device Info
+  // ===========================================
+
   public getDeviceInfo(): DevicesInfo {
     return {
       handy: this.handyManager.getDeviceInfo(),
@@ -614,10 +631,13 @@ class DeviceService {
     }
   }
 
-  // Auto connect
+  // ===========================================
+  // Auto Connect
+  // ===========================================
+
   public async autoConnect(): Promise<void> {
     try {
-      if (this.state.handyConnectionKey) {
+      if (this.state.handyConnectionKey && !this.state.handyConnected) {
         try {
           await this.connectHandy(this.state.handyConnectionKey)
         } catch (error) {
@@ -645,7 +665,10 @@ class DeviceService {
     }
   }
 
+  // ===========================================
   // Utility
+  // ===========================================
+
   extractRealScriptUrlFromCloudflare = async (
     scriptUrl: string,
   ): Promise<string | null> => {

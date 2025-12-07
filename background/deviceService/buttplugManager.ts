@@ -1,4 +1,4 @@
-import { ButtplugDevice, ButtplugConnectionType, ScriptData } from 'ive-connect'
+import { ButtplugDevice, ButtplugConnectionType } from 'ive-connect'
 import { DeviceServiceState } from '../types'
 
 export class ButtplugManager {
@@ -55,12 +55,6 @@ export class ButtplugManager {
     state: DeviceServiceState,
     saveState: () => Promise<void>,
     broadcastState: (extra?: { error?: string | null }) => Promise<void>,
-    loadScriptToDevice: (
-      device: ButtplugDevice,
-      scriptData: ScriptData,
-    ) => Promise<boolean>,
-    lastLoadedScript: ScriptData | null,
-    isPlaying: boolean,
   ): Promise<boolean> {
     try {
       state.buttplugServerUrl = serverUrl
@@ -87,11 +81,6 @@ export class ButtplugManager {
         state.buttplugConnected = true
         await saveState()
         await broadcastState()
-
-        if (!isPlaying && lastLoadedScript) {
-          await loadScriptToDevice(this.device, lastLoadedScript)
-        }
-
         return true
       }
 
@@ -195,17 +184,6 @@ export class ButtplugManager {
     if (this.device) {
       await this.device.stop()
     }
-  }
-
-  async loadScript(
-    scriptData: ScriptData,
-    inverted: boolean,
-  ): Promise<boolean> {
-    if (!this.device) return false
-    const result = await this.device.loadScript(scriptData, {
-      invertScript: inverted,
-    })
-    return result.success
   }
 
   getDeviceInfo() {

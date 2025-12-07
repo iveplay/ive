@@ -1,4 +1,4 @@
-import { AutoblowDevice, ScriptData } from 'ive-connect'
+import { AutoblowDevice } from 'ive-connect'
 import { DeviceServiceState } from '../types'
 
 export class AutoblowManager {
@@ -45,12 +45,6 @@ export class AutoblowManager {
     state: DeviceServiceState,
     saveState: () => Promise<void>,
     broadcastState: (extra?: { error?: string | null }) => Promise<void>,
-    loadScriptToDevice: (
-      device: AutoblowDevice,
-      scriptData: ScriptData,
-    ) => Promise<boolean>,
-    lastLoadedScript: ScriptData | null,
-    isPlaying: boolean,
   ): Promise<boolean> {
     try {
       state.autoblowDeviceToken = deviceToken
@@ -72,11 +66,6 @@ export class AutoblowManager {
         state.autoblowConnected = true
         await saveState()
         await broadcastState()
-
-        if (!isPlaying && lastLoadedScript) {
-          await loadScriptToDevice(this.device, lastLoadedScript)
-        }
-
         return true
       }
 
@@ -152,17 +141,6 @@ export class AutoblowManager {
     if (this.device) {
       await this.device.stop()
     }
-  }
-
-  async loadScript(
-    scriptData: ScriptData,
-    inverted: boolean,
-  ): Promise<boolean> {
-    if (!this.device) return false
-    const result = await this.device.loadScript(scriptData, {
-      invertScript: inverted,
-    })
-    return result.success
   }
 
   getDeviceInfo() {

@@ -1,4 +1,4 @@
-import { HandyDevice, ScriptData } from 'ive-connect'
+import { HandyDevice } from 'ive-connect'
 import { DeviceServiceState } from '../types'
 
 export class HandyManager {
@@ -45,12 +45,6 @@ export class HandyManager {
     state: DeviceServiceState,
     saveState: () => Promise<void>,
     broadcastState: (extra?: { error?: string | null }) => Promise<void>,
-    loadScriptToDevice: (
-      device: HandyDevice,
-      scriptData: ScriptData,
-    ) => Promise<boolean>,
-    lastLoadedScript: ScriptData | null,
-    isPlaying: boolean,
   ): Promise<boolean> {
     try {
       state.handyConnectionKey = connectionKey
@@ -73,11 +67,6 @@ export class HandyManager {
         state.handyConnected = true
         await saveState()
         await broadcastState()
-
-        if (!isPlaying && lastLoadedScript) {
-          await loadScriptToDevice(this.device, lastLoadedScript)
-        }
-
         return true
       }
 
@@ -168,17 +157,6 @@ export class HandyManager {
     if (this.device) {
       await this.device.syncTime(timeMs, filter)
     }
-  }
-
-  async loadScript(
-    scriptData: ScriptData,
-    inverted: boolean,
-  ): Promise<boolean> {
-    if (!this.device) return false
-    const result = await this.device.loadScript(scriptData, {
-      invertScript: inverted,
-    })
-    return result.success
   }
 
   getDeviceInfo() {
