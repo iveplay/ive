@@ -92,7 +92,7 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
                 !buttplugDeviceInfo?.deviceCount && styles.empty,
               )}
             >
-              {buttplugDeviceInfo?.deviceCount || 0} connected
+              {String(buttplugDeviceInfo?.deviceType || 0)} connected
             </span>
           </li>
         )}
@@ -107,7 +107,7 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
                   !autoblowDeviceInfo?.deviceType && styles.empty,
                 )}
               >
-                {autoblowDeviceInfo?.deviceType || 'Unknown'}
+                {String(autoblowDeviceInfo?.deviceType || 'Unknown')}
               </span>
             </li>
             <li className={styles.infoItem}>

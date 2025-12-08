@@ -1,4 +1,4 @@
-import { ScriptData } from 'ive-connect'
+import { Funscript, ScriptData } from 'ive-connect'
 import { localScriptsService } from '../localScripts.service'
 
 export class ScriptResolver {
@@ -22,7 +22,7 @@ export class ScriptResolver {
       throw new Error('Local script not found')
     }
 
-    return { type: 'funscript', content }
+    return { type: 'funscript', content: content as Funscript }
   }
 
   private async resolveIvdbScript(

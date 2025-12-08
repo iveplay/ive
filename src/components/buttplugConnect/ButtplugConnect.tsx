@@ -66,24 +66,28 @@ export const ButtplugConnect = () => {
   // Update device info when it changes
   useEffect(() => {
     if (buttplugDeviceInfo && buttplugDeviceInfo.devices) {
-      setDeviceCount(buttplugDeviceInfo.deviceCount || 0)
+      setDeviceCount(
+        typeof buttplugDeviceInfo.deviceCount === 'number'
+          ? buttplugDeviceInfo.deviceCount
+          : 0,
+      )
 
       // Convert to our internal device list format
-      const devices = (buttplugDeviceInfo.devices || []).map(
-        (device: DeviceListItem) => {
-          const features = Array.isArray(device.features)
-            ? device.features.map((feature) => ({
-                name: feature,
-                type: feature.type,
-              }))
-            : []
+      const devices = (
+        (buttplugDeviceInfo.devices || []) as DeviceListItem[]
+      ).map((device: DeviceListItem) => {
+        const features = Array.isArray(device.features)
+          ? device.features.map((feature) => ({
+              name: feature.name,
+              type: feature.type,
+            }))
+          : []
 
-          return {
-            name: device.name,
-            features,
-          }
-        },
-      )
+        return {
+          name: device.name,
+          features,
+        }
+      })
 
       setDeviceList(devices)
     } else {
