@@ -61,8 +61,7 @@ export const FunscripthubPanel = () => {
 
   useEffect(() => {
     let attempts = 0
-    const maxAttempts = 3
-    const interval = 1000 // ms
+    let timeoutId: NodeJS.Timeout | null = null
 
     const recheckLinks = () => {
       const { videoLinks, scriptLinks } = getAllLinks()
@@ -70,16 +69,31 @@ export const FunscripthubPanel = () => {
       if (videoLinks.length > 0 || scriptLinks.length > 0) {
         setVideoLinks(videoLinks)
         setScriptLinks(scriptLinks)
+
+        // Auto-select if only one option is available
+        if (videoLinks.length === 1 && !selectedVideo) {
+          setSelectedVideo(videoLinks[0].url)
+        }
+        if (scriptLinks.length === 1 && !selectedScript) {
+          setSelectedScript(scriptLinks[0].url)
+        }
+        return
       }
 
       attempts++
-      if (attempts < maxAttempts) {
-        setTimeout(recheckLinks, interval)
+      if (attempts < 3) {
+        timeoutId = setTimeout(recheckLinks, 1000)
       }
     }
 
     recheckLinks()
-  }, [])
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }, [selectedScript, selectedVideo])
 
   const handleLoad = async () => {
     if (!selectedVideo || !selectedScript) return
