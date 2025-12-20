@@ -71,10 +71,10 @@ export const FunscripthubPanel = () => {
         setScriptLinks(scriptLinks)
 
         // Auto-select if only one option is available
-        if (videoLinks.length === 1 && !selectedVideo) {
+        if (videoLinks.length >= 1 && !selectedVideo) {
           setSelectedVideo(videoLinks[0].url)
         }
-        if (scriptLinks.length === 1 && !selectedScript) {
+        if (scriptLinks.length >= 1 && !selectedScript) {
           setSelectedScript(scriptLinks[0].url)
         }
         return
