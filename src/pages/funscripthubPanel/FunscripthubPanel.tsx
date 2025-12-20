@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import logoImg from '@/assets/logo.png'
 import { CreateIveEntryData } from '@/types/ivedb'
 import { createEntry } from '@/utils/iveDbUtils'
@@ -28,7 +28,7 @@ const getAllLinks = () => {
       const href = link.getAttribute('href')
       const text = link.textContent?.trim()
 
-      if (href && text) {
+      if (href && text && !text.endsWith('.twist.funscript')) {
         if (href.endsWith('.funscript')) {
           scriptLinks.push({
             url: href,
@@ -56,8 +56,30 @@ export const FunscripthubPanel = () => {
   const [selectedVideo, setSelectedVideo] = useState('')
   const [selectedScript, setSelectedScript] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [videoLinks, setVideoLinks] = useState<VideoLink[]>([])
+  const [scriptLinks, setScriptLinks] = useState<ScriptLink[]>([])
 
-  const { videoLinks, scriptLinks } = getAllLinks()
+  useEffect(() => {
+    let attempts = 0
+    const maxAttempts = 3
+    const interval = 1000 // ms
+
+    const recheckLinks = () => {
+      const { videoLinks, scriptLinks } = getAllLinks()
+
+      if (videoLinks.length > 0 || scriptLinks.length > 0) {
+        setVideoLinks(videoLinks)
+        setScriptLinks(scriptLinks)
+      }
+
+      attempts++
+      if (attempts < maxAttempts) {
+        setTimeout(recheckLinks, interval)
+      }
+    }
+
+    recheckLinks()
+  }, [])
 
   const handleLoad = async () => {
     if (!selectedVideo || !selectedScript) return

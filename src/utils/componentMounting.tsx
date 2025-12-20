@@ -11,7 +11,7 @@ import { findHtmlElement } from '@/utils/findHtmlElement'
 
 export const SITE_URLS = {
   EROSCRIPT: 'discuss.eroscripts.com/t/',
-  FAPTAP: 'faptap.net/v',
+  FAPTAP: 'faptap.net/v/',
   FAPTAP_DOMAIN: 'faptap.net',
   IVDB: 'ivdb.io/#/videos/',
   FUNSCRIPTHUB: 'funscripthub.com/detail',
