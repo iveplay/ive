@@ -31,6 +31,12 @@ class ContextMenuService {
       contexts: ['action'],
     })
 
+    chrome.contextMenus.create({
+      id: 'show-ive-panel',
+      title: 'Show IVE Panel',
+      contexts: ['action'],
+    })
+
     // Link context menus - only on EroScript pages
     chrome.contextMenus.create({
       id: 'add-as-video',
@@ -58,6 +64,11 @@ class ContextMenuService {
           case 'float-video':
             if (tab?.id) {
               await this.floatVideo(tab.id)
+            }
+            break
+          case 'show-ive-panel':
+            if (tab?.id) {
+              await this.showIvePanel(tab.id)
             }
             break
           case 'add-as-video':
@@ -93,6 +104,18 @@ class ContextMenuService {
     try {
       await chrome.tabs.sendMessage(tabId, {
         type: CONTEXT_MESSAGES.FLOAT_VIDEO,
+        float: true,
+      })
+    } catch (error) {
+      console.error('Error floating video:', error)
+    }
+  }
+
+  private async showIvePanel(tabId: number): Promise<void> {
+    try {
+      await chrome.tabs.sendMessage(tabId, {
+        type: CONTEXT_MESSAGES.FLOAT_VIDEO,
+        float: false,
       })
     } catch (error) {
       console.error('Error floating video:', error)
