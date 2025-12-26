@@ -26,7 +26,7 @@ const isInIframe = window !== window.top
 const setupMessageListeners = () => {
   chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     if (message.type === CONTEXT_MESSAGES.FLOAT_VIDEO && !isInIframe) {
-      handleFloatVideoMessage()
+      handleFloatVideoMessage(message.float)
       sendResponse({ success: true })
     }
 
@@ -39,7 +39,7 @@ const setupMessageListeners = () => {
   })
 }
 
-const handleFloatVideoMessage = () => {
+const handleFloatVideoMessage = (float: boolean) => {
   // Mount component if needed
   if (!document.getElementById('ive')) {
     mountedComponent = false
@@ -47,9 +47,11 @@ const handleFloatVideoMessage = () => {
   }
 
   // Trigger floating mode
-  setTimeout(() => {
-    useVideoStore.getState().setIsFloating(true)
-  }, 200)
+  if (float) {
+    setTimeout(() => {
+      useVideoStore.getState().setIsFloating(true)
+    }, 200)
+  }
 }
 
 // URL change monitoring

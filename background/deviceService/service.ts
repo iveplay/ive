@@ -599,6 +599,145 @@ class DeviceService {
   }
 
   // ===========================================
+  // Audio Scripting - Direct Position Control
+  // ===========================================
+
+  private hspInitialized = false
+  private hspInitializing = false
+  private hspBaseTime = 0
+  private hspPointQueue: Array<{ t: number; x: number }> = []
+  private hspFlushTimeout: ReturnType<typeof setTimeout> | null = null
+  private hspLastFlushTime = 0
+
+  public async sendPosition(
+    position: number,
+    duration: number,
+  ): Promise<boolean> {
+    try {
+      // position is 0-100, duration is ms
+      const clampedPos = Math.max(0, Math.min(100, position))
+
+      let sent = false
+
+      // Send to Handy via HSP
+      if (this.state.handyConnected && this.handyManager.device) {
+        await this.sendPositionToHandy(clampedPos, duration)
+        sent = true
+      }
+
+      // Send to Buttplug devices
+      if (this.state.buttplugConnected && this.buttplugManager.device) {
+        const normalizedPos = clampedPos / 100
+        // Access the buttplug client for linear command
+        const device = this.buttplugManager.device as unknown as {
+          sendLinearCmd?: (duration: number, position: number) => Promise<void>
+        }
+        if (device.sendLinearCmd) {
+          await device.sendLinearCmd(duration, normalizedPos)
+          sent = true
+        }
+      }
+
+      if (!sent) {
+        console.warn('[AudioScripting] No devices connected to send position to')
+      }
+
+      return sent
+    } catch (error) {
+      console.error('[AudioScripting] Error sending position:', error)
+      return false
+    }
+  }
+
+  private async sendPositionToHandy(
+    position: number,
+    duration: number,
+  ): Promise<void> {
+    const handyDevice = this.handyManager.device
+    if (!handyDevice) {
+      console.warn('[AudioScripting] Handy device not available')
+      return
+    }
+
+    // Initialize HSP session if not done
+    if (!this.hspInitialized && !this.hspInitializing) {
+      this.hspInitializing = true
+      console.log('[AudioScripting] Initializing HSP session...')
+      
+      try {
+        const setupResult = await handyDevice.hspSetup()
+        console.log('[AudioScripting] HSP setup result:', setupResult)
+        
+        this.hspBaseTime = performance.now()
+        
+        // Start HSP playback with pause on starving enabled
+        const playResult = await handyDevice.hspPlay(0, { pauseOnStarving: true })
+        console.log('[AudioScripting] HSP play result:', playResult)
+        
+        this.hspInitialized = true
+        this.hspInitializing = false
+      } catch (error) {
+        console.error('[AudioScripting] HSP initialization failed:', error)
+        this.hspInitializing = false
+        return
+      }
+    }
+
+    if (!this.hspInitialized) {
+      // Still initializing, skip this point
+      return
+    }
+
+    // Calculate timestamp relative to HSP start
+    const t = Math.round(performance.now() - this.hspBaseTime)
+
+    // Queue the point - add buffer time ahead for smooth playback
+    const bufferAhead = 100 // ms ahead of current time
+    this.hspPointQueue.push({ t: t + bufferAhead + duration, x: position })
+
+    // Batch send points to reduce API calls
+    if (!this.hspFlushTimeout) {
+      this.hspFlushTimeout = setTimeout(async () => {
+        this.hspFlushTimeout = null
+        
+        if (this.hspPointQueue.length > 0 && handyDevice) {
+          const points = this.hspPointQueue.splice(0, 100) // Max 100 points per call
+          try {
+            const result = await handyDevice.hspAddPoints(points)
+            this.hspLastFlushTime = performance.now()
+            
+            // Log occasionally to avoid spam
+            if (Math.random() < 0.1) {
+              console.log(`[AudioScripting] Sent ${points.length} points, queue: ${this.hspPointQueue.length}`)
+            }
+          } catch (error) {
+            console.error('[AudioScripting] Failed to send points:', error)
+            // Reset HSP on error
+            this.resetHsp()
+          }
+        }
+      }, 30) // Batch every 30ms
+    }
+  }
+
+  // Reset HSP when stopping audio scripting
+  public resetHsp(): void {
+    console.log('[AudioScripting] Resetting HSP state')
+    this.hspInitialized = false
+    this.hspInitializing = false
+    this.hspPointQueue = []
+    if (this.hspFlushTimeout) {
+      clearTimeout(this.hspFlushTimeout)
+      this.hspFlushTimeout = null
+    }
+    
+    // Stop HSP on device if connected
+    if (this.handyManager.device) {
+      this.handyManager.device.hspStop().catch(() => {})
+    }
+  }
+
+  // ===========================================
   // Tab Management
   // ===========================================
 

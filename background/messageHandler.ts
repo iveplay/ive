@@ -194,6 +194,17 @@ export function setupMessageHandler(): void {
             case MESSAGES.LOCAL_SCRIPT_INFO:
               return await localScriptsService.getScriptInfo(message.scriptId)
 
+            // Audio scripting
+            case MESSAGES.SEND_POSITION:
+              return await deviceService.sendPosition(
+                message.position,
+                message.duration,
+              )
+
+            case MESSAGES.RESET_AUDIO_SCRIPTING:
+              deviceService.resetHsp()
+              return { success: true }
+
             // Utils
             case MESSAGES.EXTRACT_SCRIPT_URL:
               return await deviceService.extractRealScriptUrlFromCloudflare(

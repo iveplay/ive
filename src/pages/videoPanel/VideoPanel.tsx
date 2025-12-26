@@ -3,6 +3,11 @@ import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
 import logoImg from '@/assets/logo.png'
+import {
+  AudioScripting,
+  AudioScriptingSettingsPanel,
+} from '@/components/audioScripting/AudioScripting'
+import { useAudioScripting } from '@/hooks/useAudioScripting'
 import { useScriptAutoload } from '@/hooks/useScriptAutoload'
 import { useVideoListener } from '@/hooks/useVideoListener'
 import { useDeviceStore } from '@/store/useDeviceStore'
@@ -69,6 +74,14 @@ export const VideoPanel = ({
   )
 
   useVideoListener(videoElement)
+
+  // Audio scripting for beat-based haptics
+  const {
+    isEnabled: isAudioScriptingEnabled,
+    settings: audioScriptingSettings,
+    toggle: toggleAudioScripting,
+    updateSettings: updateAudioScriptingSettings,
+  } = useAudioScripting(videoElement)
 
   // Load script options from IveDB entry
   useEffect(() => {
@@ -274,6 +287,32 @@ export const VideoPanel = ({
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {/* Audio Scripting - generates haptics from audio when no script loaded */}
+        {!currentScript && videoElement && (
+          <div className={styles.audioScriptingContainer}>
+            <div className={styles.audioScriptingHeader}>
+              <span className={styles.label}>Audio Scripting</span>
+              <AudioScripting
+                isEnabled={isAudioScriptingEnabled}
+                settings={audioScriptingSettings}
+                onToggle={toggleAudioScripting}
+                onSettingsChange={updateAudioScriptingSettings}
+              />
+            </div>
+            {isAudioScriptingEnabled && (
+              <>
+                <p className={styles.audioScriptingInfo}>
+                  Generating haptics from audio beats
+                </p>
+                <AudioScriptingSettingsPanel
+                  settings={audioScriptingSettings}
+                  onSettingsChange={updateAudioScriptingSettings}
+                />
+              </>
+            )}
           </div>
         )}
 

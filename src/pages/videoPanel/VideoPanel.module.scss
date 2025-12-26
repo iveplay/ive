@@ -243,6 +243,32 @@
     }
   }
 
+  .audioScriptingContainer {
+    margin-top: 16px;
+    margin-inline: 16px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+
+    .audioScriptingHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .label {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    .audioScriptingInfo {
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: #4ecca3;
+    }
+  }
+
   .scriptInfo {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 8px;

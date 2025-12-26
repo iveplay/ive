@@ -152,6 +152,10 @@ export const MESSAGES = {
   LOCAL_SCRIPT_DELETE: 'ive:local_script:delete',
   LOCAL_SCRIPT_LIST: 'ive:local_script:list',
   LOCAL_SCRIPT_INFO: 'ive:local_script:info',
+
+  // Audio scripting - direct position control
+  SEND_POSITION: 'ive:send_position',
+  RESET_AUDIO_SCRIPTING: 'ive:reset_audio_scripting',
 } as const
 
 export type UIMessageType = (typeof MESSAGES)[keyof typeof MESSAGES]
@@ -254,3 +258,6 @@ export type UIMessage =
   | { type: typeof MESSAGES.LOCAL_SCRIPT_DELETE; scriptId: string }
   | { type: typeof MESSAGES.LOCAL_SCRIPT_LIST }
   | { type: typeof MESSAGES.LOCAL_SCRIPT_INFO; scriptId: string }
+  // Audio scripting
+  | { type: typeof MESSAGES.SEND_POSITION; position: number; duration: number }
+  | { type: typeof MESSAGES.RESET_AUDIO_SCRIPTING }
