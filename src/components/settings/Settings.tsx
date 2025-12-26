@@ -1,3 +1,4 @@
+import { CONTEXT_MESSAGES } from '@background/types'
 import { Button, Switch, Textarea } from '@mantine/core'
 import { useState } from 'react'
 import { useShallow } from 'zustand/shallow'
@@ -41,7 +42,7 @@ export const Settings = () => {
       })
       if (tab.id) {
         await chrome.tabs.sendMessage(tab.id, {
-          type: 'IVE_ACTIVATE_VIDEO_PANEL',
+          type: CONTEXT_MESSAGES.FLOAT_VIDEO,
         })
         // Close popup after activation
         window.close()
