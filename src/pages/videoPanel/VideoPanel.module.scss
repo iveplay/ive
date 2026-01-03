@@ -269,6 +269,14 @@
     }
   }
 
+  .liveHeatmapContainer {
+    margin-top: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
   .scriptInfo {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 8px;

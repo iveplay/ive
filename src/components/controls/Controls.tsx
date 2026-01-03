@@ -13,10 +13,12 @@ import {
 import clsx from 'clsx'
 import { useState, useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/shallow'
+import { useDeviceStore } from '@/store/useDeviceStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { useVideoStore } from '@/store/useVideoStore'
 import { formatTime } from '@/utils/formatTime'
 import { Heatmap } from '../heatmap/Heatmap'
+import { LiveHeatmap } from '../heatmap/LiveHeatmap'
 import { RangeSlider } from '../rangeSlider/RangeSlider'
 import styles from './Controls.module.scss'
 import { ControlSettings } from './ControlSettings'
@@ -60,6 +62,16 @@ export const Controls = ({
     })),
   )
   const showHeatmap = useSettingsStore((state) => state.showHeatmap)
+  const isAudioScriptingEnabled = useVideoStore(
+    (state) => state.isAudioScriptingEnabled,
+  )
+  const hapticHistory = useVideoStore((state) => state.hapticHistory)
+  const funscript = useDeviceStore((state) => state.funscript)
+
+  // Determine which heatmap to show
+  const showLiveHeatmap = isAudioScriptingEnabled && hapticHistory.length > 1
+  const showScriptHeatmap =
+    !isAudioScriptingEnabled && funscript && shouldShowHeatmap
 
   const [isControlling, setIsControlling] = useState(false)
   const [localVolume, setLocalVolume] = useState(volume)
@@ -248,11 +260,20 @@ export const Controls = ({
       {/* Only show scrubber for non-live content */}
       {!isLiveContent && (
         <>
-          {shouldShowHeatmap && showHeatmap && !isCompact && (
-            <div className={styles.heatmapContainer}>
-              <Heatmap />
-            </div>
-          )}
+          {showHeatmap &&
+            !isCompact &&
+            (showLiveHeatmap || showScriptHeatmap) && (
+              <div className={styles.heatmapContainer}>
+                {showLiveHeatmap ? (
+                  <LiveHeatmap
+                    points={hapticHistory}
+                    videoDuration={duration}
+                  />
+                ) : (
+                  <Heatmap />
+                )}
+              </div>
+            )}
           <div className={styles.scrubberContainer}>
             <RangeSlider
               min='0'

@@ -24,9 +24,14 @@ export const VideoPage = ({ entry }: VideoPageProps) => {
   const activeScript = useVideoStore((state) => state.activeScript)
   const scriptUrl = useDeviceStore((state) => state.scriptUrl)
 
+  const isAudioScriptingEnabled = useVideoStore(
+    (state) => state.isAudioScriptingEnabled,
+  )
+
   const isIvdbScript = scriptUrl?.startsWith('ivdb://')
-  const shouldShowHeatmap =
+  const shouldShowScriptHeatmap =
     showHeatmap && entry && scriptUrl === activeScript && !isIvdbScript
+  const shouldShowHeatmap = shouldShowScriptHeatmap || isAudioScriptingEnabled
   const isInIframe = window !== window.top
 
   useEffect(() => {
@@ -60,13 +65,13 @@ export const VideoPage = ({ entry }: VideoPageProps) => {
         disableFloat={isInIframe}
         hasVideoIframes={hasVideoIframes}
       />
-      {shouldShowHeatmap && !hasVideoIframes && <ScrubberHeatmap />}
+      {showHeatmap && !hasVideoIframes && <ScrubberHeatmap />}
       {isFloating && (
         <>
           {videoElement ? (
             <FloatingVideo
               videoElement={videoElement}
-              shouldShowHeatmap={!!shouldShowHeatmap}
+              shouldShowHeatmap={shouldShowHeatmap}
             />
           ) : (
             hasVideoIframes &&

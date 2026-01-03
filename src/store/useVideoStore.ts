@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { HapticPoint } from '@/components/heatmap/LiveHeatmap'
 import { findVideoElement } from '@/utils/findVideoElement'
 
 const MAX_ATTEMPTS = 5
@@ -20,6 +21,14 @@ interface VideoStore {
   setIsBuffering: (isBuffering: boolean) => void
   activeScript: string | null
   setActiveScript: (scriptUrl: string | null) => void
+
+  // Audio scripting state
+  isAudioScriptingEnabled: boolean
+  setAudioScriptingEnabled: (enabled: boolean) => void
+  hapticHistory: HapticPoint[]
+  setHapticHistory: (points: HapticPoint[]) => void
+  addHapticPoint: (point: HapticPoint) => void
+  clearHapticHistory: () => void
 
   // Video element and search state
   videoElement: HTMLVideoElement | null
@@ -45,6 +54,18 @@ export const useVideoStore = create<VideoStore>((set, get) => ({
   setIsBuffering: (isBuffering) => set({ isBuffering }),
   activeScript: null,
   setActiveScript: (scriptUrl) => set({ activeScript: scriptUrl }),
+
+  // Audio scripting
+  isAudioScriptingEnabled: false,
+  setAudioScriptingEnabled: (enabled) =>
+    set({ isAudioScriptingEnabled: enabled }),
+  hapticHistory: [],
+  setHapticHistory: (points) => set({ hapticHistory: points }),
+  addHapticPoint: (point) =>
+    set((state) => ({
+      hapticHistory: [...state.hapticHistory, point],
+    })),
+  clearHapticHistory: () => set({ hapticHistory: [] }),
 
   // Video element
   videoElement: null,

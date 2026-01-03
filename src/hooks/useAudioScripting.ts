@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { MESSAGES } from '@background/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useVideoStore } from '@/store/useVideoStore'
 import { AudioProcessor, HapticGenerator } from '@/utils/audioScripting'
 
 export interface AudioScriptingSettings {
@@ -8,11 +9,16 @@ export interface AudioScriptingSettings {
 }
 
 export function useAudioScripting(videoElement: HTMLVideoElement | null) {
-  const [isEnabled, setIsEnabled] = useState(false)
   const [settings, setSettings] = useState<AudioScriptingSettings>({
     energyBoost: 1.5,
     strokeSpeed: 200,
   })
+
+  // Use store for shared state
+  const isEnabled = useVideoStore((state) => state.isAudioScriptingEnabled)
+  const setIsEnabled = useVideoStore((state) => state.setAudioScriptingEnabled)
+  const setHapticHistory = useVideoStore((state) => state.setHapticHistory)
+  const clearHapticHistory = useVideoStore((state) => state.clearHapticHistory)
 
   const audioProcessorRef = useRef<AudioProcessor | null>(null)
   const hapticGeneratorRef = useRef<HapticGenerator | null>(null)
@@ -20,6 +26,7 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
   const lastPositionRef = useRef<number>(-1)
   const lastSendTimeRef = useRef<number>(0)
   const isRunningRef = useRef(false)
+  const hapticHistoryRef = useRef<{ time: number; position: number }[]>([])
 
   // Initialize processors
   useEffect(() => {
@@ -49,22 +56,20 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
     }
   }, [settings])
 
-  // Main processing loop - uses ref to check if should continue
+  // Main processing loop
   const processLoop = useCallback(() => {
-    // Check ref instead of state to avoid stale closure
     if (!isRunningRef.current) return
 
     const audioProcessor = audioProcessorRef.current
     const hapticGenerator = hapticGeneratorRef.current
     const video = videoElement
 
-    // Only process when video is playing
     if (video && !video.paused && audioProcessor && hapticGenerator) {
       const features = audioProcessor.getFeatures()
       if (features) {
         const position = hapticGenerator.update(features)
+        const videoTimeMs = video.currentTime * 1000
 
-        // Only send if position changed enough and enough time has passed
         const now = performance.now()
         const positionDelta = Math.abs(position - lastPositionRef.current)
         const timeDelta = now - lastSendTimeRef.current
@@ -73,25 +78,41 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
           lastPositionRef.current = position
           lastSendTimeRef.current = now
 
-          // Send position to device
-          chrome.runtime.sendMessage({
-            type: MESSAGES.SEND_POSITION,
-            position,
-            duration: 50,
-          }).catch((err) => {
-            console.warn('[AudioScripting] Failed to send position:', err)
-          })
+          // Record to history
+          hapticHistoryRef.current.push({ time: videoTimeMs, position })
+
+          chrome.runtime
+            .sendMessage({
+              type: MESSAGES.SEND_POSITION,
+              position,
+              duration: 50,
+            })
+            .catch((err) => {
+              console.warn('[AudioScripting] Failed to send position:', err)
+            })
         }
       }
     }
 
-    // Continue loop only if still running
     if (isRunningRef.current) {
       animationFrameRef.current = requestAnimationFrame(processLoop)
     }
   }, [videoElement])
 
-  // Start/stop processing based on enabled state
+  // Sync haptic history to store periodically
+  useEffect(() => {
+    if (!isEnabled) return
+
+    const interval = setInterval(() => {
+      if (hapticHistoryRef.current.length > 0) {
+        setHapticHistory([...hapticHistoryRef.current])
+      }
+    }, 500)
+
+    return () => clearInterval(interval)
+  }, [isEnabled, setHapticHistory])
+
+  // Start/stop processing
   useEffect(() => {
     if (isEnabled && videoElement) {
       const initAndStart = async () => {
@@ -107,7 +128,10 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
             await audioProcessor.init(videoElement)
             console.log('[AudioScripting] Audio processor initialized')
           } catch (error) {
-            console.error('[AudioScripting] Failed to init audio processor:', error)
+            console.error(
+              '[AudioScripting] Failed to init audio processor:',
+              error,
+            )
             setIsEnabled(false)
             return
           }
@@ -118,8 +142,11 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
         hapticGeneratorRef.current?.reset()
         lastPositionRef.current = -1
         lastSendTimeRef.current = 0
-        
-        // Set running flag BEFORE starting loop
+
+        // Clear history on start
+        hapticHistoryRef.current = []
+        clearHapticHistory()
+
         isRunningRef.current = true
         console.log('[AudioScripting] Starting processing loop')
         processLoop()
@@ -127,20 +154,20 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
 
       initAndStart()
     } else {
-      // Stop processing
       console.log('[AudioScripting] Stopping processing loop')
       isRunningRef.current = false
-      
+
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null
       }
       audioProcessorRef.current?.suspend()
-      
-      // Reset HSP on the device
-      chrome.runtime.sendMessage({
-        type: MESSAGES.RESET_AUDIO_SCRIPTING,
-      }).catch(() => {})
+
+      chrome.runtime
+        .sendMessage({
+          type: MESSAGES.RESET_AUDIO_SCRIPTING,
+        })
+        .catch(() => {})
     }
 
     return () => {
@@ -150,11 +177,11 @@ export function useAudioScripting(videoElement: HTMLVideoElement | null) {
         animationFrameRef.current = null
       }
     }
-  }, [isEnabled, videoElement, processLoop])
+  }, [isEnabled, videoElement, processLoop, setIsEnabled, clearHapticHistory])
 
   const toggle = useCallback(() => {
-    setIsEnabled((prev) => !prev)
-  }, [])
+    setIsEnabled(!isEnabled)
+  }, [isEnabled, setIsEnabled])
 
   const updateSettings = useCallback(
     (newSettings: Partial<AudioScriptingSettings>) => {
