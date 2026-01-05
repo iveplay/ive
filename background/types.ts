@@ -145,6 +145,7 @@ export const MESSAGES = {
   IVEDB_FIND_BY_SCRIPT_URL: 'ive:ivedb:find_by_script_url',
   IVEDB_GET_VIDEO_LOOKUPS: 'ive:ivedb:get_video_lookups',
   IVE_SELECT_SCRIPT: 'ive:select_script',
+  IVE_SAVE_AND_PLAY: 'ive:save_and_play',
 
   // Local scripts
   LOCAL_SCRIPT_SAVE: 'ive:local_script:save',

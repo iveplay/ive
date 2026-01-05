@@ -99,6 +99,31 @@ export const setupIveBridge = () => {
           response = true
           break
 
+        case MESSAGES.IVE_SAVE_AND_PLAY: {
+          // Create/update entry and select script for playback
+          const { entry, videoUrl, scriptId: requestedScriptId } = message
+          const entryId = await createEntry(entry)
+
+          // Get the created entry to find the script ID
+          const details = await getEntryWithDetails(entryId)
+          const scriptToSelect = requestedScriptId
+            ? details?.scripts.find((s) => s.id === requestedScriptId)?.id
+            : details?.scripts[0]?.id
+
+          if (scriptToSelect) {
+            await chrome.storage.local.set({
+              [LOCAL_STORAGE_KEYS.IVE_PENDING_SCRIPT]: {
+                scriptId: scriptToSelect,
+                videoUrl,
+                timestamp: Date.now(),
+              },
+            })
+          }
+
+          response = { entryId, scriptId: scriptToSelect }
+          break
+        }
+
         // Local scripts
         case MESSAGES.LOCAL_SCRIPT_SAVE:
           response = await chrome.runtime.sendMessage({
