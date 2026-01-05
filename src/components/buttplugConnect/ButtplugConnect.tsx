@@ -6,16 +6,9 @@ import { useDeviceStore } from '@/store/useDeviceStore'
 import { DeviceInfo as DeviceInfoComp } from '../deviceInfo/DeviceInfo'
 import styles from './ButtplugConnect.module.scss'
 
-// Type for device features
-interface DeviceFeature {
-  name: string
-  type: 'vibrate' | 'rotate' | 'linear' | string
-}
-
-// Type for device in the list
 interface DeviceListItem {
   name: string
-  features: DeviceFeature[]
+  features: ('vibrate' | 'rotate' | 'linear' | string)[]
 }
 
 export const ButtplugConnect = () => {
@@ -71,25 +64,7 @@ export const ButtplugConnect = () => {
           ? buttplugDeviceInfo.deviceCount
           : 0,
       )
-
-      // Convert to our internal device list format
-      const devices = (
-        (buttplugDeviceInfo.devices || []) as DeviceListItem[]
-      ).map((device: DeviceListItem) => {
-        const features = Array.isArray(device.features)
-          ? device.features.map((feature) => ({
-              name: feature.name,
-              type: feature.type,
-            }))
-          : []
-
-        return {
-          name: device.name,
-          features,
-        }
-      })
-
-      setDeviceList(devices)
+      setDeviceList(buttplugDeviceInfo.devices as DeviceListItem[])
     } else {
       setDeviceCount(0)
       setDeviceList([])
@@ -98,7 +73,7 @@ export const ButtplugConnect = () => {
 
   // Check if any devices support linear movement
   const hasLinearDevices = deviceList.some((device) =>
-    device.features.some((feature) => feature.name === 'linear'),
+    device.features.some((feature) => feature.includes('linear')),
   )
 
   // Update server URL in store when input changes
@@ -165,9 +140,9 @@ export const ButtplugConnect = () => {
                 <span
                   key={featureIndex}
                   className={styles.feature}
-                  data-feature={feature.type}
+                  data-feature={feature}
                 >
-                  {feature.name}
+                  {feature}
                 </span>
               ))}
             </div>
