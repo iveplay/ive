@@ -15,15 +15,34 @@ import {
   ping,
 } from './iveDbUtils'
 
-const ALLOWED_ORIGINS = ['https://iveplay.io', 'http://localhost:3000']
+// Allow any HTTPS iveplay.io domain (including root and subdomains)
+// and any localhost (any scheme/port) for development
+const isAllowedOrigin = (origin: string) => {
+  try {
+    const url = new URL(origin)
+    const { protocol, hostname } = url
+
+    // Allow localhost on any port for development
+    if (hostname === 'localhost') return true
+
+    // Allow root and any subdomain of iveplay.io over HTTPS
+    if (hostname === 'iveplay.io' || hostname.endsWith('.iveplay.io')) {
+      return protocol === 'https:'
+    }
+
+    return false
+  } catch {
+    return false
+  }
+}
 
 // Bridge between website and extension
 export const setupIveBridge = () => {
-  if (!ALLOWED_ORIGINS.includes(window.location.origin)) return
+  if (!isAllowedOrigin(window.location.origin)) return
 
   window.addEventListener('message', async (event) => {
     // Security: Only accept messages from allowed origins
-    if (!ALLOWED_ORIGINS.includes(event.origin)) return
+    if (!isAllowedOrigin(event.origin)) return
     if (event.source !== window) return
 
     const message = event.data
