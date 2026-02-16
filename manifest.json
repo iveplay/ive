@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.3.6",
+  "version": "1.4.0",
   "name": "IVE - Interactive Video Extension",
   "short_name": "IVE",
   "description": "Interactive Video Extension - Improve your video watching experience on any site in a floating window with extra controls.",
