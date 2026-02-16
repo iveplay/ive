@@ -5,15 +5,18 @@ import styles from './DeviceInfo.module.scss'
 
 interface DeviceInfoProps {
   type: 'handy' | 'buttplug' | 'autoblow'
+  deviceCount?: number
 }
 
-export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
+export const DeviceInfo: React.FC<DeviceInfoProps> = ({
+  type,
+  deviceCount,
+}) => {
   const {
     handyConnected,
     buttplugConnected,
     autoblowConnected,
     handyDeviceInfo,
-    buttplugDeviceInfo,
     autoblowDeviceInfo,
   } = useDeviceStore(
     useShallow((state) => ({
@@ -83,16 +86,11 @@ export const DeviceInfo: React.FC<DeviceInfoProps> = ({ type }) => {
           </>
         )}
 
-        {type === 'buttplug' && buttplugDeviceInfo && (
+        {type === 'buttplug' && deviceCount !== undefined && (
           <li className={styles.infoItem}>
             <span className={styles.label}>Devices:</span>
-            <span
-              className={clsx(
-                styles.value,
-                !buttplugDeviceInfo?.deviceCount && styles.empty,
-              )}
-            >
-              {String(buttplugDeviceInfo?.deviceType || 0)} connected
+            <span className={clsx(styles.value, !deviceCount && styles.empty)}>
+              {String(deviceCount || 0)} connected
             </span>
           </li>
         )}

@@ -11,14 +11,6 @@ export default defineConfig({
   legacy: {
     skipWebSocketTokenCheck: true,
   },
-  build: {
-    rollupOptions: {
-      // Exclude the buttplug-wasm package from the bundle
-      // extension popup cannot use it
-      // the package is also >4mb which is too large for firefox extension
-      external: ['buttplug-wasm', 'buttplug-wasm/dist/buttplug-wasm.mjs'],
-    },
-  },
   resolve: {
     preserveSymlinks: true,
     alias: {

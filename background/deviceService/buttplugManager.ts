@@ -1,4 +1,4 @@
-import { ButtplugDevice, ButtplugConnectionType } from 'ive-connect'
+import { ButtplugDevice } from 'ive-connect'
 import { DeviceServiceState } from '../types'
 
 export class ButtplugManager {
@@ -62,7 +62,6 @@ export class ButtplugManager {
 
       if (!this.device) {
         this.device = new ButtplugDevice({
-          connectionType: ButtplugConnectionType.WEBSOCKET,
           serverUrl: serverUrl,
           clientName: 'IVE-Extension',
         })
@@ -70,7 +69,6 @@ export class ButtplugManager {
         this.setupListeners(state, saveState, broadcastState)
       } else {
         await this.device.updateConfig({
-          connectionType: ButtplugConnectionType.WEBSOCKET,
           serverUrl: serverUrl,
         })
       }

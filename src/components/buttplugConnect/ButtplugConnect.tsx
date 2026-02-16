@@ -199,14 +199,10 @@ export const ButtplugConnect = () => {
           >
             {isScanning ? 'Scanning...' : 'Scan for Devices'}
           </button>
-
-          <div className={styles.deviceCount}>
-            {deviceCount} device{deviceCount !== 1 ? 's' : ''} found
-          </div>
         </div>
       )}
 
-      <DeviceInfoComp type='buttplug' />
+      <DeviceInfoComp type='buttplug' deviceCount={deviceCount} />
 
       {buttplugConnected && renderDeviceList()}
 

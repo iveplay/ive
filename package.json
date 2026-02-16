@@ -19,7 +19,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@tabler/icons-react": "3.17.0",
     "clsx": "^2.1.1",
-    "ive-connect": "^1.0.0",
+    "ive-connect": "1.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-draggable": "^4.4.6",
