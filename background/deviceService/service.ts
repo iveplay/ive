@@ -209,23 +209,26 @@ class DeviceService {
   // ===========================================
 
   public async connectButtplug(serverUrl: string): Promise<boolean> {
-    const result = await this.buttplugManager.connect(
-      serverUrl,
-      this.state,
-      () => this.saveState(),
-      (extra) => this.broadcastState(extra),
-    )
+    try {
+      const result = await this.buttplugManager.connect(
+        serverUrl,
+        this.state,
+        () => this.saveState(),
+        (extra) => this.broadcastState(extra),
+      )
+      if (result && this.buttplugManager.device) {
+        this.deviceManager.registerDevice(this.buttplugManager.device)
 
-    if (result && this.buttplugManager.device) {
-      this.deviceManager.registerDevice(this.buttplugManager.device)
-
-      // If we have a script loaded, prepare it on the new device
-      if (this.funscript) {
-        await this.buttplugManager.device.prepareScript(this.funscript)
+        // If we have a script loaded, prepare it on the new device
+        if (this.funscript) {
+          await this.buttplugManager.device.prepareScript(this.funscript)
+        }
       }
-    }
 
-    return result
+      return result
+    } catch {
+      return false
+    }
   }
 
   public async disconnectButtplug(): Promise<boolean> {

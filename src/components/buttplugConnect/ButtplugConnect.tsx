@@ -46,6 +46,7 @@ export const ButtplugConnect = () => {
   const [deviceCount, setDeviceCount] = useState(0)
   const [deviceList, setDeviceList] = useState<DeviceListItem[]>([])
   const [strokeRange, setStrokeRange] = useState<[number, number]>([0, 1])
+  const [connectError, setConnectError] = useState<string | null>(null)
 
   // Load initial values from store
   useEffect(() => {
@@ -85,12 +86,18 @@ export const ButtplugConnect = () => {
 
   const handleConnect = async () => {
     try {
+      setConnectError(null)
       setIsConnecting(true)
 
       if (buttplugConnected) {
         await disconnectButtplug()
       } else {
-        await connectButtplug(localServerUrl)
+        const result = await connectButtplug(localServerUrl)
+        if (!result) {
+          setConnectError(
+            'Failed to connect to Buttplug server, make sure to use the latest Intiface version (v3+)',
+          )
+        }
       }
     } catch (err) {
       console.error('Error during connect/disconnect:', err)
@@ -154,8 +161,8 @@ export const ButtplugConnect = () => {
 
   return (
     <div className={styles.buttplugConnect}>
-      {error && !buttplugConnected && (
-        <div className={styles.errorMessage}>{error}</div>
+      {(error || connectError) && !buttplugConnected && (
+        <div className={styles.errorMessage}>{error || connectError}</div>
       )}
 
       <div className={styles.connectionForm}>
